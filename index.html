@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
- <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,7 +37,7 @@
   }
   html { scroll-behavior: smooth; }
   body { font-family: var(--sans); background: var(--page-bg); color: var(--black); font-size: 16px; line-height: 1.6; min-height: 100vh; }
-
+ 
   /* NAV */
   nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 3px solid var(--accent); padding: 0 2rem; }
   .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; }
@@ -54,28 +53,28 @@
   .mobile-menu.open { display: flex; }
   .mobile-menu .nav-tab { height: auto; padding: 0.6rem 1.5rem; border-bottom: none; font-size: 0.85rem; }
   .mobile-menu .nav-tab.active { color: var(--accent); background: var(--green-light); }
-
+ 
   /* PAGES */
   .page { display: none; }
   .page.active { display: block; }
-
+ 
   /* HERO */
   .hero { background: linear-gradient(135deg, #0f2518 0%, #1e4d30 60%, #2d5c3f 100%); color: var(--white); padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
   .hero::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.02) 80px, rgba(255,255,255,0.02) 81px); pointer-events: none; }
   .hero-eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 1.25rem; }
   .hero h1 { font-family: var(--serif); font-size: clamp(2.8rem, 7vw, 5.5rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 1rem; text-shadow: 0 2px 24px rgba(0,0,0,0.3); }
   .hero p { font-size: 1rem; color: rgba(255,255,255,0.65); max-width: 480px; margin: 0 auto; line-height: 1.7; font-family: var(--serif); }
-
+ 
   /* CONTENT */
   .content { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
   .content-wide { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
   .card-wrap { background: var(--white); border-radius: 6px; border: 1px solid var(--gray-200); padding: 2rem 2rem; margin-bottom: 1.5rem; }
-
+ 
   /* SECTION HEADERS */
   .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--accent); }
   .section-title { font-family: var(--serif); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; color: var(--accent); }
   .section-sub { font-size: 0.8rem; color: var(--gray-400); font-weight: 500; }
-
+ 
   /* RANKINGS TABLE */
   .rankings-table { width: 100%; border-collapse: collapse; }
   .rankings-table thead tr { border-bottom: 2px solid var(--accent); }
@@ -88,30 +87,30 @@
   .player-name { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--black); display: block; margin-bottom: 0.15rem; }
   .player-detail { font-size: 0.8rem; color: var(--gray-400); }
   .player-note { font-size: 0.88rem; color: var(--gray-600); line-height: 1.5; font-style: italic; font-family: var(--serif); }
-
+ 
   /* EMPTY STATE */
   .empty-state { text-align: center; padding: 4rem 2rem; border: 1px dashed var(--gray-200); border-radius: 4px; }
   .empty-state p { font-family: var(--serif); font-size: 1.1rem; color: var(--gray-400); margin-bottom: 0.5rem; }
   .empty-state small { font-size: 0.8rem; color: var(--gray-400); }
-
+ 
   /* SUB TABS */
   .sub-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--gray-200); margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none; }
   .sub-tabs::-webkit-scrollbar { display: none; }
   .sub-tab { font-size: 0.8rem; font-weight: 500; color: var(--gray-600); padding: 0.65rem 1.1rem; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
   .sub-tab:hover { color: var(--accent); }
   .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-
+ 
   /* COUNTRY XI PAGE SPECIFIC */
   .xi-mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
   .xi-mode-tab { font-size: 0.78rem; font-weight: 500; padding: 0.45rem 1rem; border: 1.5px solid var(--gray-200); border-radius: 3px; cursor: pointer; background: var(--white); font-family: var(--sans); color: var(--gray-600); transition: all 0.15s; white-space: nowrap; }
   .xi-mode-tab:hover { border-color: var(--accent); color: var(--accent); }
   .xi-mode-tab.active { background: var(--accent); color: var(--white); border-color: var(--accent); }
-
+ 
   /* CONTINENT GROUP HEADER */
   .continent-group { margin-bottom: 3rem; }
   .continent-group-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--white); background: var(--accent); margin-bottom: 1rem; padding: 0.5rem 1rem; border-radius: 3px; display: flex; align-items: baseline; gap: 1rem; }
   .continent-group-count { font-size: 0.72rem; font-weight: 500; color: rgba(255,255,255,0.65); font-family: var(--sans); }
-
+ 
   /* COUNTRY GRID */
   .xi-country-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
   .xi-country-card { border: 1.5px solid var(--gray-200); border-radius: 4px; padding: 0.85rem 1rem; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s; background: var(--white); text-align: left; width: 100%; font-family: var(--sans); }
@@ -121,11 +120,11 @@
   .trophy-badge { font-size: 0.67rem; font-weight: 600; background: var(--gray-100); color: var(--gray-600); padding: 2px 6px; border-radius: 2px; }
   .trophy-badge.gold { background: var(--gold-bg); color: var(--gold); border: 1px solid #e6cc7a; }
   .xi-country-finish { font-size: 0.7rem; color: var(--gray-400); }
-
+ 
   /* HISTORICAL GROUP */
   .historical-group-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 0.75rem; margin-top: 1.5rem; }
   .historical-group-label:first-child { margin-top: 0; }
-
+ 
   /* XI DETAIL */
   .xi-back-btn { font-size: 0.8rem; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.4rem; font-family: var(--sans); font-weight: 500; }
   .xi-back-btn:hover { color: var(--accent-hover); text-decoration: underline; }
@@ -153,7 +152,7 @@
   .bench-slot { border: 1px dashed var(--gray-200); border-radius: 3px; padding: 0.5rem 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
   .bench-num { font-size: 0.7rem; color: var(--gray-400); font-weight: 600; min-width: 14px; }
   .bench-name { font-family: var(--serif); font-size: 0.85rem; color: var(--gray-400); font-style: italic; }
-
+ 
   /* GLOSSARY */
   .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
   .glossary-card { border: 1.5px solid var(--gray-200); border-top: 3px solid var(--accent); border-radius: 4px; padding: 1.25rem; background: var(--white); transition: transform 0.1s; }
@@ -161,7 +160,7 @@
   .glossary-card-pos { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem; }
   .glossary-card-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--black); }
   .glossary-card-body { font-size: 0.875rem; color: var(--gray-600); line-height: 1.6; }
-
+ 
   /* CONTACT */
   .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
   .contact-intro { font-family: var(--serif); font-size: 1.15rem; line-height: 1.7; color: var(--gray-600); margin-bottom: 1.5rem; }
@@ -173,17 +172,17 @@
   .contact-form textarea { min-height: 120px; }
   .contact-submit { font-family: var(--sans); font-size: 0.85rem; font-weight: 600; background: var(--accent); color: var(--white); border: none; padding: 0.7rem 1.5rem; border-radius: 3px; cursor: pointer; transition: background 0.15s; align-self: flex-start; }
   .contact-submit:hover { background: var(--accent-hover); }
-
+ 
   /* CONTINENTAL XIs */
   .xi-cont-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
   .xi-cont-card { border: 1.5px solid var(--gray-200); border-radius: 4px; padding: 0.85rem 1rem; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s; background: var(--white); text-align: left; width: 100%; font-family: var(--sans); }
   .xi-cont-card:hover { border-color: var(--accent); background: var(--green-light); transform: translateY(-1px); }
   .xi-cont-name { font-family: var(--serif); font-size: 1rem; font-weight: 700; display: block; margin-bottom: 0.2rem; color: var(--black); }
   .xi-cont-sub { font-size: 0.72rem; color: var(--gray-400); }
-
+ 
   footer { background: var(--accent); padding: 2rem; text-align: center; margin-top: 4rem; }
   footer p { font-size: 0.85rem; color: rgba(255,255,255,0.65); font-family: var(--serif); font-style: italic; }
-
+ 
   @media (max-width: 768px) {
     .nav-tabs { display: none; }
     .nav-hamburger { display: flex; }
@@ -195,7 +194,7 @@
 </style>
 </head>
 <body>
-
+ 
 <nav>
   <div class="nav-inner">
     <a class="nav-logo" href="#" onclick="showPage('home');return false;">Half Space</a>
@@ -213,7 +212,7 @@
     </button>
   </div>
 </nav>
-
+ 
 <div class="mobile-menu" id="mobileMenu">
   <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
   <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">Rankings</button>
@@ -224,7 +223,7 @@
   <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();">Managers</button>
   <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();">Contact</button>
 </div>
-
+ 
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="hero">
@@ -237,7 +236,7 @@
     <div class="empty-state"><p>Nothing here yet.</p><small>Posts will appear here as they're published.</small></div>
   </div>
 </div>
-
+ 
 <!-- RANKINGS -->
 <div class="page" id="page-rankings">
   <div class="content">
@@ -299,7 +298,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- COUNTRY XIs -->
 <div class="page" id="page-country-xi">
   <div class="content-wide">
@@ -322,7 +321,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- CLUB XIs -->
 <div class="page" id="page-club-xi">
   <div class="content-wide">
@@ -336,7 +335,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- CONTINENTAL XIs -->
 <div class="page" id="page-continental-xi">
   <div class="content">
@@ -354,7 +353,7 @@
     <div id="continental-africa" style="display:none"><div class="section-header"><span class="section-title">African All-Time XI</span></div><div id="xi-africa"></div></div>
   </div>
 </div>
-
+ 
 <!-- POSITIONS -->
 <div class="page" id="page-positions">
   <div class="content">
@@ -375,7 +374,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- MANAGERS -->
 <div class="page" id="page-managers">
   <div class="content">
@@ -395,7 +394,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- CONTACT -->
 <div class="page" id="page-contact">
   <div class="content">
@@ -417,9 +416,9 @@
     </div>
   </div>
 </div>
-
+ 
 <footer><p>Half Space — football, written seriously.</p></footer>
-
+ 
 <script>
 // ---- COUNTRY DATA ----
 const COUNTRIES = [
@@ -454,7 +453,7 @@ const COUNTRIES = [
   { name: "Republic of Ireland", continent:"Europe",  wc: 0, euros: 0, bestWC: "QF",        bestEuros: "R16"       },
   { name: "Northern Ireland",    continent:"Europe",  wc: 0, euros: 0, bestWC: "QF",        bestEuros: "R16"       },
   { name: "Slovenia",      continent: "Europe",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "QF"        },
-
+ 
   // SOUTH AMERICA
   { name: "Brazil",        continent: "South America",wc: 5, euros: 0, bestWC: "Winner",    bestEuros: "—"         },
   { name: "Argentina",     continent: "South America",wc: 3, euros: 0, bestWC: "Winner",    bestEuros: "—"         },
@@ -462,11 +461,11 @@ const COUNTRIES = [
   { name: "Colombia",      continent: "South America",wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
   { name: "Chile",         continent: "South America",wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "—"         },
   { name: "Ecuador",       continent: "South America",wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
-
+ 
   // NORTH AMERICA / CONCACAF
   { name: "Mexico",        continent: "CONCACAF",     wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
   { name: "USA",           continent: "CONCACAF",     wc: 0, euros: 0, bestWC: "Semi-final",bestEuros: "—"         },
-
+ 
   // AFRICA
   { name: "Senegal",       continent: "Africa",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
   { name: "Morocco",       continent: "Africa",       wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "—"         },
@@ -476,14 +475,14 @@ const COUNTRIES = [
   { name: "Nigeria",       continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
   { name: "Algeria",       continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
   { name: "Tunisia",       continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
-
+ 
   // ASIA
   { name: "Japan",         continent: "Asia",         wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
   { name: "South Korea",   continent: "Asia",         wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "—"         },
   { name: "Australia",     continent: "Asia",         wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "—"         },
   { name: "Iran",          continent: "Asia",         wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
 ];
-
+ 
 const HISTORICAL_GROUPS = [
   { key: "gb",         label: "Great Britain + Ireland",                      countries: ["England","Scotland","Wales","Northern Ireland","Republic of Ireland"] },
   { key: "lowlands",   label: "Low Countries",                                 countries: ["Netherlands","Belgium"] },
@@ -498,7 +497,7 @@ const HISTORICAL_GROUPS = [
   { key: "germany",    label: "Germany",                                       countries: ["Germany"] },
   { key: "italy",      label: "Italy",                                         countries: ["Italy"] },
 ];
-
+ 
 const CLUBS = [
   "Arsenal","Aston Villa","Chelsea","Everton","Leeds United","Leicester City","Liverpool",
   "Manchester City","Manchester United","Newcastle United","Nottingham Forest","Tottenham Hotspur",
@@ -513,9 +512,9 @@ const CLUBS = [
   "Galatasaray","Fenerbahce",
   "Red Bull Salzburg","Shakhtar Donetsk","Club Brugge","Anderlecht"
 ];
-
+ 
 const FINISH_ORDER = ["Winner","Final","3rd Place","4th Place","Semi-final","QF","R16","Group","—"];
-
+ 
 // ---- NAVIGATION ----
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -524,11 +523,11 @@ function showPage(id) {
   if (page) page.classList.add('active');
   window.scrollTo(0,0);
 }
-
+ 
 function toggleMobileMenu() {
   document.getElementById('mobileMenu').classList.toggle('open');
 }
-
+ 
 function showSubTab(group, tab) {
   const allInGroup = document.querySelectorAll('[id^="' + group + '-"]');
   allInGroup.forEach(el => el.style.display = 'none');
@@ -539,17 +538,17 @@ function showSubTab(group, tab) {
     else t.classList.remove('active');
   });
 }
-
+ 
 // ---- COUNTRY VIEW ----
 let currentCountryView = 'continent';
-
+ 
 function setCountryView(view) {
   currentCountryView = view;
   document.querySelectorAll('.xi-mode-tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
   renderCountryDisplay();
 }
-
+ 
 function renderCountryDisplay() {
   const container = document.getElementById('country-display');
   if (currentCountryView === 'continent') renderByContinent(container);
@@ -558,7 +557,7 @@ function renderCountryDisplay() {
   else if (currentCountryView === 'finish') renderByFinish(container);
   else if (currentCountryView === 'historical') renderHistorical(container);
 }
-
+ 
 function countryCard(c, showWC, showEuros, showFinish) {
   const trophies = [];
   if (showWC && c.wc > 0) trophies.push(`<span class="trophy-badge gold">WC ×${c.wc}</span>`);
@@ -571,7 +570,7 @@ function countryCard(c, showWC, showEuros, showFinish) {
     ${trophyHTML}
   </button>`;
 }
-
+ 
 function renderByContinent(container) {
   const continents = ["Europe","South America","CONCACAF","Africa","Asia"];
   let html = '';
@@ -587,7 +586,7 @@ function renderByContinent(container) {
   });
   container.innerHTML = html;
 }
-
+ 
 function renderByTrophy(container, field) {
   const label = field === 'wc' ? 'World Cup wins' : 'European Championship wins';
   const sorted = [...COUNTRIES].sort((a,b) => b[field] - a[field]);
@@ -609,7 +608,7 @@ function renderByTrophy(container, field) {
   });
   container.innerHTML = html;
 }
-
+ 
 function renderByFinish(container) {
   const sorted = [...COUNTRIES].sort((a,b) => FINISH_ORDER.indexOf(a.bestWC) - FINISH_ORDER.indexOf(b.bestWC));
   const groups = {};
@@ -630,7 +629,7 @@ function renderByFinish(container) {
   });
   container.innerHTML = html;
 }
-
+ 
 function renderHistorical(container) {
   let html = '';
   HISTORICAL_GROUPS.forEach(group => {
@@ -645,19 +644,19 @@ function renderHistorical(container) {
   });
   container.innerHTML = html;
 }
-
+ 
 function showCountryDetail(name) {
   document.getElementById('country-list-view').style.display = 'none';
   document.getElementById('country-detail-view').style.display = '';
   const c = COUNTRIES.find(x => x.name === name) || { name, wc: 0, euros: 0, bestWC: '—', bestEuros: '—' };
   document.getElementById('country-detail-content').innerHTML = buildXIDetail(name, c);
 }
-
+ 
 function showCountryList() {
   document.getElementById('country-list-view').style.display = '';
   document.getElementById('country-detail-view').style.display = 'none';
 }
-
+ 
 // ---- CLUB XIs ----
 function buildClubGrid() {
   const grid = document.getElementById('clubGrid');
@@ -668,18 +667,18 @@ function buildClubGrid() {
       <span class="xi-country-finish" style="font-size:0.72rem;color:var(--gray-400);">All-time XI · 9-man bench</span>
     </button>`).join('');
 }
-
+ 
 function showClubDetail(name) {
   document.getElementById('club-list-view').style.display = 'none';
   document.getElementById('club-detail-view').style.display = '';
   document.getElementById('club-detail-content').innerHTML = buildXIDetail(name, null);
 }
-
+ 
 function showClubList() {
   document.getElementById('club-list-view').style.display = '';
   document.getElementById('club-detail-view').style.display = 'none';
 }
-
+ 
 // ---- XI BUILDER ----
 function buildXIDetail(name, meta) {
   const positions = [
@@ -694,7 +693,7 @@ function buildXIDetail(name, meta) {
     [{ pos:'CM',label:'CM' },{ pos:'CM',label:'CM' },{ pos:'CM',label:'CM' }],
     [{ pos:'RW',label:'RW' },{ pos:'ST',label:'ST' },{ pos:'LW',label:'LW' }]
   ];
-
+ 
   let metaHTML = '';
   if (meta) {
     const badges = [];
@@ -704,7 +703,7 @@ function buildXIDetail(name, meta) {
     if (meta.bestEuros !== '—') badges.push(`<span class="trophy-badge">Best Euros: ${meta.bestEuros}</span>`);
     if (badges.length) metaHTML = `<div class="xi-country-trophies" style="margin-bottom:1.5rem;flex-wrap:wrap;display:flex;gap:0.4rem;">${badges.join('')}</div>`;
   }
-
+ 
   const pitchHTML = `<div class="pitch">
     ${pitchRows.map(row => `<div class="pitch-row">
       ${row.map(p => `<div class="pitch-player">
@@ -713,7 +712,7 @@ function buildXIDetail(name, meta) {
       </div>`).join('')}
     </div>`).join('')}
   </div>`;
-
+ 
   const listHTML = `<div class="xi-details">
     <div class="xi-section-label">Starting XI</div>
     ${positions.map(p => `<div class="xi-player-row">
@@ -721,10 +720,10 @@ function buildXIDetail(name, meta) {
       <span class="xi-player-name empty">TBD</span>
     </div>`).join('')}
   </div>`;
-
+ 
   const bench = Array.from({length:9},(_,i)=>i+1);
   const honors = Array.from({length:6},(_,i)=>i+1);
-
+ 
   const benchHTML = `
     <div class="bench-section">
       <div class="bench-title">Bench (9)</div>
@@ -738,7 +737,7 @@ function buildXIDetail(name, meta) {
         ${honors.map(n=>`<div class="bench-slot"><span class="bench-num">—</span><span class="bench-name">TBD</span></div>`).join('')}
       </div>
     </div>`;
-
+ 
   return `
     <div class="section-header">
       <span class="section-title">${name} All-Time XI</span>
@@ -748,7 +747,7 @@ function buildXIDetail(name, meta) {
     <div class="xi-wrapper">${pitchHTML}${listHTML}</div>
     ${benchHTML}`;
 }
-
+ 
 // ---- CONTINENTAL XIs ----
 function buildContinentalXIs() {
   ['europe','southamerica','northamerica','asia','africa'].forEach(key => {
@@ -759,48 +758,51 @@ function buildContinentalXIs() {
     );
   });
 }
-
+ 
 // ---- CONTACT ----
 function handleContact(e) {
   e.preventDefault();
   e.target.innerHTML = '<p style="font-family:var(--serif);font-size:1.05rem;color:var(--gray-600);font-style:italic;">Message sent. Thanks for reaching out.</p>';
 }
-
+ 
 // ---- INIT ----
 buildClubGrid();
 buildContinentalXIs();
 renderCountryDisplay();
-
+ 
 // ================================================================
 // ADMIN / EDIT SYSTEM
 // ================================================================
-
+ 
 const ADMIN_PASSWORD = 'halfspace';
+const GITHUB_TOKEN = '';
+const GITHUB_REPO = 'sserxner/halfspacefc';
+const GITHUB_FILE = 'index.html';
 let adminMode = false;
 let siteData = {};
-
+ 
 const DATA_KEY = 'halfspace_data';
-
+ 
 function loadData() {
   try {
     const raw = localStorage.getItem(DATA_KEY);
     siteData = raw ? JSON.parse(raw) : {};
   } catch(e) { siteData = {}; }
 }
-
+ 
 function saveData() {
   localStorage.setItem(DATA_KEY, JSON.stringify(siteData));
 }
-
+ 
 function setData(key, value) {
   siteData[key] = value;
   saveData();
 }
-
+ 
 function getData(key, fallback) {
   return siteData[key] !== undefined ? siteData[key] : fallback;
 }
-
+ 
 // ---- ADMIN TOGGLE ----
 function toggleAdmin() {
   if (adminMode) {
@@ -813,22 +815,24 @@ function toggleAdmin() {
       document.getElementById('adminBtn').style.background = '#9b2020';
       document.getElementById('adminBanner').style.display = 'flex';
       document.getElementById('exportBtn').style.display = 'inline-block';
+      document.getElementById('downloadBtn').style.display = 'inline-block';
       applyAdminToCurrentPage();
     } else if (pw !== null) {
       alert('Incorrect password.');
     }
   }
 }
-
+ 
 function exitAdmin() {
   adminMode = false;
   document.getElementById('adminBtn').textContent = '✎ Edit';
   document.getElementById('adminBtn').style.background = 'var(--accent)';
   document.getElementById('adminBanner').style.display = 'none';
   document.getElementById('exportBtn').style.display = 'none';
+  document.getElementById('downloadBtn').style.display = 'none';
   removeAdminUI();
 }
-
+ 
 function applyAdminToCurrentPage() {
   if (!adminMode) return;
   removeAdminUI();
@@ -839,11 +843,11 @@ function applyAdminToCurrentPage() {
   if (id === 'page-rankings') renderEditableRankings();
   if (id === 'page-managers') renderEditableManagers();
 }
-
+ 
 function removeAdminUI() {
   document.querySelectorAll('.admin-edit-btn, .admin-add-btn, .admin-toolbar').forEach(el => el.remove());
 }
-
+ 
 // ---- RANKINGS EDITOR ----
 const RANKING_TABS = [
   { key: 'century', label: 'Best of the Century' },
@@ -856,7 +860,7 @@ const RANKING_TABS = [
   { key: 'w',       label: 'Wingers' },
   { key: 'f',       label: 'Forwards' },
 ];
-
+ 
 function renderEditableRankings() {
   RANKING_TABS.forEach(tab => {
     const container = document.getElementById('rankings-' + tab.key);
@@ -871,7 +875,7 @@ function renderEditableRankings() {
     container.appendChild(addBtn);
   });
 }
-
+ 
 function renderRankingTable(tbody, dataKey) {
   const entries = getData(dataKey, []);
   if (entries.length === 0) {
@@ -892,25 +896,25 @@ function renderRankingTable(tbody, dataKey) {
       </td>` : ''}
     </tr>`).join('');
 }
-
+ 
 function addRankingEntry(dataKey, tbody) {
   showRankingModal(dataKey, -1, { name: '', detail: '', note: '' }, tbody);
 }
-
+ 
 function editRankingEntry(dataKey, idx) {
   const entries = getData(dataKey, []);
   const tbody = document.querySelector(`[data-key="${dataKey}"] tbody`) ||
     findTbodyForKey(dataKey);
   showRankingModal(dataKey, idx, entries[idx] || {}, tbody);
 }
-
+ 
 function findTbodyForKey(dataKey) {
   const tabKey = dataKey.replace('ranking_', '');
   const container = document.getElementById('rankings-' + tabKey) ||
     document.getElementById('managers-' + tabKey);
   return container ? container.querySelector('tbody') : null;
 }
-
+ 
 function deleteRankingEntry(dataKey, idx) {
   if (!confirm('Remove this entry?')) return;
   const entries = getData(dataKey, []);
@@ -919,11 +923,11 @@ function deleteRankingEntry(dataKey, idx) {
   const tbody = findTbodyForKey(dataKey);
   if (tbody) renderRankingTable(tbody, dataKey);
 }
-
+ 
 function showRankingModal(dataKey, idx, entry, tbody) {
   const existing = document.getElementById('adminModal');
   if (existing) existing.remove();
-
+ 
   const modal = document.createElement('div');
   modal.id = 'adminModal';
   modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;`;
@@ -954,13 +958,13 @@ function showRankingModal(dataKey, idx, entry, tbody) {
   document.body.appendChild(modal);
   document.getElementById('me_name').focus();
 }
-
+ 
 function saveRankingEntry(dataKey, idx) {
   const name   = document.getElementById('me_name').value.trim();
   const detail = document.getElementById('me_detail').value.trim();
   const note   = document.getElementById('me_note').value.trim();
   if (!name) { alert('Name is required.'); return; }
-
+ 
   const entries = getData(dataKey, []);
   if (idx === -1) {
     entries.push({ name, detail, note });
@@ -969,11 +973,11 @@ function saveRankingEntry(dataKey, idx) {
   }
   setData(dataKey, entries);
   document.getElementById('adminModal').remove();
-
+ 
   const tbody = findTbodyForKey(dataKey);
   if (tbody) renderRankingTable(tbody, dataKey);
 }
-
+ 
 // ---- MANAGERS EDITOR ----
 function renderEditableManagers() {
   ['century','current'].forEach(tab => {
@@ -989,7 +993,7 @@ function renderEditableManagers() {
     container.appendChild(addBtn);
   });
 }
-
+ 
 // Override findTbodyForKey to handle managers
 const _origFindTbody = findTbodyForKey;
 window.findTbodyForKey = function(dataKey) {
@@ -1000,7 +1004,7 @@ window.findTbodyForKey = function(dataKey) {
   }
   return _origFindTbody(dataKey);
 };
-
+ 
 // ---- XI EDITOR ----
 // Called when user opens a country or club XI in admin mode
 function makeXIEditable(entityKey, container) {
@@ -1014,7 +1018,7 @@ function makeXIEditable(entityKey, container) {
     const storageKey = `xi_${entityKey}_pos_${i}`;
     const saved = getData(storageKey, '');
     if (saved) { nameSpan.textContent = saved; nameSpan.classList.remove('empty'); }
-
+ 
     const btn = document.createElement('button');
     btn.className = 'admin-edit-btn';
     btn.textContent = '✎';
@@ -1025,7 +1029,7 @@ function makeXIEditable(entityKey, container) {
     };
     row.appendChild(btn);
   });
-
+ 
   // Bench slots
   const benchSlots = container.querySelectorAll('.bench-slot');
   benchSlots.forEach((slot, i) => {
@@ -1033,7 +1037,7 @@ function makeXIEditable(entityKey, container) {
     const storageKey = `xi_${entityKey}_bench_${i}`;
     const saved = getData(storageKey, '');
     if (saved) { nameSpan.textContent = saved; nameSpan.style.color = 'var(--black)'; nameSpan.style.fontStyle = 'normal'; }
-
+ 
     const btn = document.createElement('button');
     btn.className = 'admin-edit-btn';
     btn.textContent = '✎';
@@ -1051,11 +1055,11 @@ function makeXIEditable(entityKey, container) {
     slot.appendChild(btn);
   });
 }
-
+ 
 function showXISlotModal(entityKey, idx, pos, current, nameSpan, storageKey) {
   const existing = document.getElementById('adminModal');
   if (existing) existing.remove();
-
+ 
   const modal = document.createElement('div');
   modal.id = 'adminModal';
   modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;`;
@@ -1073,12 +1077,12 @@ function showXISlotModal(entityKey, idx, pos, current, nameSpan, storageKey) {
   const inp = document.getElementById('xi_name_input');
   inp.focus();
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveXISlot(storageKey); });
-
+ 
   // store reference so save can update DOM
   modal._nameSpan = nameSpan;
   modal._storageKey = storageKey;
 }
-
+ 
 function saveXISlot(storageKey) {
   const inp = document.getElementById('xi_name_input');
   const val = inp ? inp.value.trim() : '';
@@ -1091,7 +1095,7 @@ function saveXISlot(storageKey) {
   }
   if (modal) modal.remove();
 }
-
+ 
 // ---- PATCH SHOW COUNTRY/CLUB DETAIL TO APPLY EDITS + ADMIN ----
 const _origShowCountryDetail = showCountryDetail;
 window.showCountryDetail = function(name) {
@@ -1102,7 +1106,7 @@ window.showCountryDetail = function(name) {
   restoreXIData(key, container);
   if (adminMode) makeXIEditable(key, container);
 };
-
+ 
 const _origShowClubDetail = showClubDetail;
 window.showClubDetail = function(name) {
   _origShowClubDetail(name);
@@ -1111,7 +1115,7 @@ window.showClubDetail = function(name) {
   restoreXIData(key, container);
   if (adminMode) makeXIEditable(key, container);
 };
-
+ 
 function restoreXIData(entityKey, container) {
   if (!container) return;
   const slots = container.querySelectorAll('.xi-player-row');
@@ -1127,14 +1131,14 @@ function restoreXIData(entityKey, container) {
     if (saved) { nameSpan.textContent = saved; nameSpan.style.color = 'var(--black)'; nameSpan.style.fontStyle = 'normal'; }
   });
 }
-
+ 
 // ---- HOOK showPage TO APPLY ADMIN UI ON NAV ----
 const _origShowPage = showPage;
 window.showPage = function(id) {
   _origShowPage(id);
   if (adminMode) applyAdminToCurrentPage();
 };
-
+ 
 const _origShowSubTab = showSubTab;
 window.showSubTab = function(group, tab) {
   _origShowSubTab(group, tab);
@@ -1145,28 +1149,130 @@ window.showSubTab = function(group, tab) {
     }, 50);
   }
 };
-
-// ---- EXPORT: bake data into HTML and download ----
-function exportSite() {
+ 
+// ---- BUILD HTML WITH BAKED DATA ----
+function buildExportHTML() {
   const dataScript = `<script id="baked_data">window.__HALFSPACE_DATA__=${JSON.stringify(siteData)};<\/script>`;
   let html = document.documentElement.outerHTML;
-  // remove old baked data if present
   html = html.replace(/<script id="baked_data">[\s\S]*?<\/script>/, '');
-  // inject before </head>
   html = html.replace('</head>', dataScript + '</head>');
+  return html;
+}
+ 
+// ---- SAVE TO GITHUB ----
+async function saveToGitHub() {
+  const token = document.getElementById('githubTokenInput')
+    ? document.getElementById('githubTokenInput').value.trim()
+    : GITHUB_TOKEN;
+ 
+  if (!token) {
+    showTokenModal();
+    return;
+  }
+ 
+  const btn = document.getElementById('exportBtn');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+ 
+  try {
+    const html = buildExportHTML();
+    const encoded = btoa(unescape(encodeURIComponent(html)));
+ 
+    // Get current file SHA (required by GitHub API to update)
+    const getResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+ 
+    if (!getResp.ok) throw new Error('Could not reach GitHub. Check your token.');
+    const fileData = await getResp.json();
+    const sha = fileData.sha;
+ 
+    // Push updated file
+    const putResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Update site content via admin panel',
+        content: encoded,
+        sha: sha
+      })
+    });
+ 
+    if (!putResp.ok) {
+      const err = await putResp.json();
+      throw new Error(err.message || 'GitHub push failed.');
+    }
+ 
+    btn.textContent = '✓ Saved! Live in ~30s';
+    btn.style.background = '#1a6b3a';
+    setTimeout(() => {
+      btn.textContent = origText;
+      btn.style.background = '#1a3a6b';
+      btn.disabled = false;
+    }, 4000);
+ 
+    // Store token for session
+    sessionStorage.setItem('hs_github_token', token);
+ 
+  } catch(e) {
+    btn.textContent = '✕ Error — try again';
+    btn.style.background = '#9b2020';
+    setTimeout(() => {
+      btn.textContent = origText;
+      btn.style.background = '#1a3a6b';
+      btn.disabled = false;
+    }, 3000);
+    alert('Error: ' + e.message);
+  }
+}
+ 
+// ---- TOKEN MODAL ----
+function showTokenModal() {
+  const existing = document.getElementById('tokenModal');
+  if (existing) existing.remove();
+ 
+  const saved = sessionStorage.getItem('hs_github_token') || '';
+  const modal = document.createElement('div');
+  modal.id = 'tokenModal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;`;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:460px;font-family:var(--sans);">
+      <h3 style="font-family:var(--serif);font-size:1.3rem;font-weight:700;margin-bottom:0.5rem;color:var(--accent);">GitHub token required</h3>
+      <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:1.2rem;line-height:1.5;">Enter your GitHub personal access token to save changes directly to the live site. It's stored only for this session.</p>
+      <input id="githubTokenInput" type="password" value="${saved}" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;margin-bottom:1rem;">
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('tokenModal').remove()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;">Cancel</button>
+        <button onclick="document.getElementById('tokenModal').remove();saveToGitHub();" style="padding:0.55rem 1.2rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:600;">Save to GitHub</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('githubTokenInput').focus();
+}
+ 
+// ---- DOWNLOAD FALLBACK ----
+function exportSite() {
+  const html = buildExportHTML();
   const blob = new Blob([html], { type: 'text/html' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'index.html';
   a.click();
 }
-
+ 
 // ---- LOAD BAKED DATA on startup ----
 if (window.__HALFSPACE_DATA__) {
   siteData = window.__HALFSPACE_DATA__;
   localStorage.setItem(DATA_KEY, JSON.stringify(siteData));
 }
-
+ 
 // ---- INJECT ADMIN UI INTO PAGE ----
 (function injectAdminControls() {
   // Floating edit button
@@ -1176,22 +1282,30 @@ if (window.__HALFSPACE_DATA__) {
   btn.onclick = toggleAdmin;
   btn.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--accent);color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:30px;font-family:var(--sans);font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);transition:background 0.15s;`;
   document.body.appendChild(btn);
-
+ 
   // Export button
   const expBtn = document.createElement('button');
   expBtn.id = 'exportBtn';
-  expBtn.textContent = '⬇ Download updated site';
-  expBtn.onclick = exportSite;
+  expBtn.textContent = '☁ Save to site';
+  expBtn.onclick = saveToGitHub;
   expBtn.style.cssText = `position:fixed;bottom:1.5rem;right:9rem;z-index:999;background:#1a3a6b;color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:30px;font-family:var(--sans);font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:none;`;
+ 
+  // Download fallback button
+  const dlBtn = document.createElement('button');
+  dlBtn.id = 'downloadBtn';
+  dlBtn.textContent = '⬇ Download';
+  dlBtn.onclick = exportSite;
+  dlBtn.style.cssText = `position:fixed;bottom:1.5rem;right:16rem;z-index:999;background:#444;color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:30px;font-family:var(--sans);font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:none;`;
+  document.body.appendChild(dlBtn);
   document.body.appendChild(expBtn);
-
+ 
   // Admin banner
   const banner = document.createElement('div');
   banner.id = 'adminBanner';
   banner.style.cssText = `display:none;position:fixed;top:56px;left:0;right:0;z-index:98;background:#9b2020;color:#fff;font-family:var(--sans);font-size:0.8rem;font-weight:500;padding:0.5rem 1.5rem;align-items:center;gap:0.5rem;`;
   banner.innerHTML = `<span>✎ Edit mode active — click any field to edit. Download updated site when done.</span>`;
   document.body.appendChild(banner);
-
+ 
   // Inject edit button CSS
   const style = document.createElement('style');
   style.textContent = `
@@ -1203,19 +1317,9 @@ if (window.__HALFSPACE_DATA__) {
   `;
   document.head.appendChild(style);
 })();
-
+ 
 loadData();
-</script>
- <script>
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", user => {
-      if (!user) {
-        window.netlifyIdentity.on("login", () => {
-          document.location.href = "/admin/";
-        });
-      }
-    });
-  }
 </script>
 </body>
 </html>
+ 
