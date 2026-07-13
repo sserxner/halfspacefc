@@ -38,21 +38,22 @@
   html { scroll-behavior: smooth; }
   body { font-family: var(--sans); background: var(--page-bg); color: var(--black); font-size: 16px; line-height: 1.6; min-height: 100vh; }
 
-  /* NAV */
-  nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 3px solid var(--accent); padding: 0 2rem; }
-  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; }
-  .nav-logo { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: 0.02em; text-transform: uppercase; margin-right: 2rem; flex-shrink: 0; }
-  .nav-tabs { display: flex; align-items: center; overflow-x: auto; scrollbar-width: none; flex: 1; }
-  .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tab { font-size: 0.78rem; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 0 0.85rem; height: 56px; display: flex; align-items: center; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
-  .nav-tab:hover { color: var(--black); }
-  .nav-tab.active { color: var(--black); border-bottom-color: var(--accent); }
-  .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; margin-left: auto; }
-  .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); border-radius: 2px; }
-  .mobile-menu { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); z-index: 99; padding: 1rem 0; flex-direction: column; max-height: calc(100vh - 56px); overflow-y: auto; }
+  /* NAV — slim logo bar */
+  nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: none; padding: 0; }
+  .nav-logo-bar { display: flex; align-items: center; justify-content: center; height: 44px; background: var(--white); border-bottom: 0.5px solid var(--gray-200); position: relative; }
+  .nav-logo { font-family: var(--serif); font-size: 1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; }
+  /* Tab band */
+  .nav-tab-band { background: #0f2518; display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; padding: 0 1rem; }
+  .nav-tab-band::-webkit-scrollbar { display: none; }
+  .nav-tab { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.5); text-decoration: none; padding: 0 1rem; height: 40px; display: flex; align-items: center; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
+  .nav-tab:hover { color: rgba(255,255,255,0.85); }
+  .nav-tab.active { color: #ffffff; border-bottom-color: #4caf50; }
+  .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); }
+  .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--accent); border-radius: 2px; }
+  .mobile-menu { display: none; position: fixed; top: 84px; left: 0; right: 0; background: #0f2518; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 99; padding: 0.5rem 0; flex-direction: column; max-height: calc(100vh - 84px); overflow-y: auto; }
   .mobile-menu.open { display: flex; }
-  .mobile-menu .nav-tab { height: auto; padding: 0.6rem 1.5rem; border-bottom: none; font-size: 0.85rem; }
-  .mobile-menu .nav-tab.active { color: var(--accent); background: var(--green-light); }
+  .mobile-menu .nav-tab { height: auto; padding: 0.7rem 1.5rem; border-bottom: none; font-size: 0.78rem; color: rgba(255,255,255,0.55); }
+  .mobile-menu .nav-tab.active { color: #fff; background: rgba(255,255,255,0.08); border-bottom: none; }
 
   /* PAGES */
   .page { display: none; }
@@ -253,7 +254,7 @@
   footer p { font-size: 0.85rem; color: rgba(255,255,255,0.65); font-family: var(--serif); font-style: italic; }
 
   @media (max-width: 768px) {
-    .nav-tabs { display: none; }
+    .nav-tab-band { display: none; }
     .nav-hamburger { display: flex; }
     .xi-wrapper { grid-template-columns: 1fr; }
     .contact-grid { grid-template-columns: 1fr; gap: 2rem; }
@@ -265,22 +266,22 @@
 <body>
 
 <nav>
-  <div class="nav-inner">
+  <div class="nav-logo-bar">
     <a class="nav-logo" href="#" onclick="showPage('home');return false;">Half Space</a>
-    <div class="nav-tabs">
-      <button class="nav-tab" onclick="if(!adminMode)showPage('rankings')"><span data-editable="nav_rankings">Rankings</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('country-xi')"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('club-xi')"><span data-editable="nav_club">Club XIs</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('continental-xi')"><span data-editable="nav_continental">Continental XIs</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('managers')"><span data-editable="nav_managers">Managers</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('positions')"><span data-editable="nav_positions">Positions</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('diary')"><span data-editable="nav_diary">Matchday Diary</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('scouting')"><span data-editable="nav_scouting">Scouting</span></button>
-      <button class="nav-tab" onclick="if(!adminMode)showPage('contact')"><span data-editable="nav_contact">Contact</span></button>
-    </div>
     <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
+  </div>
+  <div class="nav-tab-band">
+    <button class="nav-tab" onclick="if(!adminMode)showPage('rankings')"><span data-editable="nav_rankings">Rankings</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('country-xi')"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('club-xi')"><span data-editable="nav_club">Club XIs</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('continental-xi')"><span data-editable="nav_continental">Continental XIs</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('managers')"><span data-editable="nav_managers">Managers</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('positions')"><span data-editable="nav_positions">Positions</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('diary')"><span data-editable="nav_diary">Matchday Diary</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('scouting')"><span data-editable="nav_scouting">Scouting</span></button>
+    <button class="nav-tab" onclick="if(!adminMode)showPage('contact')"><span data-editable="nav_contact">Contact</span></button>
   </div>
 </nav>
 
@@ -1560,7 +1561,7 @@ document.addEventListener('DOMContentLoaded', function() {
     #adminToolbar .tb-download:hover { background:#142d56; }
     #adminToolbar .tb-exit { background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15); }
     #adminToolbar .tb-exit:hover { background:rgba(255,255,255,0.15);color:#fff; }
-    #adminBanner { display:none;position:fixed;top:56px;left:0;right:0;z-index:98;background:#2d5c3f;color:rgba(255,255,255,0.85);font-family:var(--sans);font-size:0.78rem;font-weight:500;padding:0.4rem 1.5rem;align-items:center;gap:0.5rem; }
+    #adminBanner { display:none;position:fixed;top:84px;left:0;right:0;z-index:98;background:#2d5c3f;color:rgba(255,255,255,0.85);font-family:var(--sans);font-size:0.78rem;font-weight:500;padding:0.4rem 1.5rem;align-items:center;gap:0.5rem; }
   `;
   document.head.appendChild(style);
 
