@@ -925,6 +925,7 @@ function showPage(id) {
   if (id === 'scouting') renderScouting();
   if (id === 'home') renderHomePostFeed();
   if (id === 'positions') renderPositions();
+  if ((id === 'rankings' || id === 'managers') && !adminMode) renderAllRankingsPublic();
   window.scrollTo(0,0);
 }
 
@@ -1440,7 +1441,27 @@ function showRankingSection(sec) {
   document.querySelectorAll('#rankings-primary-tabs .sub-tab').forEach(t => {
     t.classList.toggle('active', t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + sec + "'"));
   });
+  // Render the visible section for both public and admin
+  RANKING_TABS.filter(tab => tab.key.startsWith(sec)).forEach(tab => {
+    const id = tab.key.replace(/_/g, '-');
+    const container = document.getElementById(id);
+    if (container) renderRankingList(container, 'ranking_' + tab.key, tab.posOnly);
+  });
   if (adminMode) setTimeout(() => renderEditableRankings(), 50);
+}
+
+function renderAllRankingsPublic() {
+  if (adminMode) return;
+  RANKING_TABS.forEach(tab => {
+    const id = tab.key.replace(/_/g, '-');
+    const container = document.getElementById(id);
+    if (container) renderRankingList(container, 'ranking_' + tab.key, tab.posOnly);
+  });
+  // Also render managers page
+  ['century','current'].forEach(tab => {
+    const container = document.getElementById('managers-' + tab);
+    if (container) renderRankingList(container, 'manager_' + tab, false);
+  });
 }
 
 // ---- RENDER RANKING LIST (public + admin) ----
@@ -3227,7 +3248,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderPositions();
   buildClubGrid();
   renderCountryDisplay();
-  // Always start on home page
+  renderAllRankingsPublic();
   showPage('home');
 });
 </script>
