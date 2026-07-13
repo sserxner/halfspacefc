@@ -225,7 +225,13 @@
   .xi-badges { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; margin-left: 0.4rem; vertical-align: middle; }
   .xi-badge { font-family: var(--sans); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: var(--green-light); color: var(--accent); border: 1px solid var(--accent); border-radius: 2px; padding: 1px 5px; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background 0.1s; }
   .xi-badge:hover { background: var(--accent); color: #fff; }
-  /* SEARCH */
+  /* TIER LEGEND */
+  .tier-legend { background: var(--gray-50); border-left: 3px solid var(--accent); border-radius: 0 3px 3px 0; padding: 0.9rem 1rem; margin-bottom: 1.5rem; }
+  .tier-legend-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.75rem; }
+  .tier-legend-edit { font-size: 0.62rem; font-weight: 600; padding: 1px 7px; border: 1px solid var(--accent); border-radius: 2px; cursor: pointer; background: transparent; color: var(--accent); text-transform: none; letter-spacing: 0; }
+  .tier-legend-edit:hover { background: var(--accent); color: #fff; }
+  .tier-legend-body { font-family: var(--serif); font-size: 0.85rem; color: var(--gray-600); line-height: 1.7; white-space: pre-wrap; }
+  .tier-legend-body:empty::before { content: 'No tier legend yet. Click Edit to add one.'; color: var(--gray-300); font-style: italic; }
   .search-icon-btn { background: none; border: none; cursor: pointer; color: var(--accent); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.1s; }
   .search-icon-btn:hover { background: var(--green-light); }
   #searchOverlay { position: fixed; top: 44px; left: 0; right: 0; z-index: 200; background: var(--white); border-bottom: 1.5px solid var(--gray-200); box-shadow: 0 8px 32px rgba(0,0,0,0.12); max-height: 80vh; overflow-y: auto; }
@@ -425,6 +431,11 @@
       <div class="sub-tabs" style="margin-top:0;">
         <button class="sub-tab active" onclick="showSubTab('overall','century')">21<sup>st</sup> Century</button>
         <button class="sub-tab" onclick="showSubTab('overall','now')">Right Now</button>
+      </div>
+      <!-- TIER LEGEND -->
+      <div id="tier-legend" class="tier-legend">
+        <div class="tier-legend-title">How to read the tiers <span id="tier-legend-edit-btn" class="tier-legend-edit" onclick="editTierLegend()" style="display:none;">Edit</span></div>
+        <div id="tier-legend-body" class="tier-legend-body"></div>
       </div>
       <div id="overall-century">
         <div class="section-header"><span class="section-title">Best Players of the 21<sup>st</sup> Century</span><span class="section-sub">All positions</span></div>
@@ -1395,6 +1406,41 @@ function removeAdminUI() {
   document.querySelectorAll('.admin-edit-btn, .admin-add-btn, .admin-toolbar').forEach(el => el.remove());
 }
 
+// ---- TIER LEGEND ----
+function renderTierLegend() {
+  const body = document.getElementById('tier-legend-body');
+  const editBtn = document.getElementById('tier-legend-edit-btn');
+  if (!body) return;
+  body.textContent = getData('tier_legend', '');
+  if (editBtn) editBtn.style.display = adminMode ? 'inline-block' : 'none';
+}
+
+function editTierLegend() {
+  const existing = document.getElementById('adminModal');
+  if (existing) existing.remove();
+  const saved = getData('tier_legend', '');
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:520px;font-family:var(--sans);">
+    <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--accent);">Tier Legend</h3>
+    <p style="font-size:0.78rem;color:var(--gray-400);margin-bottom:1rem;">Explain what each tier represents. Shown at the top of the Overall rankings.</p>
+    <textarea id="legend-input" style="width:100%;padding:0.75rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:160px;resize:vertical;line-height:1.7;">${saved}</textarea>
+    <div style="display:flex;gap:0.75rem;margin-top:1.25rem;justify-content:flex-end;">
+      <button onclick="document.getElementById('adminModal').remove()" style="padding:0.5rem 1.1rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;">Cancel</button>
+      <button onclick="saveTierLegend()" style="padding:0.5rem 1.1rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;font-weight:600;">Save</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('legend-input').focus();
+}
+
+function saveTierLegend() {
+  setData('tier_legend', document.getElementById('legend-input').value);
+  document.getElementById('adminModal').remove();
+  renderTierLegend();
+}
+
 // ---- RANKINGS EDITOR ----
 const RANKING_TABS = [
   { key: 'overall_century', label: 'Best of the Century', posOnly: false },
@@ -1469,30 +1515,34 @@ function renderRankingList(containerEl, dataKey, posOnly) {
   if (!containerEl) return;
   const data = getRankingData(dataKey);
 
-  // Blurb
+  // Blurb — only show on overall/mgr lists
+  const isOverall = dataKey.includes('overall') || dataKey.includes('mgr');
   let blurbEl = containerEl.querySelector('.ranking-blurb');
-  if (!blurbEl) {
-    blurbEl = document.createElement('div');
-    blurbEl.className = 'ranking-blurb';
-    const table = containerEl.querySelector('table') || containerEl.querySelector('.ranking-content');
-    containerEl.insertBefore(blurbEl, table);
-  }
-  blurbEl.textContent = data.blurb || '';
-  if (adminMode) {
-    blurbEl.style.cursor = 'text';
-    blurbEl.setAttribute('placeholder', 'Click to write a blurb about this list...');
-    if (!data.blurb) blurbEl.textContent = '';
-    blurbEl.contentEditable = 'true';
-    blurbEl.style.minHeight = '2rem';
-    blurbEl.oninput = () => {
-      const d2 = getRankingData(dataKey);
-      d2.blurb = blurbEl.textContent.trim();
-      setRankingData(dataKey, d2);
-    };
+  if (!isOverall) {
+    if (blurbEl) blurbEl.remove();
+    blurbEl = null;
   } else {
-    blurbEl.contentEditable = 'false';
-    if (!data.blurb) blurbEl.style.display = 'none';
-    else blurbEl.style.display = '';
+    if (!blurbEl) {
+      blurbEl = document.createElement('div');
+      blurbEl.className = 'ranking-blurb';
+      const table = containerEl.querySelector('table') || containerEl.querySelector('.ranking-content');
+      containerEl.insertBefore(blurbEl, table);
+    }
+    blurbEl.textContent = data.blurb || '';
+    if (adminMode) {
+      blurbEl.style.cursor = 'text';
+      if (!data.blurb) blurbEl.textContent = '';
+      blurbEl.contentEditable = 'true';
+      blurbEl.style.minHeight = '2rem';
+      blurbEl.oninput = () => {
+        const d2 = getRankingData(dataKey);
+        d2.blurb = blurbEl.textContent.trim();
+        setRankingData(dataKey, d2);
+      };
+    } else {
+      blurbEl.contentEditable = 'false';
+      blurbEl.style.display = data.blurb ? '' : 'none';
+    }
   }
 
   // Tiers + entries
@@ -2496,6 +2546,7 @@ document.addEventListener('DOMContentLoaded', function() {
     enableInlineEditing();
     applyAdminToCurrentPage();
     renderHomePostFeed();
+    renderTierLegend();
     addNewPostButton();
   }
 
@@ -3249,6 +3300,7 @@ document.addEventListener('DOMContentLoaded', function() {
   buildClubGrid();
   renderCountryDisplay();
   renderAllRankingsPublic();
+  renderTierLegend();
   showPage('home');
 });
 </script>
