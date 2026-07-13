@@ -163,6 +163,7 @@
   .bench-slot { font-family: var(--serif); font-size: 0.85rem; color: rgba(255,255,255,0.75); font-style: italic; white-space: nowrap; }
   .bench-slot:not(:last-child)::after { content: '·'; margin-left: 0.75rem; color: rgba(255,255,255,0.25); }
   .bench-slot.empty { color: rgba(255,255,255,0.2); font-style: normal; font-size: 0.7rem; }
+  .admin-active .bench-slot:hover { opacity: 0.7; text-decoration: underline; }
   .bench-num { display: none; }
 
   /* GLOSSARY */
@@ -2129,27 +2130,28 @@ function makeXIEditable(entityKey, container) {
   });
 
   // Bench slots
+  // Bench slots — make whole slot clickable in admin
   const benchSlots = container.querySelectorAll('.bench-slot');
   benchSlots.forEach((slot, i) => {
     const nameSpan = slot.querySelector('.bench-name');
     const storageKey = `xi_${entityKey}_bench_${i}`;
     const saved = getData(storageKey, '');
-    if (saved) { nameSpan.textContent = saved; nameSpan.style.color = 'var(--black)'; nameSpan.style.fontStyle = 'normal'; }
-
-    const btn = document.createElement('button');
-    btn.className = 'admin-edit-btn';
-    btn.textContent = '✎';
-    btn.style.cssText = 'font-size:0.65rem;padding:2px 5px;margin-left:4px;';
-    btn.onclick = () => {
+    if (saved) {
+      nameSpan.textContent = saved;
+      slot.classList.remove('empty');
+    }
+    slot.style.cursor = 'pointer';
+    slot.title = `Click to edit bench slot ${i+1}`;
+    slot.onclick = () => {
       const current = nameSpan.textContent === '—' ? '' : nameSpan.textContent;
       const val = prompt(`Bench ${i+1} — enter player name:`, current);
       if (val !== null) {
         nameSpan.textContent = val || '—';
         slot.classList.toggle('empty', !val);
+        slot.style.cursor = 'pointer';
         setData(storageKey, val);
       }
     };
-    slot.appendChild(btn);
   });
 }
 
