@@ -149,12 +149,13 @@
   .xi-pos-badge { font-size: 0.65rem; font-weight: 600; color: var(--white); background: var(--accent); padding: 2px 7px; border-radius: 2px; min-width: 32px; text-align: center; text-transform: uppercase; letter-spacing: 0.04em; }
   .xi-player-name { font-family: var(--serif); font-size: 1rem; font-weight: 700; flex: 1; color: var(--black); }
   .xi-player-name.empty { color: var(--gray-400); font-style: italic; font-weight: 400; }
-  .bench-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200); }
-  .bench-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 1rem; }
-  .bench-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-  .bench-slot { border: 1px dashed var(--gray-200); border-radius: 3px; padding: 0.5rem 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
-  .bench-num { font-size: 0.7rem; color: var(--gray-400); font-weight: 600; min-width: 14px; }
-  .bench-name { font-family: var(--serif); font-size: 0.85rem; color: var(--gray-400); font-style: italic; }
+  .bench-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1.5px solid var(--gray-200); }
+  .bench-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+  .bench-list { display: flex; flex-direction: column; gap: 0; }
+  .bench-slot { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0; border-bottom: 1px solid var(--gray-100); }
+  .bench-slot:last-child { border-bottom: none; }
+  .bench-num { font-family: var(--serif); font-size: 0.78rem; font-weight: 700; color: var(--accent); min-width: 1.5rem; }
+  .bench-name { font-family: var(--serif); font-size: 0.88rem; color: var(--gray-400); font-style: italic; flex: 1; }
 
   /* GLOSSARY */
   .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
@@ -1160,43 +1161,56 @@ function buildXIDetail(name, meta, formationKey) {
     if (badges.length) metaHTML = `<div class="xi-country-trophies" style="margin-bottom:1.5rem;flex-wrap:wrap;display:flex;gap:0.4rem;">${badges.join('')}</div>`;
   }
 
+  // Build flat index map for pitch dots (reversed rows for display, but indexed by position order)
+  let pitchIdx = 0;
+  const reversedRows = [...pitchRows].reverse();
   const pitchHTML = `<div class="pitch">
-    ${[...pitchRows].reverse().map(row => `<div class="pitch-row">
-      ${row.map(p => `<div class="pitch-player">
-        <div class="pitch-dot empty">+</div>
-        <div class="pitch-label empty-label">${p.label}</div>
-      </div>`).join('')}
+    ${reversedRows.map(row => `<div class="pitch-row">
+      ${row.map(p => {
+        const idx = pitchIdx++;
+        return `<div class="pitch-player" data-pos-index="${idx}">
+          <div class="pitch-dot empty" data-pos-index="${idx}">+</div>
+          <div class="pitch-label empty-label" data-pos-index="${idx}">${p.label}</div>
+        </div>`;
+      }).join('')}
     </div>`).join('')}
   </div>`;
 
+  // Build label-based storage keys (handle duplicates: CB_0, CB_1)
+  const labelCounts = {};
+  const posKeys = positions.map(p => {
+    const lc = p.label.replace(/[^a-zA-Z0-9]/g,'_');
+    labelCounts[lc] = (labelCounts[lc] || 0);
+    const key = lc + '_' + labelCounts[lc];
+    labelCounts[lc]++;
+    return key;
+  });
+
   const listHTML = `<div class="xi-details">
     <div class="xi-section-label">Starting XI</div>
-    ${positions.map(p => `<div class="xi-player-row">
+    ${positions.map((p, i) => `<div class="xi-player-row" data-pos-index="${i}" data-pos-key="${posKeys[i]}">
       <span class="xi-pos-badge">${p.label}</span>
       <span class="xi-player-name empty">TBD</span>
     </div>`).join('')}
   </div>`;
 
-  const bench = Array.from({length:9},(_,i)=>i+1);
-  const honors = Array.from({length:6},(_,i)=>i+1);
-
-  const benchHTML = `
-    <div class="bench-section">
-      <div class="bench-title">Bench (9)</div>
-      <div class="bench-grid">
-        ${bench.map(n=>`<div class="bench-slot"><span class="bench-num">${n}</span><span class="bench-name">TBD</span></div>`).join('')}
-      </div>
+  const bench = Array.from({length:9},(_,i)=>i);
+  const benchHTML = `<div class="bench-section">
+    <div class="bench-title">Bench</div>
+    <div class="bench-list">
+      ${bench.map(i=>`<div class="bench-slot" data-bench-index="${i}">
+        <span class="bench-num">${i+1}</span>
+        <span class="bench-name">—</span>
+      </div>`).join('')}
     </div>
-    <div class="bench-section">
-      <div class="bench-title">Honorable Mentions</div>
-      <div class="bench-grid">
-        ${honors.map(n=>`<div class="bench-slot"><span class="bench-num">—</span><span class="bench-name">TBD</span></div>`).join('')}
-      </div>
-    </div>`;
-
-  const formationPickerHTML = `<div class="formation-picker" style="margin-bottom:1rem;">
-    ${Object.keys(FORMATIONS).map(f => `<button class="formation-btn${f === fKey ? ' active' : ''}" onclick="changeFormation('${name}',${meta ? 'true' : 'null'},'${f}',this)">${f}</button>`).join('')}
   </div>`;
+
+  const formationPickerHTML = adminMode ? `<div class="formation-picker" style="margin-bottom:1rem;">
+    <span style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-right:0.5rem;">Formation:</span>
+    <select style="font-size:0.82rem;padding:0.3rem 0.6rem;border:1.5px solid var(--gray-200);border-radius:3px;font-family:var(--sans);outline:none;" onchange="changeFormation('${name}',${meta ? 'true' : 'null'},this.value,this)">
+      ${Object.keys(FORMATIONS).map(f => `<option value="${f}" ${f === fKey ? 'selected' : ''}>${f}</option>`).join('')}
+    </select>
+  </div>` : '';
 
   return `
     <div class="section-header">
@@ -1705,8 +1719,10 @@ function makeXIEditable(entityKey, container) {
     const nameSpan = row.querySelector('.xi-player-name');
     const posSpan  = row.querySelector('.xi-pos-badge');
     const pos = posSpan ? posSpan.textContent : '';
-    const storageKey = `xi_${entityKey}_pos_${i}`;
-    const saved = getData(storageKey, '');
+    const posKey = row.getAttribute('data-pos-key') || `pos_${i}`;
+    const storageKey = `xi_${entityKey}_${posKey}`;
+    // Fallback to old index-based key for migration
+    const saved = getData(storageKey, '') || getData(`xi_${entityKey}_pos_${i}`, '');
     if (saved) { nameSpan.textContent = saved; nameSpan.classList.remove('empty'); }
 
     const btn = document.createElement('button');
@@ -1715,7 +1731,7 @@ function makeXIEditable(entityKey, container) {
     btn.title = 'Edit player';
     btn.onclick = () => {
       const current = nameSpan.textContent === 'TBD' ? '' : nameSpan.textContent;
-      showXISlotModal(entityKey, i, pos, current, nameSpan, storageKey);
+      showXISlotModal(entityKey, i, pos, current, nameSpan, storageKey, container);
     };
     row.appendChild(btn);
   });
@@ -1733,10 +1749,10 @@ function makeXIEditable(entityKey, container) {
     btn.textContent = '✎';
     btn.style.cssText = 'font-size:0.65rem;padding:2px 5px;margin-left:4px;';
     btn.onclick = () => {
-      const current = nameSpan.textContent === 'TBD' ? '' : nameSpan.textContent;
-      const val = prompt(`${i < 9 ? 'Bench ' + (i+1) : 'Honorable mention'} — enter player name:`, current);
+      const current = nameSpan.textContent === '—' ? '' : nameSpan.textContent;
+      const val = prompt(`Bench ${i+1} — enter player name:`, current);
       if (val !== null) {
-        nameSpan.textContent = val || 'TBD';
+        nameSpan.textContent = val || '—';
         nameSpan.style.color = val ? 'var(--black)' : '';
         nameSpan.style.fontStyle = val ? 'normal' : '';
         setData(storageKey, val);
@@ -1746,7 +1762,7 @@ function makeXIEditable(entityKey, container) {
   });
 }
 
-function showXISlotModal(entityKey, idx, pos, current, nameSpan, storageKey) {
+function showXISlotModal(entityKey, idx, pos, current, nameSpan, storageKey, container) {
   const existing = document.getElementById('adminModal');
   if (existing) existing.remove();
 
@@ -1771,6 +1787,8 @@ function showXISlotModal(entityKey, idx, pos, current, nameSpan, storageKey) {
   // store reference so save can update DOM
   modal._nameSpan = nameSpan;
   modal._storageKey = storageKey;
+  modal._posIdx = idx;
+  modal._container = container || null;
 }
 
 function saveXISlot(storageKey) {
@@ -1778,10 +1796,26 @@ function saveXISlot(storageKey) {
   const val = inp ? inp.value.trim() : '';
   const modal = document.getElementById('adminModal');
   const nameSpan = modal ? modal._nameSpan : null;
+  const posIdx = modal ? modal._posIdx : null;
+  const container = modal ? modal._container : null;
   setData(storageKey, val);
   if (nameSpan) {
     nameSpan.textContent = val || 'TBD';
     nameSpan.classList.toggle('empty', !val);
+  }
+  // Update matching pitch dot
+  if (container && posIdx !== null) {
+    const dot = container.querySelector(`.pitch-dot[data-pos-index="${posIdx}"]`);
+    const label = container.querySelector(`.pitch-label[data-pos-index="${posIdx}"]`);
+    if (dot) {
+      dot.textContent = val ? val.split(' ')[0] : '+';
+      dot.classList.toggle('empty', !val);
+      dot.style.fontSize = val ? '0.5rem' : '';
+    }
+    if (label) {
+      label.textContent = val || (nameSpan ? nameSpan.closest('.xi-player-row')?.querySelector('.xi-pos-badge')?.textContent : '');
+      label.classList.toggle('empty-label', !val);
+    }
   }
   if (modal) modal.remove();
 }
@@ -1811,8 +1845,14 @@ function restoreXIData(entityKey, container) {
   const slots = container.querySelectorAll('.xi-player-row');
   slots.forEach((row, i) => {
     const nameSpan = row.querySelector('.xi-player-name');
-    const saved = getData(`xi_${entityKey}_pos_${i}`, '');
+    const posKey = row.getAttribute('data-pos-key') || `pos_${i}`;
+    const saved = getData(`xi_${entityKey}_${posKey}`, '') || getData(`xi_${entityKey}_pos_${i}`, '');
     if (saved) { nameSpan.textContent = saved; nameSpan.classList.remove('empty'); }
+    // Update pitch dot
+    const dot = container.querySelector(`.pitch-dot[data-pos-index="${i}"]`);
+    const label = container.querySelector(`.pitch-label[data-pos-index="${i}"]`);
+    if (dot && saved) { dot.textContent = saved.split(' ')[0]; dot.classList.remove('empty'); dot.style.fontSize = '0.5rem'; }
+    if (label && saved) { label.textContent = saved; label.classList.remove('empty-label'); }
   });
   const benchSlots = container.querySelectorAll('.bench-slot');
   benchSlots.forEach((slot, i) => {
