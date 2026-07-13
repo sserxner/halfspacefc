@@ -247,7 +247,8 @@
   [data-editable] { cursor: default; }
   .admin-active [data-editable] { border-bottom: 1.5px dashed rgba(45,92,63,0.5); cursor: text; transition: border-color 0.15s; border-radius: 2px; }
   .admin-active [data-editable]:hover { border-bottom-color: var(--accent); background: rgba(45,92,63,0.06); }
-  .admin-active .nav-tab-band [data-editable] { border-bottom: 1.5px dashed rgba(255,255,255,0.4); }
+  .nav-tab span[data-editable] { pointer-events: none; }
+  .admin-active .nav-tab span[data-editable] { pointer-events: auto; }
   .admin-active .nav-tab-band [data-editable]:hover { border-bottom-color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.08); border-radius: 2px; cursor: text; }
   [data-editable]:focus { outline: none; border-bottom-color: var(--accent) !important; background: rgba(45,92,63,0.08) !important; }
   .hero [data-editable]:focus { background: rgba(255,255,255,0.1) !important; border-bottom-color: rgba(255,255,255,0.8) !important; }
