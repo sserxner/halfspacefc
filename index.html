@@ -161,6 +161,10 @@
   .glossary-card-pos { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem; }
   .glossary-card-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--black); }
   .glossary-card-body { font-size: 0.875rem; color: var(--gray-600); line-height: 1.6; }
+  .glossary-subtypes { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-100); display: flex; flex-direction: column; gap: 0.6rem; }
+  .glossary-subtype { background: var(--gray-50); border-radius: 3px; padding: 0.6rem 0.75rem; }
+  .glossary-subtype-name { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.25rem; }
+  .glossary-subtype-body { font-size: 0.82rem; color: var(--gray-600); line-height: 1.55; font-family: var(--serif); }
 
   /* CONTACT */
   .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
@@ -264,15 +268,15 @@
   <div class="nav-inner">
     <a class="nav-logo" href="#" onclick="showPage('home');return false;">Half Space</a>
     <div class="nav-tabs">
-      <button class="nav-tab" onclick="showPage('rankings')"><span data-editable="nav_rankings">Rankings</span></button>
-      <button class="nav-tab" onclick="showPage('country-xi')"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-      <button class="nav-tab" onclick="showPage('club-xi')"><span data-editable="nav_club">Club XIs</span></button>
-      <button class="nav-tab" onclick="showPage('continental-xi')"><span data-editable="nav_continental">Continental XIs</span></button>
-      <button class="nav-tab" onclick="showPage('managers')"><span data-editable="nav_managers">Managers</span></button>
-      <button class="nav-tab" onclick="showPage('positions')"><span data-editable="nav_positions">Positions</span></button>
-      <button class="nav-tab" onclick="showPage('diary')"><span data-editable="nav_diary">Matchday Diary</span></button>
-      <button class="nav-tab" onclick="showPage('scouting')"><span data-editable="nav_scouting">Scouting</span></button>
-      <button class="nav-tab" onclick="showPage('contact')"><span data-editable="nav_contact">Contact</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('rankings')"><span data-editable="nav_rankings">Rankings</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('country-xi')"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('club-xi')"><span data-editable="nav_club">Club XIs</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('continental-xi')"><span data-editable="nav_continental">Continental XIs</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('managers')"><span data-editable="nav_managers">Managers</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('positions')"><span data-editable="nav_positions">Positions</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('diary')"><span data-editable="nav_diary">Matchday Diary</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('scouting')"><span data-editable="nav_scouting">Scouting</span></button>
+      <button class="nav-tab" onclick="if(!adminMode)showPage('contact')"><span data-editable="nav_contact">Contact</span></button>
     </div>
     <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -281,16 +285,16 @@
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
-  <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
-  <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();"><span data-editable="nav_rankings">Rankings</span></button>
-  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();"><span data-editable="nav_club">Club XIs</span></button>
-  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();"><span data-editable="nav_continental">Continental XIs</span></button>
-  <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();"><span data-editable="nav_managers">Managers</span></button>
-  <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();"><span data-editable="nav_positions">Positions</span></button>
-  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();"><span data-editable="nav_diary">Matchday Diary</span></button>
-  <button class="nav-tab" onclick="showPage('scouting');toggleMobileMenu();"><span data-editable="nav_scouting">Scouting</span></button>
-  <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();"><span data-editable="nav_contact">Contact</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('home');toggleMobileMenu();}">Home</button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('rankings');toggleMobileMenu();}"><span data-editable="nav_rankings">Rankings</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('country-xi');toggleMobileMenu();}"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('club-xi');toggleMobileMenu();}"><span data-editable="nav_club">Club XIs</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('continental-xi');toggleMobileMenu();}"><span data-editable="nav_continental">Continental XIs</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('managers');toggleMobileMenu();}"><span data-editable="nav_managers">Managers</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('positions');toggleMobileMenu();}"><span data-editable="nav_positions">Positions</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('diary');toggleMobileMenu();}"><span data-editable="nav_diary">Matchday Diary</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('scouting');toggleMobileMenu();}"><span data-editable="nav_scouting">Scouting</span></button>
+  <button class="nav-tab" onclick="if(!adminMode){showPage('contact');toggleMobileMenu();}"><span data-editable="nav_contact">Contact</span></button>
 </div>
 
 <!-- HOME -->
@@ -505,39 +509,18 @@
 <!-- CONTINENTAL XIs -->
 <div class="page" id="page-continental-xi">
   <div class="content">
-    <div class="sub-tabs">
-      <button class="sub-tab active" onclick="showSubTab('continental','europe')">Europe</button>
-      <button class="sub-tab" onclick="showSubTab('continental','southamerica')">South America</button>
-      <button class="sub-tab" onclick="showSubTab('continental','northamerica')">North America</button>
-      <button class="sub-tab" onclick="showSubTab('continental','asia')">Asia</button>
-      <button class="sub-tab" onclick="showSubTab('continental','africa')">Africa</button>
-    </div>
-    <div id="continental-europe"><div class="section-header"><span class="section-title">European All-Time XI</span></div><div id="xi-europe"></div></div>
-    <div id="continental-southamerica" style="display:none"><div class="section-header"><span class="section-title">South American All-Time XI</span></div><div id="xi-southamerica"></div></div>
-    <div id="continental-northamerica" style="display:none"><div class="section-header"><span class="section-title">North American All-Time XI</span></div><div id="xi-northamerica"></div></div>
-    <div id="continental-asia" style="display:none"><div class="section-header"><span class="section-title">Asian All-Time XI</span></div><div id="xi-asia"></div></div>
-    <div id="continental-africa" style="display:none"><div class="section-header"><span class="section-title">African All-Time XI</span></div><div id="xi-africa"></div></div>
+    <div class="empty-state"><p>Nothing here yet.</p></div>
   </div>
 </div>
 
 <!-- POSITIONS -->
 <div class="page" id="page-positions">
   <div class="content">
-    <div class="section-header"><span class="section-title" data-editable="pos_header">Position Guide</span><span class="section-sub" data-editable="pos_sub">What each role actually means</span></div>
-    <div class="glossary-grid">
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_gk_abbr">GK</div><div class="glossary-card-title" data-editable="pos_gk_title">Goalkeeper</div><div class="glossary-card-body" data-editable="pos_gk_body">The last line of defence. Modern goalkeepers are expected to be comfortable with the ball at their feet and act as a sweeper behind a high defensive line. Shot-stopping remains primary but distribution — short and long — separates the elite.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_cb_abbr">CB</div><div class="glossary-card-title" data-editable="pos_cb_title">Centre Back</div><div class="glossary-card-body" data-editable="pos_cb_body">The defensive anchor. Can be split into the ball-playing CB — comfortable stepping out with the ball — and the more traditional defensive CB focused on winning duels and organizing the line. The best do both.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_fb_abbr">FB / WB</div><div class="glossary-card-title" data-editable="pos_fb_title">Full Back / Wing Back</div><div class="glossary-card-body" data-editable="pos_fb_body">The modern full back is one of the most demanding positions in football. Expected to defend one-on-one, provide width in attack, combine in tight spaces, and cover enormous distances. Wing backs in a back five push even higher and function almost as wingers.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_dm_abbr">DM / 6</div><div class="glossary-card-title" data-editable="pos_dm_title">Defensive Midfielder</div><div class="glossary-card-body" data-editable="pos_dm_body">The shield in front of the defence. Tasked with breaking up play, winning second balls, and transitioning quickly. The best no. 6s also have the range of passing to start attacks from deep — they are the connective tissue of a team.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_cm_abbr">CM / 8</div><div class="glossary-card-title" data-editable="pos_cm_title">Central Midfielder</div><div class="glossary-card-body" data-editable="pos_cm_body">The engine. Box-to-box midfielders cover every blade of grass. The no. 8 role varies enormously by system — some are essentially second strikers, others are primarily defensive. What unites them: athleticism, decision-making, and the ability to affect both halves.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_reg_abbr">Regista</div><div class="glossary-card-title" data-editable="pos_reg_title">Deep-Lying Playmaker</div><div class="glossary-card-body" data-editable="pos_reg_body">The conductor. Drops deep to receive, rarely presses, and controls the tempo of a match through the weight and timing of their passing. Pirlo is the archetype. Requires elite technical quality and exceptional positional intelligence to compensate for defensive limitations.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_am_abbr">AM / 10</div><div class="glossary-card-title" data-editable="pos_am_title">Attacking Midfielder / No. 10</div><div class="glossary-card-body" data-editable="pos_am_body">The creative hub. Operates in the pockets between midfield and attack. The classic no. 10 is a dying breed in pressing-heavy systems, but the role has evolved — modern 10s are often expected to press aggressively and track back as well as create and score.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_w_abbr">W / 7 / 11</div><div class="glossary-card-title" data-editable="pos_w_title">Winger</div><div class="glossary-card-body" data-editable="pos_w_body">Wide attackers who can play as traditional wide men hugging the touchline and delivering crosses, or inverted wingers who cut inside onto their stronger foot to shoot or combine. The latter has become dominant. Pace, dribbling, and end product are the defining qualities.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_cf_abbr">CF / 9</div><div class="glossary-card-title" data-editable="pos_cf_title">Centre Forward / Striker</div><div class="glossary-card-body" data-editable="pos_cf_body">The finisher. The penalty-box striker is purely about goals — positioning, movement, and composure. The complete centre forward also brings others into play, holds up the ball, and presses from the front. The false nine drops deep to create overloads and space.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_f9_abbr">False 9</div><div class="glossary-card-title" data-editable="pos_f9_title">False Nine</div><div class="glossary-card-body" data-editable="pos_f9_body">A striker who drops into midfield, dragging centre backs out of position and creating space for runners from deep. Messi's greatest Barcelona years were built around this role under Guardiola. Requires a player comfortable both creating and finishing.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_iw_abbr">IW</div><div class="glossary-card-title" data-editable="pos_iw_title">Inverted Winger</div><div class="glossary-card-body" data-editable="pos_iw_body">A winger who starts wide but cuts inside rather than crossing. A left-footed player on the right wing, or vice versa. The inversion creates shooting lanes and overloads in central areas. Robben was the prototype. Now one of the most common roles in the modern game.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_mez_abbr">Mezzala</div><div class="glossary-card-title" data-editable="pos_mez_title">Mezzala</div><div class="glossary-card-body" data-editable="pos_mez_body">A central midfielder who operates in the half spaces — the channels between the full back and centre back. Runs beyond the striker, arrives late into the box, and combines in tight spaces wide. Requires both the technical quality of a 10 and the athleticism of an 8.</div></div>
+    <div class="section-header">
+      <span class="section-title" data-editable="pos_header">Position Guide</span>
+      <span class="section-sub" data-editable="pos_sub">What each role actually means</span>
     </div>
+    <div id="positionsGrid"></div>
   </div>
 </div>
 
@@ -686,18 +669,103 @@ const HISTORICAL_GROUPS = [
 ];
 
 const CLUBS = [
-  "Arsenal","Aston Villa","Chelsea","Everton","Leeds United","Leicester City","Liverpool",
-  "Manchester City","Manchester United","Newcastle United","Nottingham Forest","Tottenham Hotspur",
-  "West Ham United","Wolverhampton","Brentford","Brighton","Crystal Palace","Fulham","Southampton",
-  "AC Milan","Inter Milan","Juventus","AS Roma","Napoli","Lazio",
-  "Real Madrid","Barcelona","Atletico Madrid","Sevilla","Valencia",
-  "Bayern Munich","Borussia Dortmund","RB Leipzig","Bayer Leverkusen",
-  "Ajax","PSV","Feyenoord",
-  "Paris Saint-Germain","Olympique Lyonnais","Marseille",
-  "Porto","Benfica","Sporting CP",
-  "Celtic","Rangers",
-  "Galatasaray","Fenerbahce",
-  "Red Bull Salzburg","Shakhtar Donetsk","Club Brugge","Anderlecht"
+  // SPAIN — CL + Liga titles
+  "Real Madrid",        // 15 CL + 36 Liga = 51
+  "Barcelona",          // 5 CL + 27 Liga = 32
+  "Atletico Madrid",    // 0 CL + 11 Liga = 11
+  "Sevilla",            // 0 CL + 1 Liga = 1
+  "Valencia",           // 0 CL + 6 Liga = 6
+
+  // ITALY — CL + Serie A titles
+  "AC Milan",           // 7 CL + 19 Serie A = 26
+  "Inter Milan",        // 3 CL + 20 Serie A = 23
+  "Juventus",           // 2 CL + 36 Serie A = 38
+  "AS Roma",            // 0 CL + 3 Serie A = 3
+  "Napoli",             // 0 CL + 3 Serie A = 3
+  "Lazio",              // 0 CL + 2 Serie A = 2
+  "Fiorentina",         // 0 CL + 2 Serie A = 2
+
+  // GERMANY — CL + Bundesliga titles
+  "Bayern Munich",      // 6 CL + 33 Bundesliga = 39
+  "Borussia Dortmund",  // 1 CL + 8 Bundesliga = 9
+  "Bayer Leverkusen",   // 0 CL + 1 Bundesliga = 1
+  "RB Leipzig",         // 0 CL + 0 Bundesliga = 0
+  "Borussia Mönchengladbach", // 0 CL + 5 Bundesliga = 5
+  "Werder Bremen",      // 0 CL + 4 Bundesliga = 4
+  "Hamburg",            // 1 CL + 6 Bundesliga = 7
+  "Schalke",            // 0 CL + 7 Bundesliga = 7
+  "Eintracht Frankfurt",// 0 CL + 1 Bundesliga = 1
+
+  // ENGLAND — CL + PL/First Division titles
+  "Liverpool",          // 6 CL + 19 league = 25
+  "Manchester United",  // 3 CL + 20 league = 23
+  "Arsenal",            // 0 CL + 13 league = 13
+  "Chelsea",            // 2 CL + 6 league = 8
+  "Manchester City",    // 1 CL + 9 league = 10
+  "Nottingham Forest",  // 2 CL + 1 league = 3
+  "Aston Villa",        // 1 CL + 7 league = 8
+  "Tottenham Hotspur",  // 0 CL + 2 league = 2
+  "Everton",            // 0 CL + 9 league = 9
+  "Blackburn Rovers",   // 0 CL + 1 league = 1
+  "Leeds United",       // 0 CL + 3 league = 3
+  "Newcastle United",   // 0 CL + 4 league = 4
+  "West Ham United",    // 0 CL + 0 league = 0
+  "Leicester City",     // 0 CL + 1 league = 1
+  "Southampton",        // 0 CL + 0 league = 0
+  "Middlesbrough",      // 0 CL + 0 league = 0
+  "Bolton Wanderers",   // 0 CL + 0 league = 0
+  "Fulham",             // 0 CL + 0 league = 0
+  "Charlton Athletic",  // 0 CL + 0 league = 0
+  "Sunderland",         // 0 CL + 6 league = 6
+  "Derby County",       // 0 CL + 2 league = 2
+  "Ipswich Town",       // 0 CL + 1 league = 1
+  "Coventry City",      // 0 CL + 0 league = 0
+  "Norwich City",       // 0 CL + 0 league = 0
+  "Crystal Palace",     // 0 CL + 0 league = 0
+  "Sheffield Wednesday",// 0 CL + 4 league = 4
+  "Queens Park Rangers",// 0 CL + 0 league = 0
+  "West Bromwich Albion",// 0 CL + 1 league = 1
+  "Stoke City",         // 0 CL + 0 league = 0
+  "Wigan Athletic",     // 0 CL + 0 league = 0
+  "Wolverhampton",      // 0 CL + 3 league = 3
+  "Burnley",            // 0 CL + 2 league = 2
+  "Swansea City",       // 0 CL + 0 league = 0
+  "Hull City",          // 0 CL + 0 league = 0
+  "Portsmouth",         // 0 CL + 2 league = 2
+  "Birmingham City",    // 0 CL + 0 league = 0
+  "Watford",            // 0 CL + 0 league = 0
+  "Blackpool",          // 0 CL + 0 league = 0
+  "Brentford",          // 0 CL + 0 league = 0
+  "Brighton",           // 0 CL + 0 league = 0
+
+  // FRANCE — CL + Ligue 1 titles
+  "Paris Saint-Germain",// 2 CL + 12 Ligue 1 = 14
+  "Olympique Lyonnais", // 0 CL + 7 Ligue 1 = 7
+  "Marseille",          // 1 CL + 9 Ligue 1 = 10
+  "Monaco",             // 0 CL + 8 Ligue 1 = 8
+  "Bordeaux",           // 0 CL + 6 Ligue 1 = 6
+  "Nantes",             // 0 CL + 8 Ligue 1 = 8
+  "Saint-Étienne",      // 0 CL + 10 Ligue 1 = 10
+
+  // NETHERLANDS — CL + Eredivisie titles
+  "Ajax",               // 4 CL + 36 Eredivisie = 40
+  "PSV",                // 1 CL + 24 Eredivisie = 25
+  "Feyenoord",          // 1 CL + 16 Eredivisie = 17
+
+  // PORTUGAL — CL + Primeira Liga titles
+  "Benfica",            // 2 CL + 38 Liga = 40
+  "Porto",              // 2 CL + 30 Liga = 32
+  "Sporting CP",        // 0 CL + 19 Liga = 19
+
+  // OTHER CL participants
+  "Celtic",
+  "Rangers",
+  "Galatasaray",
+  "Fenerbahce",
+  "Red Bull Salzburg",
+  "Shakhtar Donetsk",
+  "Club Brugge",
+  "Anderlecht",
 ];
 
 const FINISH_ORDER = ["Winner","Final","3rd Place","4th Place","Semi-final","QF","R16","Group","—"];
@@ -849,7 +917,7 @@ function showCountryList() {
 function buildClubGrid() {
   const grid = document.getElementById('clubGrid');
   if (!grid) return;
-  grid.innerHTML = [...CLUBS].sort().map(c => `
+  grid.innerHTML = CLUBS.map(c => `
     <button class="xi-country-card" onclick="showClubDetail('${c.replace(/'/g,"\\'")}')">
       <span class="xi-country-name">${c}</span>
       <span class="xi-country-finish" style="font-size:0.72rem;color:var(--gray-400);">21st Century XI · 9-man bench</span>
@@ -937,16 +1005,6 @@ function buildXIDetail(name, meta) {
 }
 
 // ---- CONTINENTAL XIs ----
-function buildContinentalXIs() {
-  ['europe','southamerica','northamerica','asia','africa'].forEach(key => {
-    const el = document.getElementById('xi-' + key);
-    if (el) el.innerHTML = buildXIDetail(
-      {europe:'European',southamerica:'South American',northamerica:'North American',asia:'Asian',africa:'African'}[key],
-      null
-    );
-  });
-}
-
 // ---- CONTACT ----
 function handleContact(e) {
   e.preventDefault();
@@ -955,7 +1013,6 @@ function handleContact(e) {
 
 // ---- INIT ----
 buildClubGrid();
-buildContinentalXIs();
 renderCountryDisplay();
 
 // ================================================================
@@ -1770,6 +1827,7 @@ window.showPage = function(id) {
   if (id === 'diary') renderDiary();
   if (id === 'scouting') renderScouting();
   if (id === 'home') renderHomePostFeed();
+  if (id === 'positions') renderPositions();
 };
 
 // Hook admin mode to add diary/scouting edit buttons
@@ -1788,6 +1846,7 @@ window.applyAdminToCurrentPage = function() {
     if (grid) grid.parentNode.insertBefore(addBtn, grid);
   }
   if (active.id === 'page-scouting') renderScouting();
+  if (active.id === 'page-positions') renderPositions();
 };
 
 // ================================================================
@@ -2041,9 +2100,200 @@ function savePost(idx) {
   addNewPostButton();
 }
 
+// ================================================================
+// POSITIONS SYSTEM
+// ================================================================
+
+const DEFAULT_POSITIONS = [
+  { abbr: 'GK', title: 'Goalkeeper', body: 'The last line of defence. Modern goalkeepers are expected to be comfortable with the ball at their feet and act as a sweeper behind a high defensive line. Shot-stopping remains primary but distribution — short and long — separates the elite.', subtypes: [] },
+  { abbr: 'CB', title: 'Centre Back', body: 'The defensive anchor. Can be split into the ball-playing CB — comfortable stepping out with the ball — and the more traditional defensive CB focused on winning duels and organizing the line. The best do both.', subtypes: [] },
+  { abbr: 'FB / WB', title: 'Full Back / Wing Back', body: 'The modern full back is one of the most demanding positions in football. Expected to defend one-on-one, provide width in attack, combine in tight spaces, and cover enormous distances. Wing backs in a back five push even higher and function almost as wingers.', subtypes: [] },
+  { abbr: 'DM / 6', title: 'Defensive Midfielder', body: 'The shield in front of the defence. Tasked with breaking up play, winning second balls, and transitioning quickly. The best no. 6s also have the range of passing to start attacks from deep — they are the connective tissue of a team.', subtypes: [] },
+  { abbr: 'CM / 8', title: 'Central Midfielder', body: 'The engine. Box-to-box midfielders cover every blade of grass. The no. 8 role varies enormously by system — some are essentially second strikers, others are primarily defensive. What unites them: athleticism, decision-making, and the ability to affect both halves.', subtypes: [] },
+  { abbr: 'Regista', title: 'Deep-Lying Playmaker', body: 'The conductor. Drops deep to receive, rarely presses, and controls the tempo of a match through the weight and timing of their passing. Pirlo is the archetype. Requires elite technical quality and exceptional positional intelligence to compensate for defensive limitations.', subtypes: [] },
+  { abbr: 'AM / 10', title: 'Attacking Midfielder / No. 10', body: 'The creative hub. Operates in the pockets between midfield and attack. The classic no. 10 is a dying breed in pressing-heavy systems, but the role has evolved — modern 10s are often expected to press aggressively and track back as well as create and score.', subtypes: [] },
+  { abbr: 'W / 7 / 11', title: 'Winger', body: 'Wide attackers who can play as traditional wide men hugging the touchline and delivering crosses, or inverted wingers who cut inside onto their stronger foot to shoot or combine. The latter has become dominant. Pace, dribbling, and end product are the defining qualities.', subtypes: [] },
+  { abbr: 'CF / 9', title: 'Centre Forward / Striker', body: 'The finisher. The penalty-box striker is purely about goals — positioning, movement, and composure. The complete centre forward also brings others into play, holds up the ball, and presses from the front. The false nine drops deep to create overloads and space.', subtypes: [] },
+  { abbr: 'False 9', title: 'False Nine', body: 'A striker who drops into midfield, dragging centre backs out of position and creating space for runners from deep. Messi\'s greatest Barcelona years were built around this role under Guardiola. Requires a player comfortable both creating and finishing.', subtypes: [] },
+  { abbr: 'IW', title: 'Inverted Winger', body: 'A winger who starts wide but cuts inside rather than crossing. A left-footed player on the right wing, or vice versa. The inversion creates shooting lanes and overloads in central areas. Robben was the prototype. Now one of the most common roles in the modern game.', subtypes: [] },
+  { abbr: 'Mezzala', title: 'Mezzala', body: 'A central midfielder who operates in the half spaces — the channels between the full back and centre back. Runs beyond the striker, arrives late into the box, and combines in tight spaces wide. Requires both the technical quality of a 10 and the athleticism of an 8.', subtypes: [] },
+];
+
+function getPositions() {
+  const saved = getData('positions_data', null);
+  return saved !== null ? saved : DEFAULT_POSITIONS;
+}
+
+function savePositions(positions) {
+  setData('positions_data', positions);
+}
+
+function renderPositions() {
+  const grid = document.getElementById('positionsGrid');
+  if (!grid) return;
+  const positions = getPositions();
+  grid.innerHTML = `<div class="glossary-grid">
+    ${positions.map((p, i) => renderPositionCard(p, i)).join('')}
+  </div>`;
+  if (adminMode) {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'admin-add-btn';
+    addBtn.textContent = '+ Add position';
+    addBtn.style.marginTop = '1.5rem';
+    addBtn.onclick = () => showPositionModal(-1, {});
+    grid.appendChild(addBtn);
+  }
+}
+
+function renderPositionCard(p, i) {
+  const subtypesHTML = p.subtypes && p.subtypes.length ? `
+    <div class="glossary-subtypes">
+      ${p.subtypes.map((s, si) => `
+        <div class="glossary-subtype">
+          <div class="glossary-subtype-name">${s.name || ''}</div>
+          <div class="glossary-subtype-body">${s.body || ''}</div>
+          ${adminMode ? `<div style="margin-top:0.4rem;display:flex;gap:0.4rem;">
+            <button class="admin-edit-btn" style="font-size:0.62rem;" onclick="editSubtype(${i},${si})">Edit</button>
+            <button class="admin-edit-btn" style="font-size:0.62rem;background:#c0392b;" onclick="deleteSubtype(${i},${si})">✕</button>
+          </div>` : ''}
+        </div>`).join('')}
+      ${adminMode ? `<button class="admin-add-btn" style="margin-top:0.5rem;font-size:0.75rem;padding:0.35rem 0.7rem;" onclick="addSubtype(${i})">+ Add sub-type</button>` : ''}
+    </div>` : adminMode ? `<div class="glossary-subtypes" style="margin-top:0.75rem;"><button class="admin-add-btn" style="font-size:0.75rem;padding:0.35rem 0.7rem;" onclick="addSubtype(${i})">+ Add sub-type</button></div>` : '';
+
+  return `<div class="glossary-card">
+    <div class="glossary-card-pos">${p.abbr || ''}</div>
+    <div class="glossary-card-title">${p.title || ''}</div>
+    <div class="glossary-card-body">${p.body || ''}</div>
+    ${subtypesHTML}
+    ${adminMode ? `<div style="display:flex;gap:0.5rem;margin-top:0.85rem;padding-top:0.75rem;border-top:1px solid var(--gray-100);">
+      <button class="admin-edit-btn" onclick="editPosition(${i})">Edit</button>
+      <button class="admin-edit-btn" style="background:#c0392b;" onclick="deletePosition(${i})">✕ Delete</button>
+    </div>` : ''}
+  </div>`;
+}
+
+function showPositionModal(idx, pos) {
+  const existing = document.getElementById('adminModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;`;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:520px;font-family:var(--sans);margin:auto;">
+      <h3 style="font-family:var(--serif);font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${idx === -1 ? 'Add position' : 'Edit position'}</h3>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;">
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Abbreviation</label>
+            <input id="pm_abbr" type="text" value="${(pos.abbr||'').replace(/"/g,'&quot;')}" placeholder="GK" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Position name</label>
+            <input id="pm_title" type="text" value="${(pos.title||'').replace(/"/g,'&quot;')}" placeholder="Goalkeeper" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Description</label>
+          <textarea id="pm_body" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--serif);outline:none;min-height:140px;resize:vertical;line-height:1.6;">${pos.body||''}</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('adminModal').remove()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;">Cancel</button>
+        <button onclick="savePosition(${idx})" style="padding:0.55rem 1.2rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:600;">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('pm_abbr').focus();
+}
+
+function savePosition(idx) {
+  const abbr  = document.getElementById('pm_abbr').value.trim();
+  const title = document.getElementById('pm_title').value.trim();
+  const body  = document.getElementById('pm_body').value.trim();
+  if (!title) { alert('Position name required.'); return; }
+  const positions = getPositions();
+  if (idx === -1) positions.push({ abbr, title, body, subtypes: [] });
+  else { positions[idx].abbr = abbr; positions[idx].title = title; positions[idx].body = body; }
+  savePositions(positions);
+  document.getElementById('adminModal').remove();
+  renderPositions();
+}
+
+function editPosition(idx) {
+  const positions = getPositions();
+  showPositionModal(idx, positions[idx] || {});
+}
+
+function deletePosition(idx) {
+  if (!confirm('Delete this position?')) return;
+  const positions = getPositions();
+  positions.splice(idx, 1);
+  savePositions(positions);
+  renderPositions();
+}
+
+// ---- SUB-TYPES ----
+function addSubtype(posIdx) { showSubtypeModal(posIdx, -1, {}); }
+function editSubtype(posIdx, stIdx) {
+  const positions = getPositions();
+  showSubtypeModal(posIdx, stIdx, (positions[posIdx].subtypes || [])[stIdx] || {});
+}
+function deleteSubtype(posIdx, stIdx) {
+  if (!confirm('Delete this sub-type?')) return;
+  const positions = getPositions();
+  positions[posIdx].subtypes.splice(stIdx, 1);
+  savePositions(positions);
+  renderPositions();
+}
+
+function showSubtypeModal(posIdx, stIdx, st) {
+  const existing = document.getElementById('adminModal');
+  if (existing) existing.remove();
+  const positions = getPositions();
+  const posName = positions[posIdx] ? positions[posIdx].title : '';
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;`;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:480px;font-family:var(--sans);">
+      <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--accent);">${stIdx === -1 ? 'Add sub-type' : 'Edit sub-type'}</h3>
+      <p style="font-size:0.8rem;color:var(--gray-400);margin-bottom:1.2rem;">Within: ${posName}</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Sub-type name</label>
+          <input id="st_name" type="text" value="${(st.name||'').replace(/"/g,'&quot;')}" placeholder="Wing Back" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Description</label>
+          <textarea id="st_body" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:110px;resize:vertical;line-height:1.6;">${st.body||''}</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('adminModal').remove()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;">Cancel</button>
+        <button onclick="saveSubtype(${posIdx},${stIdx})" style="padding:0.55rem 1.2rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:600;">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('st_name').focus();
+}
+
+function saveSubtype(posIdx, stIdx) {
+  const name = document.getElementById('st_name').value.trim();
+  const body = document.getElementById('st_body').value.trim();
+  if (!name) { alert('Name required.'); return; }
+  const positions = getPositions();
+  if (!positions[posIdx].subtypes) positions[posIdx].subtypes = [];
+  if (stIdx === -1) positions[posIdx].subtypes.push({ name, body });
+  else positions[posIdx].subtypes[stIdx] = { name, body };
+  savePositions(positions);
+  document.getElementById('adminModal').remove();
+  renderPositions();
+}
+
 loadData();
 initInlineEditing();
 renderHomePostFeed();
+renderPositions();
 </script>
 </body>
 </html>
