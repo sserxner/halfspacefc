@@ -46,7 +46,7 @@
   /* Tab band */
   .nav-tab-band { background: #0f2518; display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; padding: 0 1rem; justify-content: center; }
   .nav-tab-band::-webkit-scrollbar { display: none; }
-  .nav-tab { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.5); text-decoration: none; padding: 0 1rem; height: 40px; display: flex; align-items: center; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
+  .nav-tab { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.5); text-decoration: none; padding: 0 1rem; height: 40px; display: flex; align-items: center; border-bottom: 2px solid rgba(245,208,0,0.15); white-space: nowrap; transition: color 0.15s, border-color 0.15s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
   .nav-tab:hover { color: rgba(255,255,255,0.85); }
   .nav-tab.active { color: #ffffff; border-bottom-color: #f5d000; }
   .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); }
@@ -65,7 +65,7 @@
   .hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); pointer-events: none; }
   .hero-eyebrow { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
   .hero h1 { font-family: var(--serif); font-size: clamp(3.5rem, 9vw, 7rem); font-weight: 700; line-height: 1; letter-spacing: -0.02em; margin-bottom: 1.25rem; text-shadow: 0 2px 40px rgba(0,0,0,0.4); }
-  .hero-divider { width: 40px; height: 2px; background: rgba(255,255,255,0.25); margin: 0 auto 1.25rem; }
+  .hero-divider { width: 40px; height: 2px; background: #f5d000; margin: 0 auto 1.25rem; }
   .hero p { font-size: 1rem; color: rgba(255,255,255,0.55); max-width: 360px; margin: 0 auto; line-height: 1.6; font-family: var(--serif); font-style: italic; letter-spacing: 0.01em; }
 
   /* CONTENT */
@@ -250,6 +250,7 @@
   .search-empty { padding: 1.5rem; text-align: center; font-family: var(--serif); font-style: italic; color: var(--gray-400); font-size: 0.9rem; }
 
   /* RANKING LIST — clean */
+  .ranking-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--gray-100); }
   .ranking-row:last-child { border-bottom: none; }
   .ranking-row:hover { background: var(--gray-50); margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
   .ranking-num { font-family: var(--serif); font-size: 0.82rem; font-weight: 700; color: #c8a800; min-width: 1.8rem; padding-top: 0.05rem; flex-shrink: 0; }
