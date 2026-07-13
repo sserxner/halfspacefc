@@ -41,7 +41,7 @@
   /* NAV */
   nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 3px solid var(--accent); padding: 0 2rem; }
   .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; }
-  .nav-logo { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; margin-right: 2rem; flex-shrink: 0; }
+  .nav-logo { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: 0.02em; text-transform: uppercase; margin-right: 2rem; flex-shrink: 0; }
   .nav-tabs { display: flex; align-items: center; overflow-x: auto; scrollbar-width: none; flex: 1; }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tab { font-size: 0.78rem; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 0 0.85rem; height: 56px; display: flex; align-items: center; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
@@ -59,11 +59,12 @@
   .page.active { display: block; }
 
   /* HERO */
-  .hero { background: linear-gradient(135deg, #0f2518 0%, #1e4d30 60%, #2d5c3f 100%); color: var(--white); padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
-  .hero::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.02) 80px, rgba(255,255,255,0.02) 81px); pointer-events: none; }
-  .hero-eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 1.25rem; }
-  .hero h1 { font-family: var(--serif); font-size: clamp(2.8rem, 7vw, 5.5rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 1rem; text-shadow: 0 2px 24px rgba(0,0,0,0.3); }
-  .hero p { font-size: 1rem; color: rgba(255,255,255,0.65); max-width: 480px; margin: 0 auto; line-height: 1.7; font-family: var(--serif); }
+  .hero { background: linear-gradient(160deg, #0a1f12 0%, #1a3a22 55%, #2d5c3f 100%); color: var(--white); padding: 6rem 2rem 5rem; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); pointer-events: none; }
+  .hero-eyebrow { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
+  .hero h1 { font-family: var(--serif); font-size: clamp(3.5rem, 9vw, 7rem); font-weight: 700; line-height: 1; letter-spacing: -0.02em; margin-bottom: 1.25rem; text-shadow: 0 2px 40px rgba(0,0,0,0.4); }
+  .hero-divider { width: 40px; height: 2px; background: rgba(255,255,255,0.25); margin: 0 auto 1.25rem; }
+  .hero p { font-size: 1rem; color: rgba(255,255,255,0.55); max-width: 360px; margin: 0 auto; line-height: 1.6; font-family: var(--serif); font-style: italic; letter-spacing: 0.01em; }
 
   /* CONTENT */
   .content { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
@@ -180,7 +181,40 @@
   .xi-cont-name { font-family: var(--serif); font-size: 1rem; font-weight: 700; display: block; margin-bottom: 0.2rem; color: var(--black); }
   .xi-cont-sub { font-size: 0.72rem; color: var(--gray-400); }
 
-  footer { background: var(--accent); padding: 2rem; text-align: center; margin-top: 4rem; }
+  /* DIARY */
+  .diary-grid { display: flex; flex-direction: column; gap: 0; }
+  .diary-entry { border-bottom: 1px solid var(--gray-100); padding: 2rem 0; }
+  .diary-entry:first-child { padding-top: 0; }
+  .diary-meta { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .diary-date { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .diary-fixture { font-size: 0.8rem; font-weight: 600; color: var(--gray-600); background: var(--gray-100); padding: 2px 8px; border-radius: 2px; }
+  .diary-competition { font-size: 0.75rem; color: var(--gray-400); }
+  .diary-title { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--black); margin-bottom: 0.6rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .diary-body { font-family: var(--serif); font-size: 1.05rem; color: var(--gray-600); line-height: 1.75; max-width: 680px; }
+  .diary-body p { margin-bottom: 1em; }
+  .diary-rating { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 1rem; font-size: 0.78rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* SCOUTING */
+  .scouting-pos-section { margin-bottom: 3rem; }
+  .scouting-pos-header { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--white); background: var(--accent); padding: 0.5rem 1rem; border-radius: 3px; margin-bottom: 1rem; display: inline-block; }
+  .scouting-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+  .scouting-card { background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 4px; padding: 1.1rem 1.2rem; transition: border-color 0.15s, transform 0.1s; }
+  .scouting-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .scouting-card-name { font-family: var(--serif); font-size: 1rem; font-weight: 700; color: var(--black); margin-bottom: 0.2rem; }
+  .scouting-card-meta { font-size: 0.78rem; color: var(--gray-400); margin-bottom: 0.5rem; }
+  .scouting-card-note { font-size: 0.85rem; color: var(--gray-600); line-height: 1.5; font-style: italic; font-family: var(--serif); }
+  .scouting-tier { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 2px; display: inline-block; margin-bottom: 0.5rem; }
+  .tier-1 { background: var(--gold-bg); color: var(--gold); }
+  .tier-2 { background: var(--blue-bg); color: var(--blue); }
+  .tier-3 { background: var(--gray-100); color: var(--gray-600); }
+  /* INLINE TEXT EDITING */
+  [data-editable] { cursor: default; }
+  .admin-active [data-editable] { border-bottom: 1.5px dashed rgba(45,92,63,0.5); cursor: text; transition: border-color 0.15s; border-radius: 2px; }
+  .admin-active [data-editable]:hover { border-bottom-color: var(--accent); background: rgba(45,92,63,0.06); }
+  .admin-active .hero [data-editable]:hover { background: rgba(255,255,255,0.08); border-bottom-color: rgba(255,255,255,0.6); }
+  [data-editable]:focus { outline: none; border-bottom-color: var(--accent) !important; background: rgba(45,92,63,0.08) !important; }
+  .hero [data-editable]:focus { background: rgba(255,255,255,0.1) !important; border-bottom-color: rgba(255,255,255,0.8) !important; }
+
   footer p { font-size: 0.85rem; color: rgba(255,255,255,0.65); font-family: var(--serif); font-style: italic; }
 
   @media (max-width: 768px) {
@@ -200,11 +234,13 @@
     <a class="nav-logo" href="#" onclick="showPage('home');return false;">Half Space</a>
     <div class="nav-tabs">
       <button class="nav-tab" onclick="showPage('rankings')">Rankings</button>
-      <button class="nav-tab" onclick="showPage('country-xi')">Country XIs</button>
+      <button class="nav-tab" onclick="showPage('country-xi')">Country 21st C. XIs</button>
       <button class="nav-tab" onclick="showPage('club-xi')">Club XIs</button>
       <button class="nav-tab" onclick="showPage('continental-xi')">Continental XIs</button>
-      <button class="nav-tab" onclick="showPage('positions')">Positions</button>
       <button class="nav-tab" onclick="showPage('managers')">Managers</button>
+      <button class="nav-tab" onclick="showPage('positions')">Positions</button>
+      <button class="nav-tab" onclick="showPage('diary')">Matchday Diary</button>
+      <button class="nav-tab" onclick="showPage('scouting')">Scouting</button>
       <button class="nav-tab" onclick="showPage('contact')">Contact</button>
     </div>
     <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
@@ -216,20 +252,23 @@
 <div class="mobile-menu" id="mobileMenu">
   <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
   <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">Rankings</button>
-  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">Country XIs</button>
+  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">Country 21st C. XIs</button>
   <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">Club XIs</button>
   <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();">Continental XIs</button>
-  <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();">Positions</button>
   <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();">Managers</button>
+  <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();">Positions</button>
+  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();">Matchday Diary</button>
+  <button class="nav-tab" onclick="showPage('scouting');toggleMobileMenu();">Scouting</button>
   <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();">Contact</button>
 </div>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="hero">
-    <p class="hero-eyebrow">Football · Analysis · Opinion</p>
-    <h1>Half Space</h1>
-    <p>Rankings, formations, and takes on the beautiful game — from the people who actually watch it.</p>
+    <p class="hero-eyebrow" data-editable="hero_eyebrow">Football · Analysis · Opinion</p>
+    <h1 data-editable="hero_title">Half Space</h1>
+    <div class="hero-divider"></div>
+    <p data-editable="hero_tagline">Finding truth within football.</p>
   </div>
   <div class="content">
     <div class="section-header"><span class="section-title">Latest</span></div>
@@ -240,62 +279,162 @@
 <!-- RANKINGS -->
 <div class="page" id="page-rankings">
   <div class="content">
-    <div class="sub-tabs">
-      <button class="sub-tab active" onclick="showSubTab('rankings','century')">Best of the Century</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','now')">Best Right Now</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','gk')">GKs</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','fb')">FBs</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','cb')">CBs</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','cm')">CMs</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','am')">AM / 10s</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','w')">Wingers</button>
-      <button class="sub-tab" onclick="showSubTab('rankings','f')">Forwards</button>
+    <!-- Primary position tabs -->
+    <div class="sub-tabs" id="rankings-primary-tabs">
+      <button class="sub-tab active" onclick="showRankingSection('overall')">Overall</button>
+      <button class="sub-tab" onclick="showRankingSection('gk')">GKs</button>
+      <button class="sub-tab" onclick="showRankingSection('fb')">FBs</button>
+      <button class="sub-tab" onclick="showRankingSection('cb')">CBs</button>
+      <button class="sub-tab" onclick="showRankingSection('cm')">CMs</button>
+      <button class="sub-tab" onclick="showRankingSection('am')">AM / 10s</button>
+      <button class="sub-tab" onclick="showRankingSection('w')">Wingers</button>
+      <button class="sub-tab" onclick="showRankingSection('f')">Forwards</button>
     </div>
-    <div id="rankings-century">
-      <div class="section-header"><span class="section-title">Best Players of the 21st Century</span><span class="section-sub">All positions</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- OVERALL -->
+    <div id="rsec-overall">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('overall','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('overall','now')">Right Now</button>
+      </div>
+      <div id="overall-century">
+        <div class="section-header"><span class="section-title">Best Players of the 21st Century</span><span class="section-sub">All positions</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="overall-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Players Right Now</span><span class="section-sub">Active players only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-now" style="display:none">
-      <div class="section-header"><span class="section-title">Best Players Right Now</span><span class="section-sub">Active players only</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- GKs -->
+    <div id="rsec-gk" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('gk','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('gk','now')">Right Now</button>
+      </div>
+      <div id="gk-century">
+        <div class="section-header"><span class="section-title">Best Goalkeepers</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="gk-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Goalkeepers Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-gk" style="display:none">
-      <div class="section-header"><span class="section-title">Best Goalkeepers</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- FBs -->
+    <div id="rsec-fb" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('fb','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('fb','now')">Right Now</button>
+      </div>
+      <div id="fb-century">
+        <div class="section-header"><span class="section-title">Best Full Backs</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="fb-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Full Backs Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-fb" style="display:none">
-      <div class="section-header"><span class="section-title">Best Full Backs</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- CBs -->
+    <div id="rsec-cb" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('cb','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('cb','now')">Right Now</button>
+      </div>
+      <div id="cb-century">
+        <div class="section-header"><span class="section-title">Best Centre Backs</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="cb-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Centre Backs Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-cb" style="display:none">
-      <div class="section-header"><span class="section-title">Best Centre Backs</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- CMs -->
+    <div id="rsec-cm" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('cm','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('cm','now')">Right Now</button>
+      </div>
+      <div id="cm-century">
+        <div class="section-header"><span class="section-title">Best Central Midfielders</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="cm-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Central Midfielders Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-cm" style="display:none">
-      <div class="section-header"><span class="section-title">Best Central Midfielders</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- AM/10s -->
+    <div id="rsec-am" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('am','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('am','now')">Right Now</button>
+      </div>
+      <div id="am-century">
+        <div class="section-header"><span class="section-title">Best Attacking Mids / No. 10s</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="am-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Attacking Mids / No. 10s Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-am" style="display:none">
-      <div class="section-header"><span class="section-title">Best Attacking Mids / No. 10s</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- Wingers -->
+    <div id="rsec-w" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('w','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('w','now')">Right Now</button>
+      </div>
+      <div id="w-century">
+        <div class="section-header"><span class="section-title">Best Wingers</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="w-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Wingers Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-w" style="display:none">
-      <div class="section-header"><span class="section-title">Best Wingers</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+
+    <!-- Forwards -->
+    <div id="rsec-f" style="display:none">
+      <div class="sub-tabs" style="margin-top:0;">
+        <button class="sub-tab active" onclick="showSubTab('f','century')">21st Century</button>
+        <button class="sub-tab" onclick="showSubTab('f','now')">Right Now</button>
+      </div>
+      <div id="f-century">
+        <div class="section-header"><span class="section-title">Best Forwards / Strikers</span><span class="section-sub">21st century</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
+      <div id="f-now" style="display:none">
+        <div class="section-header"><span class="section-title">Best Forwards / Strikers Right Now</span><span class="section-sub">Active only</span></div>
+        <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
+        <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
+      </div>
     </div>
-    <div id="rankings-f" style="display:none">
-      <div class="section-header"><span class="section-title">Best Forwards / Strikers</span><span class="section-sub">21st century</span></div>
-      <table class="rankings-table"><thead><tr><th>#</th><th>Player</th><th>Note</th></tr></thead>
-      <tbody><tr><td colspan="3"><div class="empty-state"><p>Rankings coming soon.</p></div></td></tr></tbody></table>
-    </div>
+
   </div>
 </div>
 
@@ -304,19 +443,13 @@
   <div class="content-wide">
     <div id="country-list-view">
       <div class="section-header">
-        <span class="section-title">Country All-Time XIs</span>
-      </div>
-      <div class="xi-mode-tabs">
-        <button class="xi-mode-tab active" onclick="setCountryView('continent')">By Continent</button>
-        <button class="xi-mode-tab" onclick="setCountryView('wc')">By World Cup Wins</button>
-        <button class="xi-mode-tab" onclick="setCountryView('euros')">By Euros Wins</button>
-        <button class="xi-mode-tab" onclick="setCountryView('finish')">By Best Finish</button>
-        <button class="xi-mode-tab" onclick="setCountryView('historical')">Historical Groups</button>
+        <span class="section-title">Regional 21st Century XIs</span>
+        <span class="section-sub">One combined XI per region</span>
       </div>
       <div id="country-display"></div>
     </div>
     <div id="country-detail-view" style="display:none">
-      <button class="xi-back-btn" onclick="showCountryList()">← All countries</button>
+      <button class="xi-back-btn" onclick="showCountryList()">← All regions</button>
       <div id="country-detail-content"></div>
     </div>
   </div>
@@ -357,20 +490,20 @@
 <!-- POSITIONS -->
 <div class="page" id="page-positions">
   <div class="content">
-    <div class="section-header"><span class="section-title">Position Guide</span><span class="section-sub">What each role actually means</span></div>
+    <div class="section-header"><span class="section-title" data-editable="pos_header">Position Guide</span><span class="section-sub" data-editable="pos_sub">What each role actually means</span></div>
     <div class="glossary-grid">
-      <div class="glossary-card"><div class="glossary-card-pos">GK</div><div class="glossary-card-title">Goalkeeper</div><div class="glossary-card-body">The last line of defence. Modern goalkeepers are expected to be comfortable with the ball at their feet and act as a sweeper behind a high defensive line. Shot-stopping remains primary but distribution — short and long — separates the elite.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">CB</div><div class="glossary-card-title">Centre Back</div><div class="glossary-card-body">The defensive anchor. Can be split into the ball-playing CB — comfortable stepping out with the ball — and the more traditional defensive CB focused on winning duels and organizing the line. The best do both.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">FB / WB</div><div class="glossary-card-title">Full Back / Wing Back</div><div class="glossary-card-body">The modern full back is one of the most demanding positions in football. Expected to defend one-on-one, provide width in attack, combine in tight spaces, and cover enormous distances. Wing backs in a back five push even higher and function almost as wingers.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">DM / 6</div><div class="glossary-card-title">Defensive Midfielder</div><div class="glossary-card-body">The shield in front of the defence. Tasked with breaking up play, winning second balls, and transitioning quickly. The best no. 6s also have the range of passing to start attacks from deep — they are the connective tissue of a team.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">CM / 8</div><div class="glossary-card-title">Central Midfielder</div><div class="glossary-card-body">The engine. Box-to-box midfielders cover every blade of grass. The no. 8 role varies enormously by system — some are essentially second strikers, others are primarily defensive. What unites them: athleticism, decision-making, and the ability to affect both halves.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">Regista</div><div class="glossary-card-title">Deep-Lying Playmaker</div><div class="glossary-card-body">The conductor. Drops deep to receive, rarely presses, and controls the tempo of a match through the weight and timing of their passing. Pirlo is the archetype. Requires elite technical quality and exceptional positional intelligence to compensate for defensive limitations.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">AM / 10</div><div class="glossary-card-title">Attacking Midfielder / No. 10</div><div class="glossary-card-body">The creative hub. Operates in the pockets between midfield and attack. The classic no. 10 is a dying breed in pressing-heavy systems, but the role has evolved — modern 10s are often expected to press aggressively and track back as well as create and score.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">W / 7 / 11</div><div class="glossary-card-title">Winger</div><div class="glossary-card-body">Wide attackers who can play as traditional wide men hugging the touchline and delivering crosses, or inverted wingers who cut inside onto their stronger foot to shoot or combine. The latter has become dominant. Pace, dribbling, and end product are the defining qualities.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">CF / 9</div><div class="glossary-card-title">Centre Forward / Striker</div><div class="glossary-card-body">The finisher. The penalty-box striker is purely about goals — positioning, movement, and composure. The complete centre forward also brings others into play, holds up the ball, and presses from the front. The false nine drops deep to create overloads and space.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">False 9</div><div class="glossary-card-title">False Nine</div><div class="glossary-card-body">A striker who drops into midfield, dragging centre backs out of position and creating space for runners from deep. Messi's greatest Barcelona years were built around this role under Guardiola. Requires a player comfortable both creating and finishing.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">IW</div><div class="glossary-card-title">Inverted Winger</div><div class="glossary-card-body">A winger who starts wide but cuts inside rather than crossing. A left-footed player on the right wing, or vice versa. The inversion creates shooting lanes and overloads in central areas. Robben was the prototype. Now one of the most common roles in the modern game.</div></div>
-      <div class="glossary-card"><div class="glossary-card-pos">Mezzala</div><div class="glossary-card-title">Mezzala</div><div class="glossary-card-body">A central midfielder who operates in the half spaces — the channels between the full back and centre back. Runs beyond the striker, arrives late into the box, and combines in tight spaces wide. Requires both the technical quality of a 10 and the athleticism of an 8.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_gk_abbr">GK</div><div class="glossary-card-title" data-editable="pos_gk_title">Goalkeeper</div><div class="glossary-card-body" data-editable="pos_gk_body">The last line of defence. Modern goalkeepers are expected to be comfortable with the ball at their feet and act as a sweeper behind a high defensive line. Shot-stopping remains primary but distribution — short and long — separates the elite.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_cb_abbr">CB</div><div class="glossary-card-title" data-editable="pos_cb_title">Centre Back</div><div class="glossary-card-body" data-editable="pos_cb_body">The defensive anchor. Can be split into the ball-playing CB — comfortable stepping out with the ball — and the more traditional defensive CB focused on winning duels and organizing the line. The best do both.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_fb_abbr">FB / WB</div><div class="glossary-card-title" data-editable="pos_fb_title">Full Back / Wing Back</div><div class="glossary-card-body" data-editable="pos_fb_body">The modern full back is one of the most demanding positions in football. Expected to defend one-on-one, provide width in attack, combine in tight spaces, and cover enormous distances. Wing backs in a back five push even higher and function almost as wingers.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_dm_abbr">DM / 6</div><div class="glossary-card-title" data-editable="pos_dm_title">Defensive Midfielder</div><div class="glossary-card-body" data-editable="pos_dm_body">The shield in front of the defence. Tasked with breaking up play, winning second balls, and transitioning quickly. The best no. 6s also have the range of passing to start attacks from deep — they are the connective tissue of a team.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_cm_abbr">CM / 8</div><div class="glossary-card-title" data-editable="pos_cm_title">Central Midfielder</div><div class="glossary-card-body" data-editable="pos_cm_body">The engine. Box-to-box midfielders cover every blade of grass. The no. 8 role varies enormously by system — some are essentially second strikers, others are primarily defensive. What unites them: athleticism, decision-making, and the ability to affect both halves.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_reg_abbr">Regista</div><div class="glossary-card-title" data-editable="pos_reg_title">Deep-Lying Playmaker</div><div class="glossary-card-body" data-editable="pos_reg_body">The conductor. Drops deep to receive, rarely presses, and controls the tempo of a match through the weight and timing of their passing. Pirlo is the archetype. Requires elite technical quality and exceptional positional intelligence to compensate for defensive limitations.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_am_abbr">AM / 10</div><div class="glossary-card-title" data-editable="pos_am_title">Attacking Midfielder / No. 10</div><div class="glossary-card-body" data-editable="pos_am_body">The creative hub. Operates in the pockets between midfield and attack. The classic no. 10 is a dying breed in pressing-heavy systems, but the role has evolved — modern 10s are often expected to press aggressively and track back as well as create and score.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_w_abbr">W / 7 / 11</div><div class="glossary-card-title" data-editable="pos_w_title">Winger</div><div class="glossary-card-body" data-editable="pos_w_body">Wide attackers who can play as traditional wide men hugging the touchline and delivering crosses, or inverted wingers who cut inside onto their stronger foot to shoot or combine. The latter has become dominant. Pace, dribbling, and end product are the defining qualities.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_cf_abbr">CF / 9</div><div class="glossary-card-title" data-editable="pos_cf_title">Centre Forward / Striker</div><div class="glossary-card-body" data-editable="pos_cf_body">The finisher. The penalty-box striker is purely about goals — positioning, movement, and composure. The complete centre forward also brings others into play, holds up the ball, and presses from the front. The false nine drops deep to create overloads and space.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_f9_abbr">False 9</div><div class="glossary-card-title" data-editable="pos_f9_title">False Nine</div><div class="glossary-card-body" data-editable="pos_f9_body">A striker who drops into midfield, dragging centre backs out of position and creating space for runners from deep. Messi's greatest Barcelona years were built around this role under Guardiola. Requires a player comfortable both creating and finishing.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_iw_abbr">IW</div><div class="glossary-card-title" data-editable="pos_iw_title">Inverted Winger</div><div class="glossary-card-body" data-editable="pos_iw_body">A winger who starts wide but cuts inside rather than crossing. A left-footed player on the right wing, or vice versa. The inversion creates shooting lanes and overloads in central areas. Robben was the prototype. Now one of the most common roles in the modern game.</div></div>
+      <div class="glossary-card"><div class="glossary-card-pos" data-editable="pos_mez_abbr">Mezzala</div><div class="glossary-card-title" data-editable="pos_mez_title">Mezzala</div><div class="glossary-card-body" data-editable="pos_mez_body">A central midfielder who operates in the half spaces — the channels between the full back and centre back. Runs beyond the striker, arrives late into the box, and combines in tight spaces wide. Requires both the technical quality of a 10 and the athleticism of an 8.</div></div>
     </div>
   </div>
 </div>
@@ -401,8 +534,8 @@
     <div class="section-header"><span class="section-title">Contact</span></div>
     <div class="contact-grid">
       <div>
-        <p class="contact-intro">Disagreements, corrections, omissions, or just want to talk football — get in touch.</p>
-        <p style="font-size:0.875rem;color:var(--gray-600);line-height:1.6;">All takes are provisional. All rankings are arguable. That's the point.</p>
+        <p class="contact-intro" data-editable="contact_intro">Disagreements, corrections, omissions, or just want to talk football — get in touch.</p>
+        <p style="font-size:0.875rem;color:var(--gray-600);line-height:1.6;" data-editable="contact_sub">All takes are provisional. All rankings are arguable. That's the point.</p>
       </div>
       <form class="contact-form" onsubmit="handleContact(event)">
         <div class="form-group"><label class="form-label">Name</label><input type="text" placeholder="Your name" required></div>
@@ -417,7 +550,31 @@
   </div>
 </div>
 
-<footer><p>Half Space — football, written seriously.</p></footer>
+<!-- MATCHDAY DIARY -->
+<div class="page" id="page-diary">
+  <div class="content">
+    <div class="section-header">
+      <span class="section-title">Matchday Diary</span>
+      <span class="section-sub">Games watched · thoughts written</span>
+    </div>
+    <div class="diary-grid" id="diaryGrid">
+      <div class="empty-state"><p>No entries yet.</p><small>Click Edit to write your first diary entry.</small></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCOUTING -->
+<div class="page" id="page-scouting">
+  <div class="content-wide">
+    <div class="section-header">
+      <span class="section-title">Scouting Network</span>
+      <span class="section-sub">Players on the radar — by position</span>
+    </div>
+    <div id="scoutingContent"></div>
+  </div>
+</div>
+
+<footer><p data-editable="footer_text">Half Space — football, written seriously.</p></footer>
 
 <script>
 // ---- COUNTRY DATA ----
@@ -484,18 +641,15 @@ const COUNTRIES = [
 ];
 
 const HISTORICAL_GROUPS = [
-  { key: "gb",         label: "Great Britain + Ireland",                      countries: ["England","Scotland","Wales","Northern Ireland","Republic of Ireland"] },
-  { key: "lowlands",   label: "Low Countries",                                 countries: ["Netherlands","Belgium"] },
-  { key: "yugoslavia", label: "Yugoslavia",                                    countries: ["Yugoslavia","Croatia","Serbia","Slovenia"] },
-  { key: "baltic",     label: "European Baltic Nations",                       countries: ["Ukraine","Romania","Norway","Denmark","Sweden"] },
-  { key: "soviet",     label: "Soviet Union (inc. Poland)",                    countries: ["USSR / Russia","Poland","Ukraine"] },
-  { key: "france",     label: "France",                                        countries: ["France"] },
-  { key: "central",    label: "Central Europe (Switzerland, Austria, Hungary, Czech Republic, Slovakia)", countries: ["Switzerland","Austria","Hungary","Czech Republic","Slovakia"] },
-  { key: "scandinavia",label: "Scandinavia",                                   countries: ["Sweden","Denmark","Norway"] },
-  { key: "spain",      label: "Spain",                                         countries: ["Spain"] },
-  { key: "portugal",   label: "Portugal",                                      countries: ["Portugal"] },
-  { key: "germany",    label: "Germany",                                       countries: ["Germany"] },
-  { key: "italy",      label: "Italy",                                         countries: ["Italy"] },
+  { key: "yugoslavia", label: "Yugoslavia / Balkans",     nations: ["Croatia","Bosnia & Herzegovina","Serbia","Montenegro","Kosovo","Albania","Greece","Turkey","Slovenia"] },
+  { key: "ussr",       label: "USSR",                     nations: ["Russia","Ukraine","Latvia","Lithuania","Estonia","Poland","Moldova","Kazakhstan","Uzbekistan","Turkmenistan","Kyrgyzstan","Tajikistan","Azerbaijan","Armenia","Georgia","Bulgaria","Romania","Belarus"] },
+  { key: "gb",         label: "Great Britain",            nations: ["England","Scotland","Northern Ireland","Republic of Ireland","Wales"] },
+  { key: "lowlands",   label: "Low Countries",            nations: ["Belgium","Netherlands"] },
+  { key: "northafrica",label: "North Africa",             nations: ["Morocco","Algeria","Libya","Egypt","Tunisia","Western Sahara","Mauritania"] },
+  { key: "westafrica", label: "West Africa",              nations: ["Senegal","Gambia","Guinea-Bissau","Guinea","Sierra Leone","Liberia","Ivory Coast","Ghana","Togo","Benin"] },
+  { key: "middleafrica",label: "Middle Africa",           nations: ["Mali","Niger","Chad","Burkina Faso","Nigeria","Cameroon","Equatorial Guinea","Central African Republic","Gabon","DR Congo","Republic of Congo"] },
+  { key: "northamerica",label: "North America",           nations: ["USA","Mexico","Canada"] },
+  { key: "centralamerica",label: "Central America & Caribbean", nations: ["Costa Rica","Nicaragua","Panama","Honduras","Guatemala","Jamaica","Dominican Republic","Puerto Rico","El Salvador","Belize"] },
 ];
 
 const CLUBS = [
@@ -633,12 +787,13 @@ function renderByFinish(container) {
 function renderHistorical(container) {
   let html = '';
   HISTORICAL_GROUPS.forEach(group => {
-    const matches = COUNTRIES.filter(c => group.countries.includes(c.name));
-    if (!matches.length) return;
     html += `<div class="continent-group">
-      <div class="continent-group-title">${group.label} <span class="continent-group-count">${matches.length} nations</span></div>
+      <div class="continent-group-title">${group.label} <span class="continent-group-count">${group.nations.length} nations</span></div>
       <div class="xi-country-grid">
-        ${matches.map(c => countryCard(c, true, true, false)).join('')}
+        ${group.nations.map(n => `<button class="xi-country-card" onclick="showCountryDetail('${n.replace(/'/g,"\\'")}')">
+          <span class="xi-country-name">${n}</span>
+          <span class="xi-country-finish">21st Century XI · 9-man bench</span>
+        </button>`).join('')}
       </div>
     </div>`;
   });
@@ -664,7 +819,7 @@ function buildClubGrid() {
   grid.innerHTML = [...CLUBS].sort().map(c => `
     <button class="xi-country-card" onclick="showClubDetail('${c.replace(/'/g,"\\'")}')">
       <span class="xi-country-name">${c}</span>
-      <span class="xi-country-finish" style="font-size:0.72rem;color:var(--gray-400);">All-time XI · 9-man bench</span>
+      <span class="xi-country-finish" style="font-size:0.72rem;color:var(--gray-400);">21st Century XI · 9-man bench</span>
     </button>`).join('');
 }
 
@@ -740,7 +895,7 @@ function buildXIDetail(name, meta) {
 
   return `
     <div class="section-header">
-      <span class="section-title">${name} All-Time XI</span>
+      <span class="section-title">${name} 21st Century XI</span>
       <span class="section-sub">4-3-3</span>
     </div>
     ${metaHTML}
@@ -774,7 +929,7 @@ renderCountryDisplay();
 // ADMIN / EDIT SYSTEM
 // ================================================================
 
-const ADMIN_PASSWORD = 'halfspace';
+const ADMIN_PASSWORD = 'Gunner$0629';
 const GITHUB_TOKEN = '';
 const GITHUB_REPO = 'sserxner/halfspacefc';
 const GITHUB_FILE = 'index.html';
@@ -816,6 +971,7 @@ function toggleAdmin() {
       document.getElementById('adminBanner').style.display = 'flex';
       document.getElementById('exportBtn').style.display = 'inline-block';
       applyAdminToCurrentPage();
+      enableInlineEditing();
     } else if (pw !== null) {
       alert('Incorrect password.');
     }
@@ -829,6 +985,7 @@ function exitAdmin() {
   document.getElementById('adminBanner').style.display = 'none';
   document.getElementById('exportBtn').style.display = 'none';
   removeAdminUI();
+  disableInlineEditing();
 }
 
 function applyAdminToCurrentPage() {
@@ -848,29 +1005,57 @@ function removeAdminUI() {
 
 // ---- RANKINGS EDITOR ----
 const RANKING_TABS = [
-  { key: 'century', label: 'Best of the Century' },
-  { key: 'now',     label: 'Best Right Now' },
-  { key: 'gk',      label: 'GKs' },
-  { key: 'fb',      label: 'FBs' },
-  { key: 'cb',      label: 'CBs' },
-  { key: 'cm',      label: 'CMs' },
-  { key: 'am',      label: 'AM / 10s' },
-  { key: 'w',       label: 'Wingers' },
-  { key: 'f',       label: 'Forwards' },
+  { key: 'overall_century', label: 'Best of the Century' },
+  { key: 'overall_now',     label: 'Best Right Now' },
+  { key: 'gk_century',     label: 'GKs — 21st Century' },
+  { key: 'gk_now',         label: 'GKs — Right Now' },
+  { key: 'fb_century',     label: 'FBs — 21st Century' },
+  { key: 'fb_now',         label: 'FBs — Right Now' },
+  { key: 'cb_century',     label: 'CBs — 21st Century' },
+  { key: 'cb_now',         label: 'CBs — Right Now' },
+  { key: 'cm_century',     label: 'CMs — 21st Century' },
+  { key: 'cm_now',         label: 'CMs — Right Now' },
+  { key: 'am_century',     label: 'AM/10s — 21st Century' },
+  { key: 'am_now',         label: 'AM/10s — Right Now' },
+  { key: 'w_century',      label: 'Wingers — 21st Century' },
+  { key: 'w_now',          label: 'Wingers — Right Now' },
+  { key: 'f_century',      label: 'Forwards — 21st Century' },
+  { key: 'f_now',          label: 'Forwards — Right Now' },
 ];
+
+function showRankingSection(sec) {
+  // Hide all sections
+  ['overall','gk','fb','cb','cm','am','w','f'].forEach(s => {
+    const el = document.getElementById('rsec-' + s);
+    if (el) el.style.display = 'none';
+  });
+  // Show selected
+  const target = document.getElementById('rsec-' + sec);
+  if (target) target.style.display = '';
+  // Update primary tab active state
+  document.querySelectorAll('#rankings-primary-tabs .sub-tab').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + sec + "'"));
+  });
+  // Re-apply admin if needed
+  if (adminMode) renderEditableRankings();
+}
 
 function renderEditableRankings() {
   RANKING_TABS.forEach(tab => {
-    const container = document.getElementById('rankings-' + tab.key);
+    const containerId = tab.key.replace('_', '-');
+    const container = document.getElementById(containerId);
     if (!container) return;
     const tbody = container.querySelector('tbody');
     if (!tbody) return;
     renderRankingTable(tbody, 'ranking_' + tab.key);
-    const addBtn = document.createElement('button');
-    addBtn.className = 'admin-add-btn';
-    addBtn.textContent = '+ Add player';
-    addBtn.onclick = () => addRankingEntry('ranking_' + tab.key, tbody);
-    container.appendChild(addBtn);
+    // Only add button if not already there
+    if (!container.querySelector('.admin-add-btn')) {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'admin-add-btn';
+      addBtn.textContent = '+ Add player';
+      addBtn.onclick = () => addRankingEntry('ranking_' + tab.key, tbody);
+      container.appendChild(addBtn);
+    }
   });
 }
 
@@ -885,7 +1070,7 @@ function renderRankingTable(tbody, dataKey) {
       <td><span class="rank-num">${i+1}</span></td>
       <td>
         <span class="player-name">${e.name || ''}</span>
-        <span class="player-detail">${e.detail || ''}</span>
+        ${e.detail ? `<span class="player-detail">${e.detail}</span>` : ''}
       </td>
       <td><span class="player-note">${e.note || ''}</span></td>
       ${adminMode ? `<td style="white-space:nowrap;width:80px;">
@@ -907,10 +1092,19 @@ function editRankingEntry(dataKey, idx) {
 }
 
 function findTbodyForKey(dataKey) {
-  const tabKey = dataKey.replace('ranking_', '');
-  const container = document.getElementById('rankings-' + tabKey) ||
-    document.getElementById('managers-' + tabKey);
-  return container ? container.querySelector('tbody') : null;
+  if (dataKey.startsWith('manager_')) {
+    const tab = dataKey.replace('manager_', '');
+    const container = document.getElementById('managers-' + tab);
+    return container ? container.querySelector('tbody') : null;
+  }
+  // ranking keys are like ranking_gk_century or ranking_overall_now
+  if (dataKey.startsWith('ranking_')) {
+    const tabKey = dataKey.replace('ranking_', ''); // e.g. gk_century
+    const containerId = tabKey.replace('_', '-');   // e.g. gk-century
+    const container = document.getElementById(containerId);
+    return container ? container.querySelector('tbody') : null;
+  }
+  return null;
 }
 
 function deleteRankingEntry(dataKey, idx) {
@@ -936,12 +1130,12 @@ function showRankingModal(dataKey, idx, entry, tbody) {
       </h3>
       <div style="display:flex;flex-direction:column;gap:1rem;">
         <div>
-          <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Name</label>
-          <input id="me_name" type="text" value="${entry.name||''}" placeholder="Lionel Messi" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;outline:none;font-family:var(--sans);">
+          <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Name (Country) — Position</label>
+          <input id="me_name" type="text" value="${entry.name||''}" placeholder="Lionel Messi (ARG) — Forward" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;outline:none;font-family:var(--sans);">
         </div>
         <div>
-          <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Detail (nationality · position)</label>
-          <input id="me_detail" type="text" value="${entry.detail||''}" placeholder="Argentina · Forward" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;outline:none;font-family:var(--sans);">
+          <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Club / Era (optional)</label>
+          <input id="me_detail" type="text" value="${entry.detail||''}" placeholder="Barcelona, PSG · 2004–present" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;outline:none;font-family:var(--sans);">
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Note</label>
@@ -1308,7 +1502,315 @@ if (window.__HALFSPACE_DATA__) {
   document.head.appendChild(style);
 })();
 
+// ================================================================
+// MATCHDAY DIARY
+// ================================================================
+const SCOUTING_POSITIONS = ['GK','RB','CB','LB','DM','CM','AM / 10','RW','LW','ST'];
+
+function renderDiary() {
+  const grid = document.getElementById('diaryGrid');
+  if (!grid) return;
+  const entries = getData('diary_entries', []);
+  if (!entries.length) {
+    grid.innerHTML = `<div class="empty-state"><p>No entries yet.</p><small>Click ✎ Edit to write your first diary entry.</small></div>`;
+    return;
+  }
+  grid.innerHTML = entries.map((e, i) => `
+    <div class="diary-entry">
+      <div class="diary-meta">
+        <span class="diary-date">${e.date || ''}</span>
+        ${e.fixture ? `<span class="diary-fixture">${e.fixture}</span>` : ''}
+        ${e.competition ? `<span class="diary-competition">${e.competition}</span>` : ''}
+      </div>
+      <div class="diary-title">${e.title || ''}</div>
+      <div class="diary-body">${(e.body || '').split('\n').filter(Boolean).map(p => `<p>${p}</p>`).join('')}</div>
+      ${e.rating ? `<div class="diary-rating">★ Match rating: ${e.rating}/10</div>` : ''}
+      ${adminMode ? `<div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+        <button class="admin-edit-btn" onclick="editDiaryEntry(${i})">Edit</button>
+        <button class="admin-edit-btn" style="background:#c0392b;" onclick="deleteDiaryEntry(${i})">✕ Delete</button>
+      </div>` : ''}
+    </div>`).join('');
+}
+
+function addDiaryEntry() {
+  showDiaryModal(-1, { date: '', fixture: '', competition: '', title: '', body: '', rating: '' });
+}
+
+function editDiaryEntry(idx) {
+  const entries = getData('diary_entries', []);
+  showDiaryModal(idx, entries[idx] || {});
+}
+
+function deleteDiaryEntry(idx) {
+  if (!confirm('Delete this entry?')) return;
+  const entries = getData('diary_entries', []);
+  entries.splice(idx, 1);
+  setData('diary_entries', entries);
+  renderDiary();
+}
+
+function showDiaryModal(idx, entry) {
+  const existing = document.getElementById('adminModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;`;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:580px;font-family:var(--sans);margin:auto;">
+      <h3 style="font-family:var(--serif);font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${idx === -1 ? 'New diary entry' : 'Edit entry'}</h3>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Date</label>
+            <input id="d_date" type="text" value="${entry.date||''}" placeholder="12 Jul 2026" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Match rating /10</label>
+            <input id="d_rating" type="text" value="${entry.rating||''}" placeholder="8" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Fixture</label>
+            <input id="d_fixture" type="text" value="${entry.fixture||''}" placeholder="Arsenal 2–1 Chelsea" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Competition</label>
+            <input id="d_competition" type="text" value="${entry.competition||''}" placeholder="Premier League" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Title</label>
+          <input id="d_title" type="text" value="${entry.title||''}" placeholder="A title for this entry" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;font-family:var(--serif);outline:none;">
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Entry (press Enter for new paragraph)</label>
+          <textarea id="d_body" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;font-family:var(--serif);outline:none;min-height:200px;resize:vertical;line-height:1.6;">${entry.body||''}</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('adminModal').remove()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;">Cancel</button>
+        <button onclick="saveDiaryEntry(${idx})" style="padding:0.55rem 1.2rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:600;">Save entry</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveDiaryEntry(idx) {
+  const entry = {
+    date: document.getElementById('d_date').value.trim(),
+    fixture: document.getElementById('d_fixture').value.trim(),
+    competition: document.getElementById('d_competition').value.trim(),
+    title: document.getElementById('d_title').value.trim(),
+    body: document.getElementById('d_body').value.trim(),
+    rating: document.getElementById('d_rating').value.trim(),
+  };
+  if (!entry.title) { alert('Title required.'); return; }
+  const entries = getData('diary_entries', []);
+  if (idx === -1) entries.unshift(entry);
+  else entries[idx] = entry;
+  setData('diary_entries', entries);
+  document.getElementById('adminModal').remove();
+  renderDiary();
+}
+
+// ================================================================
+// SCOUTING
+// ================================================================
+function renderScouting() {
+  const container = document.getElementById('scoutingContent');
+  if (!container) return;
+  let html = '';
+  SCOUTING_POSITIONS.forEach(pos => {
+    const players = getData('scout_' + pos, []);
+    html += `<div class="scouting-pos-section">
+      <div class="scouting-pos-header">${pos}</div>
+      ${adminMode ? `<button class="admin-add-btn" style="margin-bottom:1rem;" onclick="addScoutPlayer('${pos}')">+ Add player</button>` : ''}
+      ${players.length === 0 ? `<p style="font-size:0.875rem;color:var(--gray-400);font-style:italic;font-family:var(--serif);">No players listed yet.</p>` : `
+      <div class="scouting-grid">
+        ${players.map((p, i) => `
+          <div class="scouting-card">
+            ${p.tier ? `<span class="scouting-tier tier-${p.tier}">${p.tier === '1' ? '★ Tier 1' : p.tier === '2' ? 'Tier 2' : 'Tier 3'}</span>` : ''}
+            <div class="scouting-card-name">${p.name || ''}</div>
+            <div class="scouting-card-meta">${[p.club, p.nationality, p.age ? 'Age '+p.age : ''].filter(Boolean).join(' · ')}</div>
+            ${p.note ? `<div class="scouting-card-note">${p.note}</div>` : ''}
+            ${adminMode ? `<div style="margin-top:0.6rem;display:flex;gap:0.4rem;">
+              <button class="admin-edit-btn" onclick="editScoutPlayer('${pos}',${i})">Edit</button>
+              <button class="admin-edit-btn" style="background:#c0392b;" onclick="deleteScoutPlayer('${pos}',${i})">✕</button>
+            </div>` : ''}
+          </div>`).join('')}
+      </div>`}
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function addScoutPlayer(pos) { showScoutModal(pos, -1, {}); }
+function editScoutPlayer(pos, idx) {
+  const players = getData('scout_' + pos, []);
+  showScoutModal(pos, idx, players[idx] || {});
+}
+function deleteScoutPlayer(pos, idx) {
+  if (!confirm('Remove player?')) return;
+  const players = getData('scout_' + pos, []);
+  players.splice(idx, 1);
+  setData('scout_' + pos, players);
+  renderScouting();
+}
+
+function showScoutModal(pos, idx, player) {
+  const existing = document.getElementById('adminModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;`;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:440px;font-family:var(--sans);">
+      <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${idx === -1 ? 'Add' : 'Edit'} scouting target — ${pos}</h3>
+      <div style="display:flex;flex-direction:column;gap:0.9rem;">
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Name</label>
+          <input id="sc_name" type="text" value="${player.name||''}" placeholder="Player name" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.95rem;font-family:var(--serif);outline:none;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;">
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Club</label>
+            <input id="sc_club" type="text" value="${player.club||''}" placeholder="Club" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Nationality</label>
+            <input id="sc_nat" type="text" value="${player.nationality||''}" placeholder="ENG" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Age</label>
+            <input id="sc_age" type="text" value="${player.age||''}" placeholder="22" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Tier</label>
+          <select id="sc_tier" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;">
+            <option value="">No tier</option>
+            <option value="1" ${player.tier==='1'?'selected':''}>★ Tier 1 — elite target</option>
+            <option value="2" ${player.tier==='2'?'selected':''}>Tier 2 — strong interest</option>
+            <option value="3" ${player.tier==='3'?'selected':''}>Tier 3 — monitoring</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Scout note</label>
+          <textarea id="sc_note" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:80px;resize:vertical;">${player.note||''}</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('adminModal').remove()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;">Cancel</button>
+        <button onclick="saveScoutPlayer('${pos}',${idx})" style="padding:0.55rem 1.2rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:600;">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('sc_name').focus();
+}
+
+function saveScoutPlayer(pos, idx) {
+  const player = {
+    name: document.getElementById('sc_name').value.trim(),
+    club: document.getElementById('sc_club').value.trim(),
+    nationality: document.getElementById('sc_nat').value.trim(),
+    age: document.getElementById('sc_age').value.trim(),
+    tier: document.getElementById('sc_tier').value,
+    note: document.getElementById('sc_note').value.trim(),
+  };
+  if (!player.name) { alert('Name required.'); return; }
+  const players = getData('scout_' + pos, []);
+  if (idx === -1) players.push(player);
+  else players[idx] = player;
+  setData('scout_' + pos, players);
+  document.getElementById('adminModal').remove();
+  renderScouting();
+}
+
+// Hook diary and scouting into page render
+const _origShowPage2 = window.showPage;
+window.showPage = function(id) {
+  _origShowPage2(id);
+  if (id === 'diary') renderDiary();
+  if (id === 'scouting') renderScouting();
+};
+
+// Hook admin mode to add diary/scouting edit buttons
+const _origApplyAdmin = applyAdminToCurrentPage;
+window.applyAdminToCurrentPage = function() {
+  _origApplyAdmin();
+  const active = document.querySelector('.page.active');
+  if (!active) return;
+  if (active.id === 'page-diary') {
+    renderDiary();
+    const addBtn = document.createElement('button');
+    addBtn.className = 'admin-add-btn';
+    addBtn.textContent = '+ New diary entry';
+    addBtn.onclick = addDiaryEntry;
+    const grid = document.getElementById('diaryGrid');
+    if (grid) grid.parentNode.insertBefore(addBtn, grid);
+  }
+  if (active.id === 'page-scouting') renderScouting();
+};
+
+// ================================================================
+// INLINE TEXT EDITING
+// ================================================================
+
+function initInlineEditing() {
+  document.querySelectorAll('[data-editable]').forEach(el => {
+    const key = 'text_' + el.getAttribute('data-editable');
+    // Restore saved text
+    const saved = getData(key, null);
+    if (saved !== null) el.textContent = saved;
+    // Make editable in admin mode
+    el.addEventListener('click', function(e) {
+      if (!adminMode) return;
+      e.stopPropagation();
+      this.contentEditable = 'true';
+      this.focus();
+      // Move cursor to end
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(this);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+    el.addEventListener('blur', function() {
+      if (!adminMode) return;
+      this.contentEditable = 'false';
+      setData(key, this.textContent.trim());
+    });
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.blur();
+      }
+      if (e.key === 'Escape') {
+        this.contentEditable = 'false';
+      }
+    });
+  });
+}
+
+function enableInlineEditing() {
+  document.body.classList.add('admin-active');
+  document.querySelectorAll('[data-editable]').forEach(el => {
+    el.title = 'Click to edit';
+  });
+}
+
+function disableInlineEditing() {
+  document.body.classList.remove('admin-active');
+  document.querySelectorAll('[data-editable]').forEach(el => {
+    el.contentEditable = 'false';
+    el.title = '';
+  });
+}
+
 loadData();
+initInlineEditing();
 </script>
 </body>
 </html>
