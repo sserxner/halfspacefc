@@ -213,10 +213,27 @@
   .tier-1 { background: var(--gold-bg); color: var(--gold); }
   .tier-2 { background: var(--blue-bg); color: var(--blue); }
   .tier-3 { background: var(--gray-100); color: var(--gray-600); }
-  /* TIERS */
-  .tier-divider { margin: 0.5rem 0; padding: 0.35rem 0.75rem; background: var(--accent); color: white; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 2px; display: flex; align-items: center; justify-content: space-between; }
-  .tier-divider-name { flex: 1; }
-  .tier-admin-btns { display: none; gap: 0.4rem; }
+  /* RANKING LIST — clean */
+  .ranking-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--gray-100); }
+  .ranking-row:last-child { border-bottom: none; }
+  .ranking-row:hover { background: var(--gray-50); margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
+  .ranking-num { font-family: var(--serif); font-size: 0.82rem; font-weight: 700; color: var(--accent); min-width: 1.8rem; padding-top: 0.05rem; flex-shrink: 0; }
+  .ranking-body { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+  .ranking-name { font-family: var(--serif); font-size: 0.88rem; font-weight: 700; color: var(--black); line-height: 1.3; }
+  .ranking-detail { font-family: var(--sans); font-size: 0.75rem; font-weight: 400; color: var(--gray-400); }
+  .ranking-note { font-family: var(--serif); font-size: 0.78rem; color: var(--gray-600); font-style: italic; line-height: 1.4; }
+  .ranking-controls { display: flex; align-items: center; gap: 3px; flex-shrink: 0; flex-wrap: wrap; max-width: 160px; justify-content: flex-end; }
+  .rk-btn { font-size: 0.62rem; font-weight: 600; padding: 2px 5px; border-radius: 2px; border: none; background: var(--accent); color: #fff; cursor: pointer; font-family: var(--sans); white-space: nowrap; }
+  .rk-btn:hover { background: #1a3a2a; }
+  .rk-del { background: #c0392b; }
+  .rk-del:hover { background: #8b1e14; }
+  .rk-tier-sel { font-size: 0.65rem; padding: 1px 3px; border: 1px solid var(--gray-200); border-radius: 2px; font-family: var(--sans); max-width: 90px; }
+
+  /* TIER LABEL — subtle */
+  .tier-label { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 0.25rem; margin-top: 0.75rem; border-bottom: 1px solid var(--gray-200); margin-bottom: 0.25rem; }
+  .tier-label:first-child { margin-top: 0; }
+  .tier-label-name { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .tier-admin-btns { display: none; gap: 0.3rem; }
   .admin-active .tier-admin-btns { display: flex; }
 
   /* BLURB */
@@ -1397,53 +1414,37 @@ function renderRankingList(containerEl, dataKey, posOnly) {
       : '<div class="empty-state"><p>Rankings coming soon.</p></div>';
   } else {
     data.tiers.forEach((tier, ti) => {
-      // Tier header
+      // Subtle tier label
       if (data.tiers.length > 1 || tier.name) {
-        html += `<div class="tier-divider" data-tier="${ti}">
-          <span class="tier-divider-name">${tier.name || 'Tier ' + (ti+1)}</span>
-          <span class="tier-admin-btns">
-            <button class="admin-edit-btn" style="font-size:0.6rem;padding:2px 6px;" onclick="renameTier('${dataKey}',${ti})">Rename</button>
-            <button class="admin-edit-btn" style="font-size:0.6rem;padding:2px 6px;background:#c0392b;" onclick="deleteTier('${dataKey}',${ti})">✕</button>
-          </span>
+        html += `<div class="tier-label" data-tier="${ti}">
+          <span class="tier-label-name">${tier.name || 'Tier ' + (ti+1)}</span>
+          ${adminMode ? `<span class="tier-admin-btns">
+            <button class="admin-edit-btn" style="font-size:0.58rem;padding:1px 5px;" onclick="renameTier('${dataKey}',${ti})">Rename</button>
+            <button class="admin-edit-btn" style="font-size:0.58rem;padding:1px 5px;background:#c0392b;" onclick="deleteTier('${dataKey}',${ti})">✕</button>
+          </span>` : ''}
         </div>`;
       }
-      html += `<table class="rankings-table" style="margin-bottom:0;"><thead><tr>
-        ${adminMode ? '<th style="width:20px;"></th>' : ''}
-        <th style="width:2rem;">#</th><th>Player</th>${posOnly ? '' : ''}<th>Note</th>
-        ${adminMode ? '<th style="width:70px;"></th>' : ''}
-      </tr></thead><tbody data-tier="${ti}" data-key="${dataKey}">`;
 
       (tier.entries || []).forEach((e, ei) => {
         const rank = globalRank++;
         const tierOptions = adminMode ? data.tiers.map((t, ti2) =>
           `<option value="${ti2}" ${ti2 === ti ? 'selected' : ''}>${t.name || 'Tier ' + (ti2+1)}</option>`
         ).join('') : '';
-        html += `<tr data-tier="${ti}" data-ei="${ei}" data-key="${dataKey}">
-          <td><span class="rank-num">${rank}</span></td>
-          <td>
-            <span class="player-name">${e.name || ''}</span>
-            ${e.detail ? `<span class="player-detail">${e.detail}</span>` : ''}
-          </td>
-          <td><span class="player-note">${e.note || ''}</span></td>
-          ${adminMode ? `<td style="white-space:nowrap;min-width:160px;">
-            <div style="display:flex;flex-direction:column;gap:3px;">
-              <div style="display:flex;gap:3px;">
-                <button class="admin-edit-btn" style="padding:2px 5px;" title="Move up" onclick="moveEntry('${dataKey}',${ti},${ei},-1)">↑</button>
-                <button class="admin-edit-btn" style="padding:2px 5px;" title="Move down" onclick="moveEntry('${dataKey}',${ti},${ei},1)">↓</button>
-                <button class="admin-edit-btn" onclick="editEntry('${dataKey}',${ti},${ei})">Edit</button>
-                <button class="admin-edit-btn" style="background:#c0392b;" onclick="deleteEntry('${dataKey}',${ti},${ei})">✕</button>
-              </div>
-              ${data.tiers.length > 1 ? `<div style="display:flex;align-items:center;gap:4px;">
-                <span style="font-size:0.62rem;color:var(--gray-400);">→</span>
-                <select style="font-size:0.68rem;padding:1px 3px;border:1px solid var(--gray-200);border-radius:2px;font-family:var(--sans);flex:1;" onchange="moveTierEntry('${dataKey}',${ti},${ei},parseInt(this.value))">
-                  ${tierOptions}
-                </select>
-              </div>` : ''}
-            </div>
-          </td>` : ''}
-        </tr>`;
+        html += `<div class="ranking-row" data-tier="${ti}" data-ei="${ei}">
+          <span class="ranking-num">${rank}</span>
+          <span class="ranking-body">
+            <span class="ranking-name">${e.name || ''}${e.detail ? `<span class="ranking-detail"> — ${e.detail}</span>` : ''}</span>
+            ${e.note ? `<span class="ranking-note">${e.note}</span>` : ''}
+          </span>
+          ${adminMode ? `<span class="ranking-controls">
+            <button class="rk-btn" title="Up" onclick="moveEntry('${dataKey}',${ti},${ei},-1)">↑</button>
+            <button class="rk-btn" title="Down" onclick="moveEntry('${dataKey}',${ti},${ei},1)">↓</button>
+            <button class="rk-btn" onclick="editEntry('${dataKey}',${ti},${ei})">Edit</button>
+            <button class="rk-btn rk-del" onclick="deleteEntry('${dataKey}',${ti},${ei})">✕</button>
+            ${data.tiers.length > 1 ? `<select class="rk-tier-sel" onchange="moveTierEntry('${dataKey}',${ti},${ei},parseInt(this.value))">${tierOptions}</select>` : ''}
+          </span>` : ''}
+        </div>`;
       });
-      html += `</tbody></table>`;
     });
   }
 
