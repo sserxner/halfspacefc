@@ -1015,7 +1015,7 @@ function handleContact(e) {
 // ADMIN / EDIT SYSTEM
 // ================================================================
 
-const ADMIN_PASSWORD = 'Gunner$0629';
+const ADMIN_PASSWORD = 'fayegula';
 const GITHUB_TOKEN = '';
 const GITHUB_REPO = 'sserxner/halfspacefc';
 const GITHUB_FILE = 'index.html';
@@ -1046,35 +1046,11 @@ function getData(key, fallback) {
 
 // ---- ADMIN TOGGLE ----
 function toggleAdmin() {
-  if (adminMode) {
-    exitAdmin();
-  } else {
-    const pw = prompt('Enter admin password:');
-    if (pw === ADMIN_PASSWORD) {
-      adminMode = true;
-      document.getElementById('adminBtn').textContent = '✕ Exit editing';
-      document.getElementById('adminBtn').style.background = '#9b2020';
-      document.getElementById('adminBanner').style.display = 'flex';
-      document.getElementById('exportBtn').style.display = 'inline-block';
-      applyAdminToCurrentPage();
-      enableInlineEditing();
-      renderHomePostFeed();
-      addNewPostButton();
-    } else if (pw !== null) {
-      alert('Incorrect password.');
-    }
-  }
+  window.location.hash = '#admin';
 }
 
 function exitAdmin() {
-  adminMode = false;
-  document.getElementById('adminBtn').textContent = '✎ Edit';
-  document.getElementById('adminBtn').style.background = 'var(--accent)';
-  document.getElementById('adminBanner').style.display = 'none';
-  document.getElementById('exportBtn').style.display = 'none';
-  removeAdminUI();
-  disableInlineEditing();
-  renderHomePostFeed();
+  if (window.exitAdminPanel) window.exitAdminPanel();
 }
 
 function applyAdminToCurrentPage() {
@@ -1556,31 +1532,7 @@ if (window.__HALFSPACE_DATA__) {
 
 // ---- INJECT ADMIN UI INTO PAGE ----
 document.addEventListener('DOMContentLoaded', function() {
-  (function injectAdminControls() {
-  // Floating edit button
-  const btn = document.createElement('button');
-  btn.id = 'adminBtn';
-  btn.textContent = '✎ Edit';
-  btn.onclick = toggleAdmin;
-  btn.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--accent);color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:30px;font-family:var(--sans);font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);transition:background 0.15s;`;
-  document.body.appendChild(btn);
-
-  // Export button
-  const expBtn = document.createElement('button');
-  expBtn.id = 'exportBtn';
-  expBtn.textContent = '⬇ Download updated site';
-  expBtn.onclick = exportSite;
-  expBtn.style.cssText = `position:fixed;bottom:1.5rem;right:9rem;z-index:999;background:#1a3a6b;color:#fff;border:none;padding:0.6rem 1.2rem;border-radius:30px;font-family:var(--sans);font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:none;`;
-  document.body.appendChild(expBtn);
-
-  // Admin banner
-  const banner = document.createElement('div');
-  banner.id = 'adminBanner';
-  banner.style.cssText = `display:none;position:fixed;top:56px;left:0;right:0;z-index:98;background:#9b2020;color:#fff;font-family:var(--sans);font-size:0.8rem;font-weight:500;padding:0.5rem 1.5rem;align-items:center;gap:0.5rem;`;
-  banner.innerHTML = `<span>✎ Edit mode active — click any field to edit. Download updated site when done.</span>`;
-  document.body.appendChild(banner);
-
-  // Inject edit button CSS
+  // Inject admin CSS
   const style = document.createElement('style');
   style.textContent = `
     .admin-edit-btn { font-size:0.7rem;font-weight:600;padding:3px 8px;border-radius:2px;border:none;background:#2d5c3f;color:#fff;cursor:pointer;font-family:var(--sans);display:block;margin-top:3px; }
@@ -1588,9 +1540,131 @@ document.addEventListener('DOMContentLoaded', function() {
     .admin-add-btn { display:block;margin-top:1.25rem;font-size:0.82rem;font-weight:600;padding:0.5rem 1.1rem;border:1.5px dashed var(--accent);border-radius:3px;background:transparent;color:var(--accent);cursor:pointer;font-family:var(--sans);transition:all 0.15s; }
     .admin-add-btn:hover { background:var(--green-light); }
     #me_name:focus, #me_detail:focus, #me_note:focus, #xi_name_input:focus { border-color:var(--accent); }
+    #adminPanel { position:fixed;inset:0;background:#0a1f12;z-index:99999;display:flex;align-items:center;justify-content:center;padding:2rem; }
+    #adminPanel .panel-box { background:#fff;border-radius:8px;padding:2.5rem;width:100%;max-width:400px;font-family:var(--sans); }
+    #adminPanel h2 { font-family:'Averia Serif Libre',serif;font-size:1.5rem;font-weight:700;color:#2d5c3f;margin-bottom:0.4rem; }
+    #adminPanel p { font-size:0.85rem;color:#9b9a93;margin-bottom:1.5rem; }
+    #adminPanel input { width:100%;padding:0.7rem 1rem;border:1.5px solid #e0dfd8;border-radius:3px;font-size:1rem;font-family:var(--sans);outline:none;margin-bottom:1rem; }
+    #adminPanel input:focus { border-color:#2d5c3f; }
+    #adminPanel .panel-error { font-size:0.8rem;color:#9b2020;margin-bottom:0.75rem;display:none; }
+    #adminPanel .panel-btn { width:100%;padding:0.75rem;background:#2d5c3f;color:#fff;border:none;border-radius:3px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--sans);margin-bottom:0.5rem; }
+    #adminPanel .panel-btn:hover { background:#224832; }
+    #adminPanel .panel-exit { width:100%;padding:0.6rem;background:transparent;color:#9b9a93;border:1.5px solid #e0dfd8;border-radius:3px;font-size:0.85rem;cursor:pointer;font-family:var(--sans); }
+    #adminPanel .panel-exit:hover { color:#0f0f0f;border-color:#9b9a93; }
+    #adminToolbar { position:fixed;bottom:0;left:0;right:0;background:#0a1f12;z-index:998;display:none;align-items:center;justify-content:space-between;padding:0.75rem 1.5rem;gap:1rem;box-shadow:0 -2px 12px rgba(0,0,0,0.3); }
+    #adminToolbar .tb-left { display:flex;align-items:center;gap:0.75rem; }
+    #adminToolbar .tb-status { font-size:0.78rem;color:rgba(255,255,255,0.6);font-family:var(--sans); }
+    #adminToolbar .tb-indicator { width:8px;height:8px;background:#4caf50;border-radius:50%;flex-shrink:0; }
+    #adminToolbar .tb-btn { font-size:0.82rem;font-weight:600;padding:0.5rem 1.1rem;border-radius:4px;cursor:pointer;font-family:var(--sans);border:none;white-space:nowrap; }
+    #adminToolbar .tb-download { background:#1a3a6b;color:#fff; }
+    #adminToolbar .tb-download:hover { background:#142d56; }
+    #adminToolbar .tb-exit { background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15); }
+    #adminToolbar .tb-exit:hover { background:rgba(255,255,255,0.15);color:#fff; }
+    #adminBanner { display:none;position:fixed;top:56px;left:0;right:0;z-index:98;background:#2d5c3f;color:rgba(255,255,255,0.85);font-family:var(--sans);font-size:0.78rem;font-weight:500;padding:0.4rem 1.5rem;align-items:center;gap:0.5rem; }
   `;
   document.head.appendChild(style);
-  })();
+
+  // Inject toolbar (replaces old floating buttons)
+  const toolbar = document.createElement('div');
+  toolbar.id = 'adminToolbar';
+  toolbar.innerHTML = `
+    <div class="tb-left">
+      <div class="tb-indicator"></div>
+      <span class="tb-status">Edit mode — changes save to browser automatically</span>
+    </div>
+    <div style="display:flex;gap:0.6rem;">
+      <button class="tb-btn tb-download" onclick="exportSite()">⬇ Download updated site</button>
+      <button class="tb-btn tb-exit" onclick="exitAdminPanel()">✕ Exit</button>
+    </div>`;
+  document.body.appendChild(toolbar);
+
+  // Inject banner
+  const banner = document.createElement('div');
+  banner.id = 'adminBanner';
+  banner.innerHTML = `<span>Edit mode — click any underlined text to edit it</span>`;
+  document.body.appendChild(banner);
+
+  // Check for #admin hash
+  function checkHash() {
+    if (window.location.hash === '#admin') {
+      showAdminPanel();
+    }
+  }
+
+  function showAdminPanel() {
+    // If already authenticated this session, go straight in
+    if (sessionStorage.getItem('hs_authed') === '1') {
+      activateAdmin();
+      return;
+    }
+    const panel = document.createElement('div');
+    panel.id = 'adminPanel';
+    panel.innerHTML = `
+      <div class="panel-box">
+        <h2>Half Space</h2>
+        <p>Admin access — enter password to continue</p>
+        <input id="adminPwInput" type="password" placeholder="Password" autocomplete="current-password">
+        <div class="panel-error" id="adminPwError">Incorrect password.</div>
+        <button class="panel-btn" onclick="submitAdminPassword()">Enter</button>
+        <button class="panel-exit" onclick="closeAdminPanel()">Cancel</button>
+      </div>`;
+    document.body.appendChild(panel);
+    document.getElementById('adminPwInput').focus();
+    document.getElementById('adminPwInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitAdminPassword();
+    });
+  }
+
+  window.submitAdminPassword = function() {
+    const input = document.getElementById('adminPwInput');
+    if (!input) return;
+    if (input.value === ADMIN_PASSWORD) {
+      sessionStorage.setItem('hs_authed', '1');
+      document.getElementById('adminPanel').remove();
+      activateAdmin();
+    } else {
+      const err = document.getElementById('adminPwError');
+      if (err) { err.style.display = 'block'; input.value = ''; input.focus(); }
+    }
+  };
+
+  window.closeAdminPanel = function() {
+    const panel = document.getElementById('adminPanel');
+    if (panel) panel.remove();
+    window.location.hash = '';
+  };
+
+  function activateAdmin() {
+    adminMode = true;
+    document.getElementById('adminToolbar').style.display = 'flex';
+    document.getElementById('adminBanner').style.display = 'flex';
+    document.body.style.paddingBottom = '60px';
+    enableInlineEditing();
+    applyAdminToCurrentPage();
+    renderHomePostFeed();
+    addNewPostButton();
+  }
+
+  window.exitAdminPanel = function() {
+    adminMode = false;
+    document.getElementById('adminToolbar').style.display = 'none';
+    document.getElementById('adminBanner').style.display = 'none';
+    document.body.style.paddingBottom = '';
+    disableInlineEditing();
+    removeAdminUI();
+    renderHomePostFeed();
+    sessionStorage.removeItem('hs_authed');
+    window.location.hash = '';
+  };
+
+  // Also expose toggleAdmin for any legacy references
+  window.toggleAdmin = function() {
+    window.location.hash = '#admin';
+    showAdminPanel();
+  };
+
+  window.addEventListener('hashchange', checkHash);
+  checkHash();
 });
 
 // ================================================================
