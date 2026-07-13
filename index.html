@@ -230,8 +230,6 @@
   .hm-item.still-playing { border-color: var(--green-light); color: var(--accent); background: var(--green-light); }
 
   /* DRAG */
-  .drag-handle { cursor: grab; color: var(--gray-300); font-size: 0.9rem; padding: 0 0.25rem; user-select: none; }
-  .drag-handle:active { cursor: grabbing; }
   tr.drag-over-top { border-top: 2px solid var(--accent) !important; }
   tr.drag-over-bot { border-bottom: 2px solid var(--accent) !important; }
 
@@ -740,6 +738,11 @@ const CLUBS = [
   { name: "Sevilla",             country: "Spain"       },
   { name: "Valencia",            country: "Spain"       },
   { name: "Villarreal",          country: "Spain"       },
+  { name: "Athletic Club",       country: "Spain"       },
+  { name: "Real Sociedad",       country: "Spain"       },
+  { name: "Malaga",              country: "Spain"       },
+  { name: "Deportivo",           country: "Spain"       },
+  { name: "Celta Vigo",          country: "Spain"       },
 
   // ITALY
   { name: "Juventus",            country: "Italy"       },
@@ -749,6 +752,9 @@ const CLUBS = [
   { name: "Napoli",              country: "Italy"       },
   { name: "Lazio",               country: "Italy"       },
   { name: "Fiorentina",          country: "Italy"       },
+  { name: "Atalanta",            country: "Italy"       },
+  { name: "Udinese",             country: "Italy"       },
+  { name: "Bologna",             country: "Italy"       },
 
   // GERMANY
   { name: "Bayern Munich",       country: "Germany"     },
@@ -761,47 +767,51 @@ const CLUBS = [
   { name: "RB Leipzig",          country: "Germany"     },
   { name: "Eintracht Frankfurt", country: "Germany"     },
 
-  // ENGLAND
-  { name: "Liverpool",           country: "England"     },
-  { name: "Manchester United",   country: "England"     },
-  { name: "Arsenal",             country: "England"     },
-  { name: "Chelsea",             country: "England"     },
-  { name: "Manchester City",     country: "England"     },
-  { name: "Aston Villa",         country: "England"     },
-  { name: "Nottingham Forest",   country: "England"     },
-  { name: "Everton",             country: "England"     },
-  { name: "Tottenham Hotspur",   country: "England"     },
-  { name: "Newcastle United",    country: "England"     },
-  { name: "Leeds United",        country: "England"     },
-  { name: "Sunderland",          country: "England"     },
-  { name: "Blackburn Rovers",    country: "England"     },
-  { name: "Sheffield Wednesday", country: "England"     },
-  { name: "Derby County",        country: "England"     },
-  { name: "Wolverhampton",       country: "England"     },
-  { name: "West Ham United",     country: "England"     },
-  { name: "Leicester City",      country: "England"     },
-  { name: "Ipswich Town",        country: "England"     },
-  { name: "Portsmouth",          country: "England"     },
-  { name: "Burnley",             country: "England"     },
-  { name: "Southampton",         country: "England"     },
-  { name: "Middlesbrough",       country: "England"     },
-  { name: "Bolton Wanderers",    country: "England"     },
-  { name: "Fulham",              country: "England"     },
-  { name: "West Bromwich Albion",country: "England"     },
-  { name: "Charlton Athletic",   country: "England"     },
-  { name: "Coventry City",       country: "England"     },
-  { name: "Norwich City",        country: "England"     },
-  { name: "Crystal Palace",      country: "England"     },
-  { name: "Queens Park Rangers", country: "England"     },
-  { name: "Stoke City",          country: "England"     },
-  { name: "Wigan Athletic",      country: "England"     },
-  { name: "Swansea City",        country: "England"     },
-  { name: "Hull City",           country: "England"     },
-  { name: "Birmingham City",     country: "England"     },
-  { name: "Watford",             country: "England"     },
-  { name: "Blackpool",           country: "England"     },
-  { name: "Brentford",           country: "England"     },
-  { name: "Brighton",            country: "England"     },
+  // ENGLAND — Tier A
+  { name: "Liverpool",           country: "England (A)" },
+  { name: "Manchester United",   country: "England (A)" },
+  { name: "Arsenal",             country: "England (A)" },
+  { name: "Chelsea",             country: "England (A)" },
+  { name: "Manchester City",     country: "England (A)" },
+  { name: "Aston Villa",         country: "England (A)" },
+  { name: "Nottingham Forest",   country: "England (A)" },
+  { name: "Everton",             country: "England (A)" },
+  { name: "Tottenham Hotspur",   country: "England (A)" },
+  { name: "Newcastle United",    country: "England (A)" },
+  { name: "Leeds United",        country: "England (A)" },
+  { name: "Sunderland",          country: "England (A)" },
+  { name: "Blackburn Rovers",    country: "England (A)" },
+
+  // ENGLAND — Tier B
+  { name: "Sheffield Wednesday", country: "England (B)" },
+  { name: "Derby County",        country: "England (B)" },
+  { name: "Wolverhampton",       country: "England (B)" },
+  { name: "West Ham United",     country: "England (B)" },
+  { name: "Leicester City",      country: "England (B)" },
+  { name: "Ipswich Town",        country: "England (B)" },
+  { name: "Portsmouth",          country: "England (B)" },
+  { name: "Burnley",             country: "England (B)" },
+  { name: "Southampton",         country: "England (B)" },
+  { name: "Middlesbrough",       country: "England (B)" },
+  { name: "Bolton Wanderers",    country: "England (B)" },
+  { name: "Fulham",              country: "England (B)" },
+  { name: "West Bromwich Albion",country: "England (B)" },
+  { name: "Charlton Athletic",   country: "England (B)" },
+
+  // ENGLAND — Tier C
+  { name: "Coventry City",       country: "England (C)" },
+  { name: "Norwich City",        country: "England (C)" },
+  { name: "Crystal Palace",      country: "England (C)" },
+  { name: "Queens Park Rangers", country: "England (C)" },
+  { name: "Stoke City",          country: "England (C)" },
+  { name: "Wigan Athletic",      country: "England (C)" },
+  { name: "Swansea City",        country: "England (C)" },
+  { name: "Hull City",           country: "England (C)" },
+  { name: "Birmingham City",     country: "England (C)" },
+  { name: "Watford",             country: "England (C)" },
+  { name: "Blackpool",           country: "England (C)" },
+  { name: "Brentford",           country: "England (C)" },
+  { name: "Brighton",            country: "England (C)" },
 
   // FRANCE
   { name: "Paris Saint-Germain", country: "France"      },
@@ -811,6 +821,9 @@ const CLUBS = [
   { name: "Nantes",              country: "France"      },
   { name: "Olympique Lyonnais",  country: "France"      },
   { name: "Bordeaux",            country: "France"      },
+  { name: "Lens",                country: "France"      },
+  { name: "Lille",               country: "France"      },
+  { name: "Rennes",              country: "France"      },
 
   // NETHERLANDS
   { name: "Ajax",                country: "Netherlands" },
@@ -1180,15 +1193,33 @@ function buildXIDetail(name, meta, formationKey) {
 }
 
 function changeFormation(name, hasMeta, fKey, btn) {
-  // Save formation preference
   const entityKey = 'formation_' + name.replace(/\s+/g,'_');
   setData(entityKey, fKey);
-  // Re-render
-  const detailContent = document.getElementById('country-detail-content') || document.getElementById('club-detail-content');
+  // Find the visible detail content
+  const countryContent = document.getElementById('country-detail-content');
+  const clubContent = document.getElementById('club-detail-content');
+  const countryView = document.getElementById('country-detail-view');
+  const clubView = document.getElementById('club-detail-view');
+  let detailContent = null;
+  let keyPrefix = '';
+  if (countryView && countryView.style.display !== 'none') {
+    detailContent = countryContent;
+    keyPrefix = 'country_';
+  } else if (clubView && clubView.style.display !== 'none') {
+    detailContent = clubContent;
+    keyPrefix = 'club_';
+  } else {
+    // Continental — find the visible xi- div
+    const visibleXi = ['xi-europe','xi-southamerica','xi-northamerica','xi-asia','xi-africa']
+      .map(id => document.getElementById(id))
+      .find(el => el && el.closest('[style*="display: none"]') === null);
+    if (visibleXi) { visibleXi.innerHTML = buildXIDetail(name, null, fKey); return; }
+    return;
+  }
   if (!detailContent) return;
-  const meta = hasMeta ? (window.__lastMeta || null) : null;
+  const meta = hasMeta === 'true' ? (window.__lastMeta || null) : null;
   detailContent.innerHTML = buildXIDetail(name, meta, fKey);
-  const key = (detailContent.id === 'country-detail-content' ? 'country_' : 'club_') + name.replace(/\s+/g,'_');
+  const key = keyPrefix + name.replace(/\s+/g,'_');
   restoreXIData(key, detailContent);
   if (adminMode) makeXIEditable(key, detailContent);
 }
@@ -1384,19 +1415,34 @@ function renderRankingList(containerEl, dataKey, posOnly) {
 
       (tier.entries || []).forEach((e, ei) => {
         const rank = globalRank++;
-        html += `<tr draggable="${adminMode}" data-tier="${ti}" data-ei="${ei}" data-key="${dataKey}">
-          ${adminMode ? `<td><span class="drag-handle" title="Drag to reorder">⠿</span></td>` : ''}
+        const tierOptions = adminMode ? data.tiers.map((t, ti2) =>
+          `<option value="${ti2}" ${ti2 === ti ? 'selected' : ''}>${t.name || 'Tier ' + (ti2+1)}</option>`
+        ).join('') : '';
+        html += `<tr data-tier="${ti}" data-ei="${ei}" data-key="${dataKey}">
           <td><span class="rank-num">${rank}</span></td>
           <td>
             <span class="player-name">${e.name || ''}</span>
             ${e.detail ? `<span class="player-detail">${e.detail}</span>` : ''}
           </td>
           <td><span class="player-note">${e.note || ''}</span></td>
-          ${adminMode ? `<td>
-            <button class="admin-edit-btn" onclick="editEntry('${dataKey}',${ti},${ei})">Edit</button>
-            <button class="admin-edit-btn" style="background:#c0392b;margin-top:3px;" onclick="deleteEntry('${dataKey}',${ti},${ei})">✕</button>
+          ${adminMode ? `<td style="white-space:nowrap;min-width:160px;">
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="display:flex;gap:3px;">
+                <button class="admin-edit-btn" style="padding:2px 5px;" title="Move up" onclick="moveEntry('${dataKey}',${ti},${ei},-1)">↑</button>
+                <button class="admin-edit-btn" style="padding:2px 5px;" title="Move down" onclick="moveEntry('${dataKey}',${ti},${ei},1)">↓</button>
+                <button class="admin-edit-btn" onclick="editEntry('${dataKey}',${ti},${ei})">Edit</button>
+                <button class="admin-edit-btn" style="background:#c0392b;" onclick="deleteEntry('${dataKey}',${ti},${ei})">✕</button>
+              </div>
+              ${data.tiers.length > 1 ? `<div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:0.62rem;color:var(--gray-400);">→</span>
+                <select style="font-size:0.68rem;padding:1px 3px;border:1px solid var(--gray-200);border-radius:2px;font-family:var(--sans);flex:1;" onchange="moveTierEntry('${dataKey}',${ti},${ei},parseInt(this.value))">
+                  ${tierOptions}
+                </select>
+              </div>` : ''}
+            </div>
           </td>` : ''}
         </tr>`;
+      });
       });
       html += `</tbody></table>`;
     });
@@ -1433,51 +1479,32 @@ function renderRankingList(containerEl, dataKey, posOnly) {
   }
 
   content.innerHTML = html;
-
-  // Wire up drag-and-drop
-  if (adminMode) initDragDrop(content, dataKey);
 }
 
-// ---- DRAG AND DROP ----
-function initDragDrop(container, dataKey) {
-  let dragTier = null, dragEi = null, dragEl = null;
-  container.querySelectorAll('tr[draggable]').forEach(row => {
-    row.addEventListener('dragstart', e => {
-      dragTier = parseInt(row.dataset.tier);
-      dragEi   = parseInt(row.dataset.ei);
-      dragEl   = row;
-      e.dataTransfer.effectAllowed = 'move';
-      setTimeout(() => row.style.opacity = '0.4', 0);
-    });
-    row.addEventListener('dragend', () => { row.style.opacity = ''; });
-    row.addEventListener('dragover', e => {
-      e.preventDefault();
-      container.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over-top','drag-over-bot'));
-      const rect = row.getBoundingClientRect();
-      const mid = rect.top + rect.height / 2;
-      row.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bot');
-    });
-    row.addEventListener('dragleave', () => {
-      row.classList.remove('drag-over-top','drag-over-bot');
-    });
-    row.addEventListener('drop', e => {
-      e.preventDefault();
-      row.classList.remove('drag-over-top','drag-over-bot');
-      const targetTier = parseInt(row.dataset.tier);
-      const targetEi   = parseInt(row.dataset.ei);
-      if (dragTier === null) return;
-      const data = getRankingData(dataKey);
-      const srcEntry = data.tiers[dragTier].entries.splice(dragEi, 1)[0];
-      const adjustedTarget = (dragTier === targetTier && targetEi > dragEi) ? targetEi - 1 : targetEi;
-      if (!data.tiers[targetTier]) return;
-      const rect = row.getBoundingClientRect();
-      const insertAfter = e.clientY > rect.top + rect.height / 2;
-      data.tiers[targetTier].entries.splice(adjustedTarget + (insertAfter ? 1 : 0), 0, srcEntry);
-      setRankingData(dataKey, data);
-      const containerEl = findContainerForKey(dataKey);
-      if (containerEl) renderRankingList(containerEl, dataKey, false);
-    });
-  });
+// ---- MOVE ENTRY WITHIN TIER ----
+function moveEntry(dataKey, ti, ei, direction) {
+  const data = getRankingData(dataKey);
+  const entries = data.tiers[ti].entries;
+  const newIdx = ei + direction;
+  if (newIdx < 0 || newIdx >= entries.length) return;
+  const temp = entries[ei];
+  entries[ei] = entries[newIdx];
+  entries[newIdx] = temp;
+  setRankingData(dataKey, data);
+  const containerEl = findContainerForKey(dataKey);
+  if (containerEl) renderRankingList(containerEl, dataKey, false);
+}
+
+// ---- MOVE ENTRY TO DIFFERENT TIER ----
+function moveTierEntry(dataKey, fromTi, ei, toTi) {
+  if (fromTi === toTi) return;
+  const data = getRankingData(dataKey);
+  const entry = data.tiers[fromTi].entries.splice(ei, 1)[0];
+  if (!data.tiers[toTi]) return;
+  data.tiers[toTi].entries.push(entry);
+  setRankingData(dataKey, data);
+  const containerEl = findContainerForKey(dataKey);
+  if (containerEl) renderRankingList(containerEl, dataKey, false);
 }
 
 // ---- ENTRY CRUD ----
