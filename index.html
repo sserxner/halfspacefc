@@ -1518,15 +1518,7 @@ function rankRender(sec) {
 // Render all sections (for public page load)
 function renderAllRankings() {
   RANK_SECTIONS.forEach(sec => {
-    ['century','now'].forEach(era => {
-      const key = sec + '_' + era;
-      const el = document.getElementById(sec + '-' + era);
-      if (!el) return;
-      let content = el.querySelector('.rank-content');
-      if (!content) { content = document.createElement('div'); content.className = 'rank-content'; el.appendChild(content); }
-      const data = rankGet(key);
-      if (data.tiers.some(t => t.entries.length > 0)) rankRender(sec);
-    });
+    rankRender(sec);
   });
   // Also render standalone managers page
   ['century','current'].forEach(tab => {
@@ -1536,16 +1528,14 @@ function renderAllRankings() {
     let content = el.querySelector('.rank-content');
     if (!content) { content = document.createElement('div'); content.className = 'rank-content'; el.appendChild(content); }
     const data = rankGet(key);
-    if (data.tiers.some(t => t.entries.length > 0)) {
-      let html = '';
-      let rank = 1;
-      data.tiers.forEach((tier, ti) => {
-        (tier.entries||[]).forEach((e,ei) => {
-          html += `<div class="ranking-row"><span class="ranking-num">${rank++}</span><span class="ranking-body"><span class="ranking-name">${e.name||''}</span>${e.note?`<span class="ranking-note">${e.note}</span>`:''}</span></div>`;
-        });
+    let html = '';
+    let rank = 1;
+    data.tiers.forEach((tier) => {
+      (tier.entries||[]).forEach((e) => {
+        html += `<div class="ranking-row"><span class="ranking-num">${rank++}</span><span class="ranking-body"><span class="ranking-name">${e.name||''}</span>${e.note?`<span class="ranking-note">${e.note}</span>`:''}</span></div>`;
       });
-      content.innerHTML = html;
-    }
+    });
+    content.innerHTML = html || '<div class="empty-state"><p>Rankings coming soon.</p></div>';
   });
 }
 
@@ -1932,16 +1922,10 @@ window.showSubTab = function(group, tab) {
 // ---- BUILD HTML WITH BAKED DATA ----
 function buildExportHTML() {
   let html = document.documentElement.outerHTML;
-  // Remove existing baked data script
   html = html.replace(/<script id="baked_data">[\s\S]*?<\/script>/, '');
-  // Bake current siteData
   const dataScript = `<script id="baked_data">window.__HALFSPACE_DATA__=${JSON.stringify(siteData)};<\/script>`;
   html = html.replace('</head>', dataScript + '</head>');
-  // Ensure home page is active on load — reset all active pages
-  html = html.replace(/(<div class="page[^"]*) active([^"]*")/g, '$1$2');
-  html = html.replace(/(<div class="page" id="page-home")/, '$1 ');
-  html = html.replace(/ id="page-home" >/, ' id="page-home" class="page active">');
-  // Ensure home nav tab is not marked active (JS handles this on load)
+  html = html.replace(/<div class="page active" id="page-(?!home")/g, '<div class="page" id="page-');
   return html;
 }
 
