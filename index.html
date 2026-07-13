@@ -1161,7 +1161,7 @@ function buildXIDetail(name, meta, formationKey) {
   }
 
   const pitchHTML = `<div class="pitch">
-    ${pitchRows.map(row => `<div class="pitch-row">
+    ${[...pitchRows].reverse().map(row => `<div class="pitch-row">
       ${row.map(p => `<div class="pitch-player">
         <div class="pitch-dot empty">+</div>
         <div class="pitch-label empty-label">${p.label}</div>
