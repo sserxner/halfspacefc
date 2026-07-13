@@ -157,14 +157,13 @@
   .xi-pos-badge { font-size: 0.65rem; font-weight: 600; color: var(--white); background: var(--accent); padding: 2px 7px; border-radius: 2px; min-width: 32px; text-align: center; text-transform: uppercase; letter-spacing: 0.04em; }
   .xi-player-name { font-family: var(--serif); font-size: 1rem; font-weight: 700; flex: 1; color: var(--black); }
   .xi-player-name.empty { color: var(--gray-400); font-style: italic; font-weight: 400; }
-  .bench-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1.5px solid var(--gray-200); }
-  .bench-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
-  .bench-row { display: flex; gap: 0; margin-bottom: 0; }
-  .bench-slot { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0.5rem 0.25rem; border-right: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); }
-  .bench-slot:last-child { border-right: none; }
-  .bench-row:last-child .bench-slot { border-bottom: none; }
-  .bench-num { font-family: var(--serif); font-size: 0.65rem; font-weight: 700; color: var(--accent); margin-bottom: 0.2rem; }
-  .bench-name { font-family: var(--serif); font-size: 0.78rem; color: var(--gray-400); font-style: italic; text-align: center; line-height: 1.2; }
+  .xi-bench-wrap { background: linear-gradient(180deg, #1a4a2a 0%, #163d22 100%); border-radius: 0 0 6px 6px; border: 2px solid #0f2518; border-top: none; padding: 1rem 1.25rem; margin-top: -6px; }
+  .bench-title { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.6rem; }
+  .bench-list { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+  .bench-slot { font-family: var(--serif); font-size: 0.85rem; color: rgba(255,255,255,0.75); font-style: italic; white-space: nowrap; }
+  .bench-slot:not(:last-child)::after { content: '·'; margin-left: 0.75rem; color: rgba(255,255,255,0.25); }
+  .bench-slot.empty { color: rgba(255,255,255,0.2); font-style: normal; font-size: 0.7rem; }
+  .bench-num { display: none; }
 
   /* GLOSSARY */
   .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
@@ -223,7 +222,9 @@
   .tier-1 { background: var(--gold-bg); color: var(--gold); }
   .tier-2 { background: var(--blue-bg); color: var(--blue); }
   .tier-3 { background: var(--gray-100); color: var(--gray-600); }
-  /* RANKING LIST — clean */
+  .xi-badges { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; margin-left: 0.4rem; vertical-align: middle; }
+  .xi-badge { font-family: var(--sans); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: var(--green-light); color: var(--accent); border: 1px solid var(--accent); border-radius: 2px; padding: 1px 5px; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background 0.1s; }
+  .xi-badge:hover { background: var(--accent); color: #fff; }
   .ranking-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--gray-100); }
   .ranking-row:last-child { border-bottom: none; }
   .ranking-row:hover { background: var(--gray-50); margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
@@ -1226,18 +1227,10 @@ function buildXIDetail(name, meta, formationKey) {
     </div>`).join('')}
   </div>`;
 
-  // Bench: 9 slots in two rows (5 top, 4 bottom), ordered defensive to attacking
   const benchHTML = `<div class="bench-section">
     <div class="bench-title">Bench</div>
-    <div class="bench-row">
-      ${[0,1,2,3,4].map(i=>`<div class="bench-slot" data-bench-index="${i}">
-        <span class="bench-num">${i+1}</span>
-        <span class="bench-name">—</span>
-      </div>`).join('')}
-    </div>
-    <div class="bench-row">
-      ${[5,6,7,8].map(i=>`<div class="bench-slot" data-bench-index="${i}">
-        <span class="bench-num">${i+1}</span>
+    <div class="bench-list">
+      ${Array.from({length:9},(_,i) => `<div class="bench-slot empty" data-bench-index="${i}">
         <span class="bench-name">—</span>
       </div>`).join('')}
     </div>
@@ -1258,7 +1251,7 @@ function buildXIDetail(name, meta, formationKey) {
     ${metaHTML}
     ${formationPickerHTML}
     <div class="xi-wrapper">${pitchHTML}${listHTML}</div>
-    ${benchHTML}`;
+    <div class="xi-bench-wrap">${benchHTML}</div>`;
 }
 
 function changeFormation(name, hasMeta, fKey, btn) {
@@ -1488,7 +1481,7 @@ function renderRankingList(containerEl, dataKey, posOnly) {
         html += `<div class="ranking-row" data-tier="${ti}" data-ei="${ei}">
           <span class="ranking-num">${rank}</span>
           <span class="ranking-body">
-            <span class="ranking-name">${e.name || ''}${e.detail ? `<span class="ranking-detail"> — ${e.detail}</span>` : ''}</span>
+            <span class="ranking-name">${e.name || ''}${e.detail ? `<span class="ranking-detail"> — ${e.detail}</span>` : ''}${e.xi && e.xi.length ? `<span class="xi-badges">${e.xi.map(x=>`<span class="xi-badge" onclick="navigateToXI('${x.replace(/'/g,"\\'")}');event.stopPropagation();">${x}</span>`).join('')}</span>` : ''}</span>
             ${e.note ? `<span class="ranking-note">${e.note}</span>` : ''}
           </span>
           ${adminMode ? `<span class="ranking-controls">
@@ -1536,7 +1529,47 @@ function renderRankingList(containerEl, dataKey, posOnly) {
   content.innerHTML = html;
 }
 
-// ---- MOVE ENTRY WITHIN TIER ----
+// ---- XI BADGE NAVIGATION ----
+function navigateToXI(tag) {
+  // Normalise: lowercase, strip "XI", trim
+  const t = tag.toLowerCase().replace(/\bxi\b/g,'').replace(/21st century/g,'').trim();
+
+  // Check country list
+  const country = COUNTRIES.find(c => c.name.toLowerCase() === t || t.includes(c.name.toLowerCase()));
+  if (country) {
+    showPage('country-xi');
+    setTimeout(() => showCountryDetail(country.name), 50);
+    return;
+  }
+
+  // Check club list
+  const club = CLUBS.find(c => c.name.toLowerCase() === t || t.includes(c.name.toLowerCase()));
+  if (club) {
+    showPage('club-xi');
+    setTimeout(() => showClubDetail(club.name), 50);
+    return;
+  }
+
+  // Check continental
+  const continentMap = {
+    'european': 'europe', 'europe': 'europe',
+    'south american': 'southamerica', 'south america': 'southamerica',
+    'north american': 'northamerica', 'north america': 'northamerica',
+    'asian': 'asia', 'asia': 'asia',
+    'african': 'africa', 'africa': 'africa',
+  };
+  for (const [key, val] of Object.entries(continentMap)) {
+    if (t.includes(key)) {
+      showPage('continental-xi');
+      setTimeout(() => showSubTab('continental', val), 50);
+      return;
+    }
+  }
+
+  // Fallback — just go to country XI tab
+  showPage('country-xi');
+}
+
 function moveEntry(dataKey, ti, ei, direction) {
   const data = getRankingData(dataKey);
   const entries = data.tiers[ti].entries;
@@ -1584,8 +1617,9 @@ function showEntryModal(dataKey, tierIdx, ei, entry) {
   if (existing) existing.remove();
   const modal = document.createElement('div');
   modal.id = 'adminModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
-  modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:480px;font-family:var(--sans);">
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  const xiTags = (entry.xi || []).join(', ');
+  modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:500px;font-family:var(--sans);margin:auto;">
     <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${ei === -1 ? 'Add' : 'Edit'} entry</h3>
     <div style="display:flex;flex-direction:column;gap:0.9rem;">
       <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Name (Country) — Position</label>
@@ -1594,6 +1628,11 @@ function showEntryModal(dataKey, tierIdx, ei, entry) {
         <input id="me_detail" type="text" value="${(entry.detail||'').replace(/"/g,'&quot;')}" placeholder="Barcelona · 2004–present" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;"></div>
       <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Note</label>
         <textarea id="me_note" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:70px;resize:vertical;">${entry.note||''}</textarea></div>
+      <div>
+        <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">XI Appearances <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
+        <input id="me_xi" type="text" value="${xiTags.replace(/"/g,'&quot;')}" placeholder="Argentina XI, Barcelona XI, South American XI" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;">
+        <p style="font-size:0.68rem;color:var(--gray-400);margin-top:0.3rem;font-family:var(--sans);">Type each XI this player appears in, separated by commas. e.g. "Argentina XI, Barcelona XI"</p>
+      </div>
     </div>
     <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
       <button onclick="document.getElementById('adminModal').remove()" style="padding:0.5rem 1.1rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;">Cancel</button>
@@ -1608,11 +1647,13 @@ function saveEntry(dataKey, tierIdx, ei) {
   const name   = document.getElementById('me_name').value.trim();
   const detail = document.getElementById('me_detail').value.trim();
   const note   = document.getElementById('me_note').value.trim();
+  const xiRaw  = document.getElementById('me_xi').value.trim();
+  const xi     = xiRaw ? xiRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
   if (!name) { alert('Name required.'); return; }
   const data = getRankingData(dataKey);
   if (!data.tiers[tierIdx]) data.tiers[tierIdx] = { name: '', entries: [] };
-  if (ei === -1) data.tiers[tierIdx].entries.push({ name, detail, note });
-  else data.tiers[tierIdx].entries[ei] = { name, detail, note };
+  if (ei === -1) data.tiers[tierIdx].entries.push({ name, detail, note, xi });
+  else data.tiers[tierIdx].entries[ei] = { name, detail, note, xi };
   setRankingData(dataKey, data);
   document.getElementById('adminModal').remove();
   const containerEl = findContainerForKey(dataKey);
@@ -1794,8 +1835,7 @@ function makeXIEditable(entityKey, container) {
       const val = prompt(`Bench ${i+1} — enter player name:`, current);
       if (val !== null) {
         nameSpan.textContent = val || '—';
-        nameSpan.style.color = val ? 'var(--black)' : '';
-        nameSpan.style.fontStyle = val ? 'normal' : '';
+        slot.classList.toggle('empty', !val);
         setData(storageKey, val);
       }
     };
@@ -1936,7 +1976,10 @@ function restoreXIData(entityKey, container) {
   benchSlots.forEach((slot, i) => {
     const nameSpan = slot.querySelector('.bench-name');
     const saved = getData(`xi_${entityKey}_bench_${i}`, '');
-    if (saved) { nameSpan.textContent = saved; nameSpan.style.color = 'var(--black)'; nameSpan.style.fontStyle = 'normal'; }
+    if (saved) {
+      nameSpan.textContent = saved;
+      slot.classList.remove('empty');
+    }
   });
 }
 
