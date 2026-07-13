@@ -48,7 +48,7 @@
   .nav-tab-band::-webkit-scrollbar { display: none; }
   .nav-tab { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.5); text-decoration: none; padding: 0 1rem; height: 40px; display: flex; align-items: center; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s, border-color 0.15s; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
   .nav-tab:hover { color: rgba(255,255,255,0.85); }
-  .nav-tab.active { color: #ffffff; border-bottom-color: #4caf50; }
+  .nav-tab.active { color: #ffffff; border-bottom-color: #f5d000; }
   .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); }
   .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--accent); border-radius: 2px; }
   .mobile-menu { display: none; position: fixed; top: 84px; left: 0; right: 0; background: #0f2518; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 99; padding: 0.5rem 0; flex-direction: column; max-height: calc(100vh - 84px); overflow-y: auto; }
@@ -74,7 +74,7 @@
   .card-wrap { background: var(--white); border-radius: 6px; border: 1px solid var(--gray-200); padding: 2rem 2rem; margin-bottom: 1.5rem; }
 
   /* SECTION HEADERS */
-  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--accent); }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 0.75rem; border-bottom: 2px solid #d4aa00; }
   .section-title { font-family: var(--serif); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; color: var(--accent); }
   .section-sub { font-size: 0.8rem; color: var(--gray-400); font-weight: 500; }
 
@@ -86,7 +86,7 @@
   .rankings-table td { padding: 1rem 1rem; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
   .rankings-table td:first-child { padding-left: 0; }
   .rankings-table tbody tr:hover { background: var(--gray-50); }
-  .rank-num { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+  .rank-num { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: #c8a800; }
   .player-name { font-family: var(--serif); font-size: 0.88rem; font-weight: 700; color: var(--black); display: block; margin-bottom: 0.1rem; }
   .player-detail { font-size: 0.72rem; color: var(--gray-400); }
   .player-note { font-size: 0.78rem; color: var(--gray-600); line-height: 1.4; font-style: italic; font-family: var(--serif); }
@@ -252,7 +252,7 @@
   /* RANKING LIST — clean */
   .ranking-row:last-child { border-bottom: none; }
   .ranking-row:hover { background: var(--gray-50); margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
-  .ranking-num { font-family: var(--serif); font-size: 0.82rem; font-weight: 700; color: var(--accent); min-width: 1.8rem; padding-top: 0.05rem; flex-shrink: 0; }
+  .ranking-num { font-family: var(--serif); font-size: 0.82rem; font-weight: 700; color: #c8a800; min-width: 1.8rem; padding-top: 0.05rem; flex-shrink: 0; }
   .ranking-body { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
   .ranking-name { font-family: var(--serif); font-size: 0.88rem; font-weight: 700; color: var(--black); line-height: 1.3; }
   .ranking-detail { font-family: var(--sans); font-size: 0.75rem; font-weight: 400; color: var(--gray-400); }
@@ -267,7 +267,7 @@
   /* TIER LABEL — subtle */
   .tier-label { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 0.25rem; margin-top: 0.75rem; border-bottom: 1px solid var(--gray-200); margin-bottom: 0.25rem; }
   .tier-label:first-child { margin-top: 0; }
-  .tier-label-name { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .tier-label-name { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #c8a800; }
   .tier-admin-btns { display: none; gap: 0.3rem; }
   .admin-active .tier-admin-btns { display: flex; }
 
@@ -903,25 +903,22 @@ const FINISH_ORDER = ["Winner","Final","3rd Place","4th Place","Semi-final","QF"
 
 // ---- NAVIGATION ----
 function showPage(id) {
-  try {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    const page = document.getElementById('page-' + id);
-    if (page) page.classList.add('active');
-    document.querySelectorAll('.nav-tab').forEach(t => {
-      const oc = t.getAttribute('onclick') || '';
-      if (oc.includes("'" + id + "'")) t.classList.add('active');
-    });
-    try { if (id === 'diary') renderDiary(); } catch(e) { console.warn(e); }
-    try { if (id === 'continental-xi') buildContinentalXIs(); } catch(e) { console.warn(e); }
-    try { if (id === 'scouting') renderScouting(); } catch(e) { console.warn(e); }
-    try { if (id === 'home') renderHomePostFeed(); } catch(e) { console.warn(e); }
-    try { if (id === 'positions') renderPositions(); } catch(e) { console.warn(e); }
-    try { if ((id === 'rankings' || id === 'managers') && !adminMode) renderAllRankingsPublic(); } catch(e) { console.warn(e); }
-    window.scrollTo(0,0);
-  } catch(e) {
-    console.error('showPage error:', e);
-  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    const oc = t.getAttribute('onclick') || '';
+    if (oc.includes("'" + id + "'")) t.classList.add('active');
+  });
+  if (id === 'diary') renderDiary();
+  if (id === 'continental-xi') buildContinentalXIs();
+  if (id === 'scouting') renderScouting();
+  if (id === 'home') renderHomePostFeed();
+  if (id === 'positions') renderPositions();
+  if (id === 'rankings') { renderAllRankings(); showRankingSection('overall'); }
+  if (id === 'managers') renderAllRankings();
+  window.scrollTo(0,0);
 }
 
 function toggleMobileMenu() {
@@ -1375,8 +1372,8 @@ function applyAdminToCurrentPage() {
   const active = document.querySelector('.page.active');
   if (!active) return;
   const id = active.id;
-  if (id === 'page-rankings') renderEditableRankings();
-  if (id === 'page-managers') renderEditableManagers();
+  if (id === 'page-rankings') { renderAllRankings(); showRankingSection('overall'); }
+  if (id === 'page-managers') renderAllRankings();
   if (id === 'page-scouting') renderScouting();
   if (id === 'page-diary') renderDiary();
   if (id === 'page-positions') renderPositions();
@@ -1387,25 +1384,290 @@ function removeAdminUI() {
   document.querySelectorAll('.admin-edit-btn, .admin-add-btn, .admin-toolbar').forEach(el => el.remove());
 }
 
+// ================================================================
+// RANKINGS — clean rebuild
+// ================================================================
+
+const RANK_SECTIONS = ['overall','gk','cb','fb','cm','am','w','f','mgr'];
+
+// Every list keyed as ranking_[sec]_[era] e.g. ranking_gk_century
+// Data format: { blurb:'', tiers:[{name:'', entries:[{name,detail,note,xi:[]}]}], honorable:{active:[],retired:[]} }
+
+function rankGet(key) {
+  const d = getData('ranking_' + key, null);
+  if (!d) return { blurb:'', tiers:[{name:'',entries:[]}], honorable:{active:[],retired:[]} };
+  if (Array.isArray(d)) return { blurb:'', tiers:[{name:'',entries:d}], honorable:{active:[],retired:[]} };
+  if (!d.tiers) d.tiers = [{name:'',entries:[]}];
+  if (!d.honorable) d.honorable = {active:[],retired:[]};
+  return d;
+}
+
+function rankSet(key, data) { setData('ranking_' + key, data); }
+
+// ---- SECTION SWITCHING ----
+function showRankingSection(sec) {
+  RANK_SECTIONS.forEach(s => {
+    const el = document.getElementById('rsec-' + s);
+    if (el) el.style.display = s === sec ? '' : 'none';
+  });
+  document.querySelectorAll('#rankings-primary-tabs .sub-tab').forEach(t => {
+    const oc = t.getAttribute('onclick') || '';
+    t.classList.toggle('active', oc.includes("'" + sec + "'"));
+  });
+  rankRender(sec);
+}
+
+// ---- RENDER A SECTION (both eras) ----
+function rankRender(sec) {
+  ['century','now'].forEach(era => {
+    const key = sec + '_' + era;
+    const el = document.getElementById(sec + '-' + era);
+    if (!el) return;
+
+    // Clear old content div only (keep section-header)
+    let content = el.querySelector('.rank-content');
+    if (!content) {
+      content = document.createElement('div');
+      content.className = 'rank-content';
+      el.appendChild(content);
+    }
+
+    const data = rankGet(key);
+    let html = '';
+
+    // Tier legend only on overall
+    if (sec === 'overall') {
+      const legend = getData('tier_legend','');
+      if (legend || adminMode) {
+        html += `<div class="tier-legend">
+          <div class="tier-legend-title">How to read the tiers ${adminMode ? '<span class="tier-legend-edit" onclick="editTierLegend()">Edit</span>' : ''}</div>
+          <div class="tier-legend-body">${legend || '<em style="color:var(--gray-300)">Click Edit to add a legend.</em>'}</div>
+        </div>`;
+      }
+    }
+
+    if (data.tiers.every(t => !t.entries.length)) {
+      html += adminMode
+        ? '<p style="color:var(--gray-400);font-style:italic;font-family:var(--serif);font-size:0.88rem;padding:0.5rem 0;">No entries yet.</p>'
+        : '<div class="empty-state"><p>Rankings coming soon.</p></div>';
+    } else {
+      let rank = 1;
+      data.tiers.forEach((tier, ti) => {
+        if (data.tiers.length > 1 || tier.name) {
+          html += `<div class="tier-label">
+            <span class="tier-label-name">${tier.name || 'Tier '+(ti+1)}</span>
+            ${adminMode ? `<span class="tier-admin-btns">
+              <button class="rk-btn" onclick="rankRenameTier('${key}',${ti})">Rename</button>
+              <button class="rk-btn rk-del" onclick="rankDeleteTier('${key}',${ti})">✕</button>
+            </span>` : ''}
+          </div>`;
+        }
+        (tier.entries || []).forEach((e, ei) => {
+          const badges = e.xi && e.xi.length
+            ? `<span class="xi-badges">${e.xi.map(x=>`<span class="xi-badge" onclick="navigateToXI('${x.replace(/'/g,"\'")}');event.stopPropagation();">${x}</span>`).join('')}</span>` : '';
+          const tierSel = adminMode && data.tiers.length > 1
+            ? `<select class="rk-tier-sel" onchange="rankMoveTier('${key}',${ti},${ei},parseInt(this.value))">${data.tiers.map((t,ti2)=>`<option value="${ti2}" ${ti2===ti?'selected':''}>${t.name||'Tier '+(ti2+1)}</option>`).join('')}</select>` : '';
+          html += `<div class="ranking-row">
+            <span class="ranking-num">${rank++}</span>
+            <span class="ranking-body">
+              <span class="ranking-name">${e.name||''}${e.detail?`<span class="ranking-detail"> — ${e.detail}</span>`:''}${badges}</span>
+              ${e.note?`<span class="ranking-note">${e.note}</span>`:''}
+            </span>
+            ${adminMode ? `<span class="ranking-controls">
+              <button class="rk-btn" onclick="rankMove('${key}',${ti},${ei},-1)">↑</button>
+              <button class="rk-btn" onclick="rankMove('${key}',${ti},${ei},1)">↓</button>
+              <button class="rk-btn" onclick="rankEdit('${key}',${ti},${ei})">Edit</button>
+              <button class="rk-btn rk-del" onclick="rankDelete('${key}',${ti},${ei})">✕</button>
+              ${tierSel}
+            </span>` : ''}
+          </div>`;
+        });
+      });
+    }
+
+    // Honorable mentions
+    const hm = data.honorable;
+    if (hm.active.length || hm.retired.length || adminMode) {
+      html += `<div class="hm-section"><div class="hm-title">Honorable Mentions</div>`;
+      if (hm.active.length || adminMode) {
+        html += `<div class="hm-title" style="font-size:0.62rem;color:var(--accent);margin-bottom:0.4rem;">Still playing</div><div class="hm-grid">
+          ${hm.active.map((n,i)=>`<div class="hm-item still-playing"><span style="flex:1">${n}</span>${adminMode?`<button class="rk-btn" onclick="rankRemoveHM('${key}','active',${i})">✕</button>`:''}</div>`).join('')}
+          ${adminMode?`<button class="admin-add-btn" style="font-size:0.72rem;padding:0.3rem 0.6rem;margin-top:0;" onclick="rankAddHM('${key}','active')">+ Add</button>`:''}
+        </div>`;
+      }
+      if (hm.retired.length || adminMode) {
+        html += `<div class="hm-title" style="font-size:0.62rem;color:var(--gray-600);margin-top:0.75rem;margin-bottom:0.4rem;">No longer playing</div><div class="hm-grid">
+          ${hm.retired.map((n,i)=>`<div class="hm-item"><span style="flex:1">${n}</span>${adminMode?`<button class="rk-btn" onclick="rankRemoveHM('${key}','retired',${i})">✕</button>`:''}</div>`).join('')}
+          ${adminMode?`<button class="admin-add-btn" style="font-size:0.72rem;padding:0.3rem 0.6rem;margin-top:0;" onclick="rankAddHM('${key}','retired')">+ Add</button>`:''}
+        </div>`;
+      }
+      html += `</div>`;
+    }
+
+    if (adminMode) {
+      html += `<div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;">
+        <button class="admin-add-btn" style="margin-top:0;" onclick="rankAddEntry('${key}')">+ Add player</button>
+        <button class="admin-add-btn" style="margin-top:0;" onclick="rankAddTier('${key}')">+ Add tier</button>
+      </div>`;
+    }
+
+    content.innerHTML = html;
+  });
+}
+
+// Render all sections (for public page load)
+function renderAllRankings() {
+  RANK_SECTIONS.forEach(sec => {
+    ['century','now'].forEach(era => {
+      const key = sec + '_' + era;
+      const el = document.getElementById(sec + '-' + era);
+      if (!el) return;
+      let content = el.querySelector('.rank-content');
+      if (!content) { content = document.createElement('div'); content.className = 'rank-content'; el.appendChild(content); }
+      const data = rankGet(key);
+      if (data.tiers.some(t => t.entries.length > 0)) rankRender(sec);
+    });
+  });
+  // Also render standalone managers page
+  ['century','current'].forEach(tab => {
+    const el = document.getElementById('managers-' + tab);
+    if (!el) return;
+    const key = 'mgr_' + tab;
+    let content = el.querySelector('.rank-content');
+    if (!content) { content = document.createElement('div'); content.className = 'rank-content'; el.appendChild(content); }
+    const data = rankGet(key);
+    if (data.tiers.some(t => t.entries.length > 0)) {
+      let html = '';
+      let rank = 1;
+      data.tiers.forEach((tier, ti) => {
+        (tier.entries||[]).forEach((e,ei) => {
+          html += `<div class="ranking-row"><span class="ranking-num">${rank++}</span><span class="ranking-body"><span class="ranking-name">${e.name||''}</span>${e.note?`<span class="ranking-note">${e.note}</span>`:''}</span></div>`;
+        });
+      });
+      content.innerHTML = html;
+    }
+  });
+}
+
+// ---- CRUD ----
+function rankAddEntry(key) {
+  const data = rankGet(key);
+  const lastTier = data.tiers.length - 1;
+  rankShowModal(key, lastTier, -1, {});
+}
+function rankEdit(key, ti, ei) { rankShowModal(key, ti, ei, rankGet(key).tiers[ti].entries[ei] || {}); }
+function rankDelete(key, ti, ei) {
+  if (!confirm('Remove?')) return;
+  const d = rankGet(key); d.tiers[ti].entries.splice(ei,1); rankSet(key,d);
+  rankRender(key.split('_')[0]);
+}
+function rankMove(key, ti, ei, dir) {
+  const d = rankGet(key), entries = d.tiers[ti].entries, ni = ei+dir;
+  if (ni<0||ni>=entries.length) return;
+  [entries[ei],entries[ni]]=[entries[ni],entries[ei]];
+  rankSet(key,d); rankRender(key.split('_')[0]);
+}
+function rankMoveTier(key, fromTi, ei, toTi) {
+  if (fromTi===toTi) return;
+  const d = rankGet(key);
+  const e = d.tiers[fromTi].entries.splice(ei,1)[0];
+  d.tiers[toTi].entries.push(e);
+  rankSet(key,d); rankRender(key.split('_')[0]);
+}
+function rankAddTier(key) {
+  const name = prompt('Tier name (optional):');
+  if (name===null) return;
+  const d = rankGet(key); d.tiers.push({name:name.trim(),entries:[]}); rankSet(key,d);
+  rankRender(key.split('_')[0]);
+}
+function rankRenameTier(key, ti) {
+  const d = rankGet(key);
+  const name = prompt('Tier name:', d.tiers[ti].name||'');
+  if (name===null) return;
+  d.tiers[ti].name = name.trim(); rankSet(key,d);
+  rankRender(key.split('_')[0]);
+}
+function rankDeleteTier(key, ti) {
+  if (!confirm('Delete tier and all its entries?')) return;
+  const d = rankGet(key); d.tiers.splice(ti,1); rankSet(key,d);
+  rankRender(key.split('_')[0]);
+}
+function rankAddHM(key, type) {
+  const name = prompt('Player name:');
+  if (!name||!name.trim()) return;
+  const d = rankGet(key); d.honorable[type].push(name.trim()); rankSet(key,d);
+  rankRender(key.split('_')[0]);
+}
+function rankRemoveHM(key, type, idx) {
+  const d = rankGet(key); d.honorable[type].splice(idx,1); rankSet(key,d);
+  rankRender(key.split('_')[0]);
+}
+
+// ---- ENTRY MODAL ----
+function rankShowModal(key, ti, ei, entry) {
+  const ex = document.getElementById('adminModal'); if(ex) ex.remove();
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  const xiVal = (entry.xi||[]).join(', ');
+  modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:500px;font-family:var(--sans);margin:auto;">
+    <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${ei===-1?'Add':'Edit'} entry</h3>
+    <div style="display:flex;flex-direction:column;gap:0.9rem;">
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">Name</label>
+          <button onclick="lookupTrophies()" style="font-size:0.65rem;font-weight:600;padding:2px 8px;border:1px solid var(--accent);border-radius:2px;background:transparent;color:var(--accent);cursor:pointer;font-family:var(--sans);">🏆 Look up trophies</button>
+        </div>
+        <input id="me_name" type="text" value="${(entry.name||'').replace(/"/g,'&quot;')}" placeholder="Messi (ARG) — FW" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+      </div>
+      <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Club / Era</label>
+        <input id="me_detail" type="text" value="${(entry.detail||'').replace(/"/g,'&quot;')}" placeholder="Barcelona · 2004–present" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;"></div>
+      <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Note</label>
+        <textarea id="me_note" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:70px;resize:vertical;">${entry.note||''}</textarea></div>
+      <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">XI Appearances <span style="font-weight:400;text-transform:none;">(comma-separated)</span></label>
+        <input id="me_xi" type="text" value="${xiVal.replace(/"/g,'&quot;')}" placeholder="Argentina XI, Barcelona XI" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;"></div>
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
+      <button onclick="document.getElementById('adminModal').remove()" style="padding:0.5rem 1.1rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;">Cancel</button>
+      <button onclick="rankSaveEntry('${key}',${ti},${ei})" style="padding:0.5rem 1.1rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;font-weight:600;">Save</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('me_name').focus();
+}
+
+function rankSaveEntry(key, ti, ei) {
+  const name   = document.getElementById('me_name').value.trim();
+  const detail = document.getElementById('me_detail').value.trim();
+  const note   = document.getElementById('me_note').value.trim();
+  const xiRaw  = document.getElementById('me_xi').value.trim();
+  const xi     = xiRaw ? xiRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  if (!name) { alert('Name required.'); return; }
+  const d = rankGet(key);
+  if (!d.tiers[ti]) d.tiers[ti] = {name:'',entries:[]};
+  const entry = {name,detail,note,xi};
+  if (ei===-1) d.tiers[ti].entries.push(entry);
+  else d.tiers[ti].entries[ei] = entry;
+  rankSet(key, d);
+  document.getElementById('adminModal').remove();
+  rankRender(key.split('_')[0]);
+}
+
 // ---- TIER LEGEND ----
 function renderTierLegend() {
   const body = document.getElementById('tier-legend-body');
-  const editBtn = document.getElementById('tier-legend-edit-btn');
-  if (!body) return;
-  body.textContent = getData('tier_legend', '');
-  if (editBtn) editBtn.style.display = adminMode ? 'inline-block' : 'none';
+  const btn = document.getElementById('tier-legend-edit-btn');
+  if (body) body.textContent = getData('tier_legend','');
+  if (btn) btn.style.display = adminMode ? 'inline-block' : 'none';
 }
-
 function editTierLegend() {
-  const existing = document.getElementById('adminModal');
-  if (existing) existing.remove();
-  const saved = getData('tier_legend', '');
+  const ex = document.getElementById('adminModal'); if(ex) ex.remove();
+  const saved = getData('tier_legend','');
   const modal = document.createElement('div');
   modal.id = 'adminModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
   modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:520px;font-family:var(--sans);">
-    <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--accent);">Tier Legend</h3>
-    <p style="font-size:0.78rem;color:var(--gray-400);margin-bottom:1rem;">Explain what each tier represents. Shown at the top of the Overall rankings.</p>
+    <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:1rem;color:var(--accent);">Tier Legend</h3>
     <textarea id="legend-input" style="width:100%;padding:0.75rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:160px;resize:vertical;line-height:1.7;">${saved}</textarea>
     <div style="display:flex;gap:0.75rem;margin-top:1.25rem;justify-content:flex-end;">
       <button onclick="document.getElementById('adminModal').remove()" style="padding:0.5rem 1.1rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;">Cancel</button>
@@ -1413,681 +1675,43 @@ function editTierLegend() {
     </div>
   </div>`;
   document.body.appendChild(modal);
-  document.getElementById('legend-input').focus();
 }
-
 function saveTierLegend() {
   setData('tier_legend', document.getElementById('legend-input').value);
   document.getElementById('adminModal').remove();
-  renderTierLegend();
+  rankRender('overall');
 }
 
-// ---- RANKINGS EDITOR ----
-const RANKING_TABS = [
-  { key: 'overall_century', label: 'Best of the Century', posOnly: false },
-  { key: 'overall_now',     label: 'Best Right Now',      posOnly: false },
-  { key: 'gk_century',     label: 'GKs — 21st Century',  posOnly: true  },
-  { key: 'gk_now',         label: 'GKs — Right Now',     posOnly: true  },
-  { key: 'cb_century',     label: 'CBs — 21st Century',  posOnly: true  },
-  { key: 'cb_now',         label: 'CBs — Right Now',     posOnly: true  },
-  { key: 'fb_century',     label: 'FBs — 21st Century',  posOnly: true  },
-  { key: 'fb_now',         label: 'FBs — Right Now',     posOnly: true  },
-  { key: 'cm_century',     label: 'CMs — 21st Century',  posOnly: true  },
-  { key: 'cm_now',         label: 'CMs — Right Now',     posOnly: true  },
-  { key: 'am_century',     label: 'AM/10s — 21st C.',    posOnly: true  },
-  { key: 'am_now',         label: 'AM/10s — Right Now',  posOnly: true  },
-  { key: 'w_century',      label: 'Wingers — 21st C.',   posOnly: true  },
-  { key: 'w_now',          label: 'Wingers — Right Now', posOnly: true  },
-  { key: 'f_century',      label: 'Forwards — 21st C.',  posOnly: true  },
-  { key: 'f_now',          label: 'Forwards — Right Now',posOnly: true  },
-  { key: 'mgr_century',    label: 'Managers — 21st C.',  posOnly: false },
-  { key: 'mgr_now',        label: 'Managers — Right Now',posOnly: false },
-];
+// ---- ADMIN RENDER ----
+function renderEditableRankings() { rankRender('overall'); }
+function renderEditableManagers() { rankRender('mgr'); }
 
-// ---- DATA STRUCTURE for a ranking list ----
-// { blurb: '', tiers: [ { name: 'Tier 1', entries: [{name,detail,note}] } ], honorable: { retired:[], active:[] } }
-
-function getRankingData(dataKey) {
-  const d = getData(dataKey, null);
-  if (!d) return { blurb: '', tiers: [], honorable: { retired: [], active: [] } };
-  // Migrate old flat array format
-  if (Array.isArray(d)) return { blurb: '', tiers: [{ name: '', entries: d }], honorable: { retired: [], active: [] } };
-  return d;
-}
-
-function setRankingData(dataKey, data) { setData(dataKey, data); }
-
-// ---- SHOW RANKING SECTION ----
-function showRankingSection(sec) {
-  ['overall','gk','cb','fb','cm','am','w','f','mgr'].forEach(s => {
-    const el = document.getElementById('rsec-' + s);
-    if (el) el.style.display = 'none';
-  });
-  const target = document.getElementById('rsec-' + sec);
-  if (target) target.style.display = '';
-  document.querySelectorAll('#rankings-primary-tabs .sub-tab').forEach(t => {
-    t.classList.toggle('active', t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + sec + "'"));
-  });
-  // Render only exact-match tabs (fix: 'f' was matching 'fb')
-  RANKING_TABS.filter(tab => {
-    const prefix = tab.key.split('_')[0];
-    return prefix === sec;
-  }).forEach(tab => {
-    try {
-      const id = tab.key.replace(/_/g, '-');
-      const container = document.getElementById(id);
-      if (container) renderRankingList(container, 'ranking_' + tab.key, tab.posOnly);
-    } catch(e) { console.warn('renderRankingList error:', e); }
-  });
-  if (adminMode) setTimeout(() => renderEditableRankings(), 50);
-}
-
-function renderAllRankingsPublic() {
-  if (adminMode) return;
-  RANKING_TABS.forEach(tab => {
-    try {
-      const id = tab.key.replace(/_/g, '-');
-      const container = document.getElementById(id);
-      if (container) renderRankingList(container, 'ranking_' + tab.key, tab.posOnly);
-    } catch(e) { console.warn('renderAllRankingsPublic error on', tab.key, e); }
-  });
-  ['century','current'].forEach(tab => {
-    try {
-      const container = document.getElementById('managers-' + tab);
-      if (container) renderRankingList(container, 'manager_' + tab, false);
-    } catch(e) { console.warn('renderAllRankingsPublic managers error', e); }
-  });
-}
-
-// ---- RENDER RANKING LIST (public + admin) ----
-function renderRankingList(containerEl, dataKey, posOnly) {
-  if (!containerEl) return;
-  const data = getRankingData(dataKey);
-
-  // Blurb — only show on overall/mgr lists
-  const isOverall = dataKey.includes('overall') || dataKey.includes('mgr');
-  let blurbEl = containerEl.querySelector('.ranking-blurb');
-  if (!isOverall) {
-    if (blurbEl) blurbEl.remove();
-    blurbEl = null;
-  } else {
-    if (!blurbEl) {
-      blurbEl = document.createElement('div');
-      blurbEl.className = 'ranking-blurb';
-      const table = containerEl.querySelector('table') || containerEl.querySelector('.ranking-content');
-      containerEl.insertBefore(blurbEl, table);
-    }
-    blurbEl.textContent = data.blurb || '';
-    if (adminMode) {
-      blurbEl.style.cursor = 'text';
-      if (!data.blurb) blurbEl.textContent = '';
-      blurbEl.contentEditable = 'true';
-      blurbEl.style.minHeight = '2rem';
-      blurbEl.oninput = () => {
-        const d2 = getRankingData(dataKey);
-        d2.blurb = blurbEl.textContent.trim();
-        setRankingData(dataKey, d2);
-      };
-    } else {
-      blurbEl.contentEditable = 'false';
-      blurbEl.style.display = data.blurb ? '' : 'none';
-    }
-  }
-
-  // Tiers + entries
-  let content = containerEl.querySelector('.ranking-content');
-  if (!content) {
-    content = document.createElement('div');
-    content.className = 'ranking-content';
-    const table = containerEl.querySelector('table');
-    if (table) table.replaceWith(content);
-    else containerEl.appendChild(content);
-  }
-
-  let globalRank = 1;
-  let html = '';
-
-  if (data.tiers.length === 0) {
-    html = adminMode
-      ? '<p style="font-size:0.85rem;color:var(--gray-400);font-style:italic;font-family:var(--serif);">No entries yet. Use the buttons below to add players or tiers.</p>'
-      : '<div class="empty-state"><p>Rankings coming soon.</p></div>';
-  } else {
-    data.tiers.forEach((tier, ti) => {
-      // Subtle tier label
-      if (data.tiers.length > 1 || tier.name) {
-        html += `<div class="tier-label" data-tier="${ti}">
-          <span class="tier-label-name">${tier.name || 'Tier ' + (ti+1)}</span>
-          ${adminMode ? `<span class="tier-admin-btns">
-            <button class="admin-edit-btn" style="font-size:0.58rem;padding:1px 5px;" onclick="renameTier('${dataKey}',${ti})">Rename</button>
-            <button class="admin-edit-btn" style="font-size:0.58rem;padding:1px 5px;background:#c0392b;" onclick="deleteTier('${dataKey}',${ti})">✕</button>
-          </span>` : ''}
-        </div>`;
-      }
-
-      (tier.entries || []).forEach((e, ei) => {
-        const rank = globalRank++;
-        const tierOptions = adminMode ? data.tiers.map((t, ti2) =>
-          `<option value="${ti2}" ${ti2 === ti ? 'selected' : ''}>${t.name || 'Tier ' + (ti2+1)}</option>`
-        ).join('') : '';
-        html += `<div class="ranking-row" data-tier="${ti}" data-ei="${ei}">
-          <span class="ranking-num">${rank}</span>
-          <span class="ranking-body">
-            <span class="ranking-name">${e.name || ''}${e.detail ? `<span class="ranking-detail"> — ${e.detail}</span>` : ''}${e.xi && e.xi.length ? `<span class="xi-badges">${e.xi.map(x=>`<span class="xi-badge" onclick="navigateToXI('${x.replace(/'/g,"\\'")}');event.stopPropagation();">${x}</span>`).join('')}</span>` : ''}</span>
-            ${e.note ? `<span class="ranking-note">${e.note}</span>` : ''}
-          </span>
-          ${adminMode ? `<span class="ranking-controls">
-            <button class="rk-btn" title="Up" onclick="moveEntry('${dataKey}',${ti},${ei},-1)">↑</button>
-            <button class="rk-btn" title="Down" onclick="moveEntry('${dataKey}',${ti},${ei},1)">↓</button>
-            <button class="rk-btn" onclick="editEntry('${dataKey}',${ti},${ei})">Edit</button>
-            <button class="rk-btn rk-del" onclick="deleteEntry('${dataKey}',${ti},${ei})">✕</button>
-            ${data.tiers.length > 1 ? `<select class="rk-tier-sel" onchange="moveTierEntry('${dataKey}',${ti},${ei},parseInt(this.value))">${tierOptions}</select>` : ''}
-          </span>` : ''}
-        </div>`;
-      });
-    });
-  }
-
-  // Honorable mentions
-  const hm = data.honorable || { retired: [], active: [] };
-  if (hm.retired.length || hm.active.length || adminMode) {
-    html += `<div class="hm-section">
-      <div class="hm-title">Honorable Mentions</div>`;
-
-    if (hm.active.length || adminMode) {
-      html += `<div class="hm-title" style="font-size:0.62rem;color:var(--accent);margin-bottom:0.4rem;">Still playing</div>
-        <div class="hm-grid">
-          ${hm.active.map((n,i) => `<div class="hm-item still-playing">
-            <span style="flex:1">${n}</span>
-            ${adminMode ? `<button class="admin-edit-btn" style="font-size:0.6rem;padding:1px 4px;display:inline;" onclick="removeHM('${dataKey}','active',${i})">✕</button>` : ''}
-          </div>`).join('')}
-          ${adminMode ? `<button class="admin-add-btn" style="font-size:0.72rem;padding:0.3rem 0.6rem;margin-top:0;" onclick="addHM('${dataKey}','active')">+ Add</button>` : ''}
-        </div>`;
-    }
-
-    if (hm.retired.length || adminMode) {
-      html += `<div class="hm-title" style="font-size:0.62rem;color:var(--gray-600);margin-top:0.75rem;margin-bottom:0.4rem;">No longer playing</div>
-        <div class="hm-grid">
-          ${hm.retired.map((n,i) => `<div class="hm-item">
-            <span style="flex:1">${n}</span>
-            ${adminMode ? `<button class="admin-edit-btn" style="font-size:0.6rem;padding:1px 4px;display:inline;" onclick="removeHM('${dataKey}','retired',${i})">✕</button>` : ''}
-          </div>`).join('')}
-          ${adminMode ? `<button class="admin-add-btn" style="font-size:0.72rem;padding:0.3rem 0.6rem;margin-top:0;" onclick="addHM('${dataKey}','retired')">+ Add</button>` : ''}
-        </div>`;
-    }
-    html += `</div>`;
-  }
-
-  content.innerHTML = html;
-}
-
-// ================================================================
-// SEARCH SYSTEM
-// ================================================================
-
-function toggleSearch() {
-  const overlay = document.getElementById('searchOverlay');
-  const input = document.getElementById('searchInput');
-  const isOpen = overlay.style.display !== 'none';
-  overlay.style.display = isOpen ? 'none' : '';
-  if (!isOpen) { input.value = ''; document.getElementById('searchResults').innerHTML = ''; input.focus(); }
-}
-
-function highlight(text, query) {
-  if (!query) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
-}
-
-function runSearch(query) {
-  const q = query.trim().toLowerCase();
-  const resultsEl = document.getElementById('searchResults');
-  if (q.length < 2) { resultsEl.innerHTML = ''; return; }
-
-  const groups = [];
-
-  // 1. RANKINGS
-  const rankingHits = [];
-  RANKING_TABS.forEach(tab => {
-    const data = getRankingData('ranking_' + tab.key);
-    data.tiers.forEach(tier => {
-      (tier.entries || []).forEach(e => {
-        const haystack = [e.name, e.detail, e.note, ...(e.xi||[])].join(' ').toLowerCase();
-        if (haystack.includes(q)) {
-          rankingHits.push({
-            name: e.name,
-            meta: tab.label + (e.detail ? ' · ' + e.detail : ''),
-            action: () => {
-              const sec = tab.key.split('_')[0];
-              showPage('rankings');
-              setTimeout(() => showRankingSection(sec), 50);
-              toggleSearch();
-            }
-          });
-        }
-      });
-    });
-    // honorable mentions
-    const hm = data.honorable || { retired:[], active:[] };
-    [...hm.retired, ...hm.active].forEach(name => {
-      if (name.toLowerCase().includes(q)) {
-        rankingHits.push({
-          name,
-          meta: tab.label + ' — Honorable mention',
-          action: () => { showPage('rankings'); toggleSearch(); }
-        });
-      }
-    });
-  });
-  if (rankingHits.length) groups.push({ title: 'Rankings', hits: rankingHits });
-
-  // 2. SCOUTING
-  const scoutHits = [];
-  SCOUTING_POSITIONS.forEach(pos => {
-    (getData('scout_' + pos, []) || []).forEach(p => {
-      const haystack = [p.name, p.club, p.nationality, p.note].join(' ').toLowerCase();
-      if (haystack.includes(q)) {
-        scoutHits.push({
-          name: p.name,
-          meta: 'Scouting · ' + pos + (p.club ? ' · ' + p.club : ''),
-          action: () => { showPage('scouting'); toggleSearch(); }
-        });
-      }
-    });
-  });
-  if (scoutHits.length) groups.push({ title: 'Scouting', hits: scoutHits });
-
-  // 3. BLOG POSTS
-  const postHits = [];
-  (getData('blog_posts', []) || []).forEach(post => {
-    const haystack = [post.title, post.body, post.category].join(' ').toLowerCase();
-    if (haystack.includes(q)) {
-      postHits.push({
-        name: post.title || 'Untitled post',
-        meta: 'Post' + (post.category ? ' · ' + post.category : '') + (post.date ? ' · ' + post.date : ''),
-        action: () => { showPage('home'); toggleSearch(); }
-      });
-    }
-  });
-  if (postHits.length) groups.push({ title: 'Blog Posts', hits: postHits });
-
-  // 4. MATCHDAY DIARY
-  const diaryHits = [];
-  (getData('diary_entries', []) || []).forEach(entry => {
-    const haystack = [entry.title, entry.body, entry.fixture, entry.competition].join(' ').toLowerCase();
-    if (haystack.includes(q)) {
-      diaryHits.push({
-        name: entry.title || entry.fixture || 'Diary entry',
-        meta: 'Matchday Diary' + (entry.fixture ? ' · ' + entry.fixture : '') + (entry.date ? ' · ' + entry.date : ''),
-        action: () => { showPage('diary'); toggleSearch(); }
-      });
-    }
-  });
-  if (diaryHits.length) groups.push({ title: 'Matchday Diary', hits: diaryHits });
-
-  // 5. XI SLOTS — country, club, continental
-  const xiHits = [];
-  const allSiteData = getData('halfspace_data', {}) || {};
-  // Scan all localStorage keys for xi_ entries
-  Object.keys(siteData).forEach(key => {
-    if (!key.startsWith('xi_')) return;
-    const val = siteData[key];
-    if (typeof val !== 'string' || !val.toLowerCase().includes(q)) return;
-    // Parse key: xi_country_Argentina_GK_0 or xi_club_Barcelona_GK_0
-    const parts = key.split('_');
-    const type = parts[1]; // country or club
-    const isBench = key.includes('_bench_');
-    const entityParts = parts.slice(2, isBench ? -2 : -2);
-    const entity = entityParts.join(' ');
-    const label = isBench ? 'Bench' : parts[parts.length - 2] || '';
-    xiHits.push({
-      name: val,
-      meta: (type === 'country' ? 'Country XI' : type === 'club' ? 'Club XI' : 'XI') + ' · ' + entity.replace(/_/g,' ') + (label ? ' · ' + label : ''),
-      action: () => {
-        if (type === 'country') {
-          showPage('country-xi');
-          setTimeout(() => showCountryDetail(entity.replace(/_/g,' ')), 80);
-        } else if (type === 'club') {
-          showPage('club-xi');
-          setTimeout(() => showClubDetail(entity.replace(/_/g,' ')), 80);
-        } else {
-          showPage('continental-xi');
-        }
-        toggleSearch();
-      }
-    });
-  });
-  if (xiHits.length) groups.push({ title: '21st Century XIs', hits: xiHits });
-
-  // 6. POSITIONS
-  const posHits = [];
-  getPositions().forEach(pos => {
-    const haystack = [pos.abbr, pos.title, pos.body, ...(pos.subtypes||[]).map(s=>s.name+' '+s.body)].join(' ').toLowerCase();
-    if (haystack.includes(q)) {
-      posHits.push({
-        name: pos.title,
-        meta: 'Position · ' + pos.abbr,
-        action: () => { showPage('positions'); toggleSearch(); }
-      });
-    }
-  });
-  if (posHits.length) groups.push({ title: 'Positions', hits: posHits });
-
-  // Render
-  if (groups.length === 0) {
-    resultsEl.innerHTML = `<div class="search-empty">No results for "<strong>${query}</strong>"</div>`;
-    return;
-  }
-
-  resultsEl.innerHTML = groups.map(g => `
-    <div class="search-group">
-      <div class="search-group-title">${g.title}</div>
-      ${g.hits.slice(0, 8).map((h, i) => `
-        <div class="search-result" data-group="${g.title}" data-idx="${i}">
-          <span class="search-result-name">${highlight(h.name, query)}</span>
-          <span class="search-result-meta">${h.meta}</span>
-        </div>`).join('')}
-    </div>`).join('');
-
-  // Wire up click actions
-  let flatIdx = 0;
-  groups.forEach(g => {
-    g.hits.slice(0, 8).forEach((h, i) => {
-      const el = resultsEl.querySelector(`[data-group="${g.title}"][data-idx="${i}"]`);
-      if (el) el.addEventListener('click', h.action);
-    });
-  });
-}
-
-// Close search on outside click
-document.addEventListener('click', e => {
-  const overlay = document.getElementById('searchOverlay');
-  if (!overlay || overlay.style.display === 'none') return;
-  if (!overlay.contains(e.target) && !e.target.closest('.search-icon-btn')) toggleSearch();
-});
-
-// ================================================================
-// XI BADGE NAVIGATION
-// ================================================================
-function navigateToXI(tag) {
-  // Normalise: lowercase, strip "XI", trim
-  const t = tag.toLowerCase().replace(/\bxi\b/g,'').replace(/21st century/g,'').trim();
-
-  // Check country list
-  const country = COUNTRIES.find(c => c.name.toLowerCase() === t || t.includes(c.name.toLowerCase()));
-  if (country) {
-    showPage('country-xi');
-    setTimeout(() => showCountryDetail(country.name), 50);
-    return;
-  }
-
-  // Check club list
-  const club = CLUBS.find(c => c.name.toLowerCase() === t || t.includes(c.name.toLowerCase()));
-  if (club) {
-    showPage('club-xi');
-    setTimeout(() => showClubDetail(club.name), 50);
-    return;
-  }
-
-  // Check continental
-  const continentMap = {
-    'european': 'europe', 'europe': 'europe',
-    'south american': 'southamerica', 'south america': 'southamerica',
-    'north american': 'northamerica', 'north america': 'northamerica',
-    'asian': 'asia', 'asia': 'asia',
-    'african': 'africa', 'africa': 'africa',
-  };
-  for (const [key, val] of Object.entries(continentMap)) {
-    if (t.includes(key)) {
-      showPage('continental-xi');
-      setTimeout(() => showSubTab('continental', val), 50);
-      return;
-    }
-  }
-
-  // Fallback — just go to country XI tab
-  showPage('country-xi');
-}
-
-function moveEntry(dataKey, ti, ei, direction) {
-  const data = getRankingData(dataKey);
-  const entries = data.tiers[ti].entries;
-  const newIdx = ei + direction;
-  if (newIdx < 0 || newIdx >= entries.length) return;
-  const temp = entries[ei];
-  entries[ei] = entries[newIdx];
-  entries[newIdx] = temp;
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-
-// ---- MOVE ENTRY TO DIFFERENT TIER ----
-function moveTierEntry(dataKey, fromTi, ei, toTi) {
-  if (fromTi === toTi) return;
-  const data = getRankingData(dataKey);
-  const entry = data.tiers[fromTi].entries.splice(ei, 1)[0];
-  if (!data.tiers[toTi]) return;
-  data.tiers[toTi].entries.push(entry);
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-
-// ---- ENTRY CRUD ----
-function addEntry(dataKey, tierIdx) {
-  const data = getRankingData(dataKey);
-  const lastTier = Math.max(0, data.tiers.length - 1);
-  showEntryModal(dataKey, lastTier, -1, {});
-}
-function editEntry(dataKey, tierIdx, ei) {
-  const data = getRankingData(dataKey);
-  showEntryModal(dataKey, tierIdx, ei, (data.tiers[tierIdx].entries || [])[ei] || {});
-}
-function deleteEntry(dataKey, tierIdx, ei) {
-  if (!confirm('Remove this entry?')) return;
-  const data = getRankingData(dataKey);
-  data.tiers[tierIdx].entries.splice(ei, 1);
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-
-function showEntryModal(dataKey, tierIdx, ei, entry) {
-  const existing = document.getElementById('adminModal');
-  if (existing) existing.remove();
-  const modal = document.createElement('div');
-  modal.id = 'adminModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
-  const xiTags = (entry.xi || []).join(', ');
-  modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:500px;font-family:var(--sans);margin:auto;">
-    <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${ei === -1 ? 'Add' : 'Edit'} entry</h3>
-    <div style="display:flex;flex-direction:column;gap:0.9rem;">
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
-          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">Name (Country) — Position</label>
-          <button onclick="lookupTrophies()" style="font-size:0.65rem;font-weight:600;padding:2px 8px;border:1px solid var(--accent);border-radius:2px;background:transparent;color:var(--accent);cursor:pointer;font-family:var(--sans);">🏆 Look up trophies</button>
-        </div>
-        <input id="me_name" type="text" value="${(entry.name||'').replace(/"/g,'&quot;')}" placeholder="Messi (ARG) — FW" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
-      </div>
-      <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Club / Era (optional)</label>
-        <input id="me_detail" type="text" value="${(entry.detail||'').replace(/"/g,'&quot;')}" placeholder="Barcelona · 2004–present" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;"></div>
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
-          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">Note</label>
-        </div>
-        <textarea id="me_note" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.88rem;font-family:var(--serif);outline:none;min-height:70px;resize:vertical;">${entry.note||''}</textarea>
-      </div>
-      <div>
-        <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">XI Appearances <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
-        <input id="me_xi" type="text" value="${xiTags.replace(/"/g,'&quot;')}" placeholder="Argentina XI, Barcelona XI, South American XI" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;font-family:var(--sans);outline:none;">
-        <p style="font-size:0.68rem;color:var(--gray-400);margin-top:0.3rem;font-family:var(--sans);">Type each XI this player appears in, separated by commas.</p>
-      </div>
-    </div>
-    <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
-      <button onclick="document.getElementById('adminModal').remove()" style="padding:0.5rem 1.1rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;">Cancel</button>
-      <button onclick="saveEntry('${dataKey}',${tierIdx},${ei})" style="padding:0.5rem 1.1rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.82rem;font-weight:600;">Save</button>
-    </div>
-  </div>`;
-  document.body.appendChild(modal);
-  document.getElementById('me_name').focus();
-}
+// Legacy stubs so nothing breaks
+function getRankingData(k) { return rankGet(k.replace('ranking_','')); }
+function setRankingData(k, d) { rankSet(k.replace('ranking_',''), d); }
+function addEntry(k) { rankAddEntry(k.replace('ranking_','')); }
+function editEntry(k,ti,ei) { rankEdit(k.replace('ranking_',''),ti,ei); }
+function deleteEntry(k,ti,ei) { rankDelete(k.replace('ranking_',''),ti,ei); }
+function saveEntry(k,ti,ei) { rankSaveEntry(k.replace('ranking_',''),ti,ei); }
+function addTier(k) { rankAddTier(k.replace('ranking_','')); }
+function renameTier(k,ti) { rankRenameTier(k.replace('ranking_',''),ti); }
+function deleteTier(k,ti) { rankDeleteTier(k.replace('ranking_',''),ti); }
+function moveEntry(k,ti,ei,d) { rankMove(k.replace('ranking_',''),ti,ei,d); }
+function moveTierEntry(k,f,ei,t) { rankMoveTier(k.replace('ranking_',''),f,ei,t); }
+function addHM(k,t) { rankAddHM(k.replace('ranking_',''),t); }
+function removeHM(k,t,i) { rankRemoveHM(k.replace('ranking_',''),t,i); }
+function findContainerForKey() { return null; }
+function renderRankingList() {}
+function renderAllRankingsPublic() { renderAllRankings(); }
+function addRankingAdminButtons() {}
+function showEntryModal(k,ti,ei,e) { rankShowModal(k.replace('ranking_',''),ti,ei,e); }
 
 function lookupTrophies() {
-  const nameInput = document.getElementById('me_name');
-  if (!nameInput) return;
-  // Strip the "(ARG) — FW" style suffix to get a clean player name
-  const raw = nameInput.value.trim();
-  const clean = raw.replace(/\s*\(.*?\)\s*/g,'').replace(/\s*—.*$/,'').trim() || raw;
+  const inp = document.getElementById('me_name');
+  if (!inp) return;
+  const clean = (inp.value.trim()).replace(/\s*\(.*?\)\s*/g,'').replace(/\s*—.*$/,'').trim();
   if (!clean) { alert('Enter a player name first.'); return; }
   window.open('https://www.google.com/search?q=' + encodeURIComponent(clean + ' career trophies honours'), '_blank');
-}
-
-function saveEntry(dataKey, tierIdx, ei) {
-  const name   = document.getElementById('me_name').value.trim();
-  const detail = document.getElementById('me_detail').value.trim();
-  const note   = document.getElementById('me_note').value.trim();
-  const xiRaw  = document.getElementById('me_xi').value.trim();
-  const xi     = xiRaw ? xiRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-  if (!name) { alert('Name required.'); return; }
-  const data = getRankingData(dataKey);
-  if (!data.tiers[tierIdx]) data.tiers[tierIdx] = { name: '', entries: [] };
-  if (ei === -1) data.tiers[tierIdx].entries.push({ name, detail, note, xi });
-  else data.tiers[tierIdx].entries[ei] = { name, detail, note, xi };
-  setRankingData(dataKey, data);
-  document.getElementById('adminModal').remove();
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-
-// ---- TIER CRUD ----
-function addTier(dataKey) {
-  const name = prompt('Name for this tier (e.g. "Elite", "Tier 2", leave blank for none):') ;
-  if (name === null) return;
-  const data = getRankingData(dataKey);
-  data.tiers.push({ name: name.trim(), entries: [] });
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-function renameTier(dataKey, ti) {
-  const data = getRankingData(dataKey);
-  const newName = prompt('Tier name:', data.tiers[ti].name || '');
-  if (newName === null) return;
-  data.tiers[ti].name = newName.trim();
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-function deleteTier(dataKey, ti) {
-  if (!confirm('Delete this tier and all its entries?')) return;
-  const data = getRankingData(dataKey);
-  data.tiers.splice(ti, 1);
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-
-// ---- HONORABLE MENTIONS ----
-function addHM(dataKey, type) {
-  const name = prompt('Player name:');
-  if (!name || !name.trim()) return;
-  const data = getRankingData(dataKey);
-  if (!data.honorable) data.honorable = { retired: [], active: [] };
-  data.honorable[type].push(name.trim());
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-function removeHM(dataKey, type, idx) {
-  const data = getRankingData(dataKey);
-  data.honorable[type].splice(idx, 1);
-  setRankingData(dataKey, data);
-  const containerEl = findContainerForKey(dataKey);
-  if (containerEl) renderRankingList(containerEl, dataKey, false);
-}
-
-// ---- FIND CONTAINER FOR KEY ----
-function findContainerForKey(dataKey) {
-  const key = dataKey.replace('ranking_','').replace('manager_','');
-  const id = key.replace(/_/g, '-');
-  return document.getElementById(id) || document.getElementById('managers-' + key.replace('mgr_','').replace('manager_',''));
-}
-
-// ---- LEGACY COMPAT ----
-function findTbodyForKey(dataKey) { return null; }
-function renderRankingTable(tbody, dataKey) {}
-function addRankingEntry(dataKey) {}
-function editRankingEntry(dataKey, idx) {}
-function deleteRankingEntry(dataKey, idx) {}
-function saveRankingEntry(dataKey, idx) {}
-
-// ---- RENDER ALL RANKINGS ----
-function renderEditableRankings() {
-  RANKING_TABS.forEach(tab => {
-    const id = tab.key.replace(/_/g, '-');
-    const container = document.getElementById(id);
-    if (container) renderRankingList(container, 'ranking_' + tab.key, tab.posOnly);
-  });
-  // Add tier/player buttons
-  addRankingAdminButtons();
-}
-
-function addRankingAdminButtons() {
-  RANKING_TABS.forEach(tab => {
-    const id = tab.key.replace(/_/g, '-');
-    const container = document.getElementById(id);
-    if (!container) return;
-    // Remove old buttons
-    container.querySelectorAll('.ranking-admin-actions').forEach(el => el.remove());
-    const div = document.createElement('div');
-    div.className = 'ranking-admin-actions';
-    div.style.cssText = 'display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;';
-    div.innerHTML = `
-      <button class="admin-add-btn" style="margin-top:0;" onclick="addEntry('ranking_${tab.key}')">+ Add player</button>
-      <button class="admin-add-btn" style="margin-top:0;" onclick="addTier('ranking_${tab.key}')">+ Add tier</button>`;
-    container.appendChild(div);
-    // Ensure first tier exists
-    const data = getRankingData('ranking_' + tab.key);
-    if (data.tiers.length === 0) {
-      data.tiers.push({ name: '', entries: [] });
-      setRankingData('ranking_' + tab.key, data);
-    }
-  });
-}
-
-function renderEditableManagers() {
-  ['century','current'].forEach(tab => {
-    const container = document.getElementById('managers-' + tab);
-    if (!container) return;
-    renderRankingList(container, 'manager_' + tab, false);
-    let div = container.querySelector('.ranking-admin-actions');
-    if (!div) {
-      div = document.createElement('div');
-      div.className = 'ranking-admin-actions';
-      div.style.cssText = 'display:flex;gap:0.5rem;margin-top:1rem;';
-      div.innerHTML = `<button class="admin-add-btn" style="margin-top:0;" onclick="addEntry('manager_${tab}',0)">+ Add manager</button><button class="admin-add-btn" style="margin-top:0;" onclick="addTier('manager_${tab}')">+ Add tier</button>`;
-      container.appendChild(div);
-    }
-    const data = getRankingData('manager_' + tab);
-    if (data.tiers.length === 0) { data.tiers.push({ name: '', entries: [] }); setRankingData('manager_' + tab, data); }
-  });
-  // Also render rankings-embedded managers
-  ['mgr_century','mgr_now'].forEach(key => {
-    const id = key.replace('_','-');
-    const container = document.getElementById(id);
-    if (!container) return;
-    renderRankingList(container, 'ranking_' + key, false);
-    let div = container.querySelector('.ranking-admin-actions');
-    if (!div) {
-      div = document.createElement('div');
-      div.className = 'ranking-admin-actions';
-      div.style.cssText = 'display:flex;gap:0.5rem;margin-top:1rem;';
-      div.innerHTML = `<button class="admin-add-btn" style="margin-top:0;" onclick="addEntry('ranking_${key}',0)">+ Add manager</button><button class="admin-add-btn" style="margin-top:0;" onclick="addTier('ranking_${key}')">+ Add tier</button>`;
-      container.appendChild(div);
-    }
-    const data = getRankingData('ranking_' + key);
-    if (data.tiers.length === 0) { data.tiers.push({ name: '', entries: [] }); setRankingData('ranking_' + key, data); }
-  });
 }
 
 // ---- XI EDITOR ----
@@ -3262,14 +2886,13 @@ function saveSubtype(posIdx, stIdx) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  try { loadData(); } catch(e) { console.error('loadData error:', e); }
-  try { initInlineEditing(); } catch(e) { console.error('initInlineEditing error:', e); }
-  try { renderHomePostFeed(); } catch(e) { console.error('renderHomePostFeed error:', e); }
-  try { renderPositions(); } catch(e) { console.error('renderPositions error:', e); }
-  try { buildClubGrid(); } catch(e) { console.error('buildClubGrid error:', e); }
-  try { renderCountryDisplay(); } catch(e) { console.error('renderCountryDisplay error:', e); }
-  try { renderAllRankingsPublic(); } catch(e) { console.error('renderAllRankingsPublic error:', e); }
-  try { renderTierLegend(); } catch(e) { console.error('renderTierLegend error:', e); }
+  loadData();
+  initInlineEditing();
+  renderHomePostFeed();
+  renderPositions();
+  buildClubGrid();
+  renderCountryDisplay();
+  renderAllRankings();
   showPage('home');
 });
 </script>
