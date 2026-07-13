@@ -131,17 +131,25 @@
   /* XI DETAIL */
   .xi-back-btn { font-size: 0.8rem; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.4rem; font-family: var(--sans); font-weight: 500; }
   .xi-back-btn:hover { color: var(--accent-hover); text-decoration: underline; }
-  .xi-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+  .xi-wrapper { display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: start; }
+  .admin-active .xi-wrapper { grid-template-columns: 1fr 1fr; }
   .pitch { background: linear-gradient(180deg, #1a4a2a 0%, #1e5530 50%, #1a4a2a 100%); border-radius: 6px; padding: 1.5rem 1rem; position: relative; min-height: 440px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: inset 0 0 60px rgba(0,0,0,0.2); border: 2px solid #0f2518; }
   .pitch::before { content: ''; position: absolute; top: 50%; left: 8%; right: 8%; height: 1px; background: rgba(255,255,255,0.2); transform: translateY(-50%); }
   .pitch::after { content: ''; position: absolute; top: 50%; left: 50%; width: 90px; height: 90px; border: 1.5px solid rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); }
   .pitch-row { display: flex; justify-content: center; gap: 0.5rem; position: relative; z-index: 1; margin: 0.4rem 0; }
   .pitch-player { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; max-width: 80px; }
-  .pitch-dot { width: 38px; height: 38px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.03em; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 1px 6px rgba(0,0,0,0.25); }
-  .pitch-dot.empty { background: rgba(255,255,255,0.08); border: 1.5px dashed rgba(255,255,255,0.25); color: rgba(255,255,255,0.25); font-size: 1.1rem; font-weight: 300; box-shadow: none; }
-  .pitch-label { font-size: 0.6rem; color: rgba(255,255,255,0.7); text-align: center; font-weight: 500; line-height: 1.2; max-width: 72px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pitch-label.empty-label { color: rgba(255,255,255,0.2); }
-  .xi-details { display: flex; flex-direction: column; }
+  /* PITCH DOTS — edit mode only */
+  .pitch-dot { display: none; }
+  .admin-active .pitch-dot { width: 36px; height: 36px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; color: var(--accent); text-transform: uppercase; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 1px 6px rgba(0,0,0,0.25); cursor: pointer; }
+  .admin-active .pitch-dot.empty { background: rgba(255,255,255,0.15); border: 1.5px dashed rgba(255,255,255,0.4); color: rgba(255,255,255,0.5); font-size: 1rem; font-weight: 300; box-shadow: none; }
+  /* PITCH LABEL — public: player name only, bold white; edit: small pos label under circle */
+  .pitch-label { font-size: 0.75rem; color: #fff; text-align: center; font-weight: 700; line-height: 1.2; max-width: 80px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 5px rgba(0,0,0,0.8); white-space: nowrap; }
+  .pitch-label.empty-label { display: none; }
+  .admin-active .pitch-label { font-size: 0.58rem; font-weight: 500; color: rgba(255,255,255,0.65); text-shadow: none; }
+  .admin-active .pitch-label.empty-label { display: block; color: rgba(255,255,255,0.25); }
+  /* PLAYER LIST — edit mode only */
+  .xi-details { display: none; flex-direction: column; }
+  .admin-active .xi-details { display: flex; }
   .xi-section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin: 1.2rem 0 0.5rem; }
   .xi-section-label:first-child { margin-top: 0; }
   .xi-player-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0; border-bottom: 1px solid var(--gray-100); }
@@ -151,11 +159,12 @@
   .xi-player-name.empty { color: var(--gray-400); font-style: italic; font-weight: 400; }
   .bench-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1.5px solid var(--gray-200); }
   .bench-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
-  .bench-list { display: flex; flex-direction: column; gap: 0; }
-  .bench-slot { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0; border-bottom: 1px solid var(--gray-100); }
-  .bench-slot:last-child { border-bottom: none; }
-  .bench-num { font-family: var(--serif); font-size: 0.78rem; font-weight: 700; color: var(--accent); min-width: 1.5rem; }
-  .bench-name { font-family: var(--serif); font-size: 0.88rem; color: var(--gray-400); font-style: italic; flex: 1; }
+  .bench-row { display: flex; gap: 0; margin-bottom: 0; }
+  .bench-slot { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0.5rem 0.25rem; border-right: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); }
+  .bench-slot:last-child { border-right: none; }
+  .bench-row:last-child .bench-slot { border-bottom: none; }
+  .bench-num { font-family: var(--serif); font-size: 0.65rem; font-weight: 700; color: var(--accent); margin-bottom: 0.2rem; }
+  .bench-name { font-family: var(--serif); font-size: 0.78rem; color: var(--gray-400); font-style: italic; text-align: center; line-height: 1.2; }
 
   /* GLOSSARY */
   .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
@@ -1161,21 +1170,6 @@ function buildXIDetail(name, meta, formationKey) {
     if (badges.length) metaHTML = `<div class="xi-country-trophies" style="margin-bottom:1.5rem;flex-wrap:wrap;display:flex;gap:0.4rem;">${badges.join('')}</div>`;
   }
 
-  // Build flat index map for pitch dots (reversed rows for display, but indexed by position order)
-  let pitchIdx = 0;
-  const reversedRows = [...pitchRows].reverse();
-  const pitchHTML = `<div class="pitch">
-    ${reversedRows.map(row => `<div class="pitch-row">
-      ${row.map(p => {
-        const idx = pitchIdx++;
-        return `<div class="pitch-player" data-pos-index="${idx}">
-          <div class="pitch-dot empty" data-pos-index="${idx}">+</div>
-          <div class="pitch-label empty-label" data-pos-index="${idx}">${p.label}</div>
-        </div>`;
-      }).join('')}
-    </div>`).join('')}
-  </div>`;
-
   // Build label-based storage keys (handle duplicates: CB_0, CB_1)
   const labelCounts = {};
   const posKeys = positions.map(p => {
@@ -1186,6 +1180,32 @@ function buildXIDetail(name, meta, formationKey) {
     return key;
   });
 
+  // Build pitch: rows displayed forwards-first (reversed), but pos-index matches positions[] order
+  // We need to map each pitch dot to the correct positions[] index
+  // positions[] is GK-first order; pitchRows[] is also GK-first
+  // We reverse rows for display, so we need to track which positions[] index each dot maps to
+  const rowPositionIndices = [];
+  let flatIdx = 0;
+  pitchRows.forEach(row => {
+    const rowIndices = row.map(() => flatIdx++);
+    rowPositionIndices.push(rowIndices);
+  });
+  const reversedRowIndices = [...rowPositionIndices].reverse();
+
+  let dotRenderIdx = 0;
+  const pitchHTML = `<div class="pitch">
+    ${[...pitchRows].reverse().map((row, ri) => `<div class="pitch-row">
+      ${row.map((p, ci) => {
+        const posIdx = reversedRowIndices[ri][ci];
+        const editOnclick = `onclick="pitchDotClick('${name.replace(/'/g,"\\'")}',${posIdx},this)"`;
+        return `<div class="pitch-player" data-pos-index="${posIdx}">
+          <div class="pitch-dot empty" data-pos-index="${posIdx}" ${editOnclick}>+</div>
+          <div class="pitch-label empty-label" data-pos-index="${posIdx}">${p.label}</div>
+        </div>`;
+      }).join('')}
+    </div>`).join('')}
+  </div>`;
+
   const listHTML = `<div class="xi-details">
     <div class="xi-section-label">Starting XI</div>
     ${positions.map((p, i) => `<div class="xi-player-row" data-pos-index="${i}" data-pos-key="${posKeys[i]}">
@@ -1194,11 +1214,17 @@ function buildXIDetail(name, meta, formationKey) {
     </div>`).join('')}
   </div>`;
 
-  const bench = Array.from({length:9},(_,i)=>i);
+  // Bench: 9 slots in two rows (5 top, 4 bottom), ordered defensive to attacking
   const benchHTML = `<div class="bench-section">
     <div class="bench-title">Bench</div>
-    <div class="bench-list">
-      ${bench.map(i=>`<div class="bench-slot" data-bench-index="${i}">
+    <div class="bench-row">
+      ${[0,1,2,3,4].map(i=>`<div class="bench-slot" data-bench-index="${i}">
+        <span class="bench-num">${i+1}</span>
+        <span class="bench-name">—</span>
+      </div>`).join('')}
+    </div>
+    <div class="bench-row">
+      ${[5,6,7,8].map(i=>`<div class="bench-slot" data-bench-index="${i}">
         <span class="bench-num">${i+1}</span>
         <span class="bench-name">—</span>
       </div>`).join('')}
@@ -1215,11 +1241,11 @@ function buildXIDetail(name, meta, formationKey) {
   return `
     <div class="section-header">
       <span class="section-title">${name} 21<sup>st</sup> Century XI</span>
-      <span class="section-sub">${fKey}</span>
+      ${adminMode ? `<span class="section-sub">${fKey}</span>` : ''}
     </div>
     ${metaHTML}
     ${formationPickerHTML}
-    <div class="xi-wrapper">${pitchHTML}${listHTML}</div>
+    <div class="xi-wrapper">${listHTML}${pitchHTML}</div>
     ${benchHTML}`;
 }
 
@@ -1762,6 +1788,32 @@ function makeXIEditable(entityKey, container) {
   });
 }
 
+function pitchDotClick(entityName, posIdx, dotEl) {
+  if (!adminMode) return;
+  // Find the matching list row to get pos label and storage key
+  const containers = [
+    document.getElementById('country-detail-content'),
+    document.getElementById('club-detail-content'),
+    ...Array.from(document.querySelectorAll('[id^="xi-"]'))
+  ].filter(Boolean);
+  let container = containers.find(c => c.contains(dotEl));
+  if (!container) return;
+  const row = container.querySelector(`.xi-player-row[data-pos-index="${posIdx}"]`);
+  if (!row) return;
+  const posSpan = row.querySelector('.xi-pos-badge');
+  const nameSpan = row.querySelector('.xi-player-name');
+  const posKey = row.getAttribute('data-pos-key') || `pos_${posIdx}`;
+  // Derive entityKey from container
+  let entityKey = entityName.replace(/\s+/g,'_');
+  if (container.id === 'country-detail-content') entityKey = 'country_' + entityKey;
+  else if (container.id === 'club-detail-content') entityKey = 'club_' + entityKey;
+  else entityKey = entityName.replace(/\s+/g,'_');
+  const storageKey = `xi_${entityKey}_${posKey}`;
+  const current = nameSpan && nameSpan.textContent !== 'TBD' ? nameSpan.textContent : '';
+  const pos = posSpan ? posSpan.textContent : '';
+  showXISlotModal(entityKey, posIdx, pos, current, nameSpan, storageKey, container);
+}
+
 function showXISlotModal(entityKey, idx, pos, current, nameSpan, storageKey, container) {
   const existing = document.getElementById('adminModal');
   if (existing) existing.remove();
@@ -1803,7 +1855,7 @@ function saveXISlot(storageKey) {
     nameSpan.textContent = val || 'TBD';
     nameSpan.classList.toggle('empty', !val);
   }
-  // Update matching pitch dot
+  // Update pitch dot and label
   if (container && posIdx !== null) {
     const dot = container.querySelector(`.pitch-dot[data-pos-index="${posIdx}"]`);
     const label = container.querySelector(`.pitch-label[data-pos-index="${posIdx}"]`);
@@ -1813,7 +1865,7 @@ function saveXISlot(storageKey) {
       dot.style.fontSize = val ? '0.5rem' : '';
     }
     if (label) {
-      label.textContent = val || (nameSpan ? nameSpan.closest('.xi-player-row')?.querySelector('.xi-pos-badge')?.textContent : '');
+      label.textContent = val || (nameSpan ? (nameSpan.closest('.xi-player-row')?.querySelector('.xi-pos-badge')?.textContent || '') : '');
       label.classList.toggle('empty-label', !val);
     }
   }
@@ -1846,13 +1898,24 @@ function restoreXIData(entityKey, container) {
   slots.forEach((row, i) => {
     const nameSpan = row.querySelector('.xi-player-name');
     const posKey = row.getAttribute('data-pos-key') || `pos_${i}`;
+    const posIdx = parseInt(row.getAttribute('data-pos-index') ?? i);
     const saved = getData(`xi_${entityKey}_${posKey}`, '') || getData(`xi_${entityKey}_pos_${i}`, '');
-    if (saved) { nameSpan.textContent = saved; nameSpan.classList.remove('empty'); }
-    // Update pitch dot
-    const dot = container.querySelector(`.pitch-dot[data-pos-index="${i}"]`);
-    const label = container.querySelector(`.pitch-label[data-pos-index="${i}"]`);
-    if (dot && saved) { dot.textContent = saved.split(' ')[0]; dot.classList.remove('empty'); dot.style.fontSize = '0.5rem'; }
-    if (label && saved) { label.textContent = saved; label.classList.remove('empty-label'); }
+    if (saved) {
+      nameSpan.textContent = saved;
+      nameSpan.classList.remove('empty');
+    }
+    // Update pitch: dot shows first name, label shows full name
+    const dot = container.querySelector(`.pitch-dot[data-pos-index="${posIdx}"]`);
+    const label = container.querySelector(`.pitch-label[data-pos-index="${posIdx}"]`);
+    if (saved) {
+      if (dot) { dot.textContent = saved.split(' ')[0]; dot.classList.remove('empty'); dot.style.fontSize = '0.5rem'; }
+      if (label) { label.textContent = saved; label.classList.remove('empty-label'); }
+    } else {
+      // No player — dot stays as +, label stays as pos label (admin) or hidden (public)
+      const posSpan = row.querySelector('.xi-pos-badge');
+      const posLabel = posSpan ? posSpan.textContent : '';
+      if (label && label.classList.contains('empty-label')) label.textContent = posLabel;
+    }
   });
   const benchSlots = container.querySelectorAll('.bench-slot');
   benchSlots.forEach((slot, i) => {
