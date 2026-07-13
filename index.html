@@ -225,7 +225,24 @@
   .xi-badges { display: inline-flex; gap: 0.25rem; flex-wrap: wrap; margin-left: 0.4rem; vertical-align: middle; }
   .xi-badge { font-family: var(--sans); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: var(--green-light); color: var(--accent); border: 1px solid var(--accent); border-radius: 2px; padding: 1px 5px; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background 0.1s; }
   .xi-badge:hover { background: var(--accent); color: #fff; }
-  .ranking-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--gray-100); }
+  /* SEARCH */
+  .search-icon-btn { background: none; border: none; cursor: pointer; color: var(--accent); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.1s; }
+  .search-icon-btn:hover { background: var(--green-light); }
+  #searchOverlay { position: fixed; top: 44px; left: 0; right: 0; z-index: 200; background: var(--white); border-bottom: 1.5px solid var(--gray-200); box-shadow: 0 8px 32px rgba(0,0,0,0.12); max-height: 80vh; overflow-y: auto; }
+  .search-bar-wrap { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--gray-100); position: sticky; top: 0; background: var(--white); z-index: 1; }
+  .search-bar-wrap input { flex: 1; border: none; outline: none; font-size: 1rem; font-family: var(--sans); color: var(--black); background: transparent; }
+  #searchResults { padding: 0.5rem 0 1rem; }
+  .search-group { padding: 0 1.5rem; }
+  .search-group-title { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray-400); padding: 0.75rem 0 0.4rem; border-top: 1px solid var(--gray-100); margin-top: 0.5rem; }
+  .search-group:first-child .search-group-title { border-top: none; margin-top: 0; }
+  .search-result { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.5rem 0.6rem; border-radius: 3px; cursor: pointer; transition: background 0.1s; }
+  .search-result:hover { background: var(--green-light); }
+  .search-result-name { font-family: var(--serif); font-size: 0.9rem; font-weight: 700; color: var(--black); }
+  .search-result-name mark { background: #fff3cd; color: var(--black); border-radius: 1px; padding: 0 1px; }
+  .search-result-meta { font-size: 0.72rem; color: var(--gray-400); font-family: var(--sans); }
+  .search-empty { padding: 1.5rem; text-align: center; font-family: var(--serif); font-style: italic; color: var(--gray-400); font-size: 0.9rem; }
+
+  /* RANKING LIST — clean */
   .ranking-row:last-child { border-bottom: none; }
   .ranking-row:hover { background: var(--gray-50); margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
   .ranking-num { font-family: var(--serif); font-size: 0.82rem; font-weight: 700; color: var(--accent); min-width: 1.8rem; padding-top: 0.05rem; flex-shrink: 0; }
@@ -327,9 +344,23 @@
 <nav>
   <div class="nav-logo-bar">
     <a class="nav-logo" href="#" onclick="showPage('home');return false;">Half Space</a>
-    <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div style="position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:0.75rem;">
+      <button class="search-icon-btn" onclick="toggleSearch()" aria-label="Search" title="Search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <!-- SEARCH OVERLAY -->
+  <div id="searchOverlay" style="display:none;">
+    <div class="search-bar-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--gray-400);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search players, posts, XIs…" autocomplete="off" oninput="runSearch(this.value)" onkeydown="if(event.key==='Escape')toggleSearch()">
+      <button onclick="toggleSearch()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:1.1rem;padding:0 0.25rem;">✕</button>
+    </div>
+    <div id="searchResults"></div>
   </div>
   <div class="nav-tab-band">
     <button class="nav-tab" onclick="showPage('rankings')">Rankings</button>
@@ -1529,7 +1560,194 @@ function renderRankingList(containerEl, dataKey, posOnly) {
   content.innerHTML = html;
 }
 
-// ---- XI BADGE NAVIGATION ----
+// ================================================================
+// SEARCH SYSTEM
+// ================================================================
+
+function toggleSearch() {
+  const overlay = document.getElementById('searchOverlay');
+  const input = document.getElementById('searchInput');
+  const isOpen = overlay.style.display !== 'none';
+  overlay.style.display = isOpen ? 'none' : '';
+  if (!isOpen) { input.value = ''; document.getElementById('searchResults').innerHTML = ''; input.focus(); }
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
+}
+
+function runSearch(query) {
+  const q = query.trim().toLowerCase();
+  const resultsEl = document.getElementById('searchResults');
+  if (q.length < 2) { resultsEl.innerHTML = ''; return; }
+
+  const groups = [];
+
+  // 1. RANKINGS
+  const rankingHits = [];
+  RANKING_TABS.forEach(tab => {
+    const data = getRankingData('ranking_' + tab.key);
+    data.tiers.forEach(tier => {
+      (tier.entries || []).forEach(e => {
+        const haystack = [e.name, e.detail, e.note, ...(e.xi||[])].join(' ').toLowerCase();
+        if (haystack.includes(q)) {
+          rankingHits.push({
+            name: e.name,
+            meta: tab.label + (e.detail ? ' · ' + e.detail : ''),
+            action: () => {
+              const sec = tab.key.split('_')[0];
+              showPage('rankings');
+              setTimeout(() => showRankingSection(sec), 50);
+              toggleSearch();
+            }
+          });
+        }
+      });
+    });
+    // honorable mentions
+    const hm = data.honorable || { retired:[], active:[] };
+    [...hm.retired, ...hm.active].forEach(name => {
+      if (name.toLowerCase().includes(q)) {
+        rankingHits.push({
+          name,
+          meta: tab.label + ' — Honorable mention',
+          action: () => { showPage('rankings'); toggleSearch(); }
+        });
+      }
+    });
+  });
+  if (rankingHits.length) groups.push({ title: 'Rankings', hits: rankingHits });
+
+  // 2. SCOUTING
+  const scoutHits = [];
+  SCOUTING_POSITIONS.forEach(pos => {
+    (getData('scout_' + pos, []) || []).forEach(p => {
+      const haystack = [p.name, p.club, p.nationality, p.note].join(' ').toLowerCase();
+      if (haystack.includes(q)) {
+        scoutHits.push({
+          name: p.name,
+          meta: 'Scouting · ' + pos + (p.club ? ' · ' + p.club : ''),
+          action: () => { showPage('scouting'); toggleSearch(); }
+        });
+      }
+    });
+  });
+  if (scoutHits.length) groups.push({ title: 'Scouting', hits: scoutHits });
+
+  // 3. BLOG POSTS
+  const postHits = [];
+  (getData('blog_posts', []) || []).forEach(post => {
+    const haystack = [post.title, post.body, post.category].join(' ').toLowerCase();
+    if (haystack.includes(q)) {
+      postHits.push({
+        name: post.title || 'Untitled post',
+        meta: 'Post' + (post.category ? ' · ' + post.category : '') + (post.date ? ' · ' + post.date : ''),
+        action: () => { showPage('home'); toggleSearch(); }
+      });
+    }
+  });
+  if (postHits.length) groups.push({ title: 'Blog Posts', hits: postHits });
+
+  // 4. MATCHDAY DIARY
+  const diaryHits = [];
+  (getData('diary_entries', []) || []).forEach(entry => {
+    const haystack = [entry.title, entry.body, entry.fixture, entry.competition].join(' ').toLowerCase();
+    if (haystack.includes(q)) {
+      diaryHits.push({
+        name: entry.title || entry.fixture || 'Diary entry',
+        meta: 'Matchday Diary' + (entry.fixture ? ' · ' + entry.fixture : '') + (entry.date ? ' · ' + entry.date : ''),
+        action: () => { showPage('diary'); toggleSearch(); }
+      });
+    }
+  });
+  if (diaryHits.length) groups.push({ title: 'Matchday Diary', hits: diaryHits });
+
+  // 5. XI SLOTS — country, club, continental
+  const xiHits = [];
+  const allSiteData = getData('halfspace_data', {}) || {};
+  // Scan all localStorage keys for xi_ entries
+  Object.keys(siteData).forEach(key => {
+    if (!key.startsWith('xi_')) return;
+    const val = siteData[key];
+    if (typeof val !== 'string' || !val.toLowerCase().includes(q)) return;
+    // Parse key: xi_country_Argentina_GK_0 or xi_club_Barcelona_GK_0
+    const parts = key.split('_');
+    const type = parts[1]; // country or club
+    const isBench = key.includes('_bench_');
+    const entityParts = parts.slice(2, isBench ? -2 : -2);
+    const entity = entityParts.join(' ');
+    const label = isBench ? 'Bench' : parts[parts.length - 2] || '';
+    xiHits.push({
+      name: val,
+      meta: (type === 'country' ? 'Country XI' : type === 'club' ? 'Club XI' : 'XI') + ' · ' + entity.replace(/_/g,' ') + (label ? ' · ' + label : ''),
+      action: () => {
+        if (type === 'country') {
+          showPage('country-xi');
+          setTimeout(() => showCountryDetail(entity.replace(/_/g,' ')), 80);
+        } else if (type === 'club') {
+          showPage('club-xi');
+          setTimeout(() => showClubDetail(entity.replace(/_/g,' ')), 80);
+        } else {
+          showPage('continental-xi');
+        }
+        toggleSearch();
+      }
+    });
+  });
+  if (xiHits.length) groups.push({ title: '21st Century XIs', hits: xiHits });
+
+  // 6. POSITIONS
+  const posHits = [];
+  getPositions().forEach(pos => {
+    const haystack = [pos.abbr, pos.title, pos.body, ...(pos.subtypes||[]).map(s=>s.name+' '+s.body)].join(' ').toLowerCase();
+    if (haystack.includes(q)) {
+      posHits.push({
+        name: pos.title,
+        meta: 'Position · ' + pos.abbr,
+        action: () => { showPage('positions'); toggleSearch(); }
+      });
+    }
+  });
+  if (posHits.length) groups.push({ title: 'Positions', hits: posHits });
+
+  // Render
+  if (groups.length === 0) {
+    resultsEl.innerHTML = `<div class="search-empty">No results for "<strong>${query}</strong>"</div>`;
+    return;
+  }
+
+  resultsEl.innerHTML = groups.map(g => `
+    <div class="search-group">
+      <div class="search-group-title">${g.title}</div>
+      ${g.hits.slice(0, 8).map((h, i) => `
+        <div class="search-result" data-group="${g.title}" data-idx="${i}">
+          <span class="search-result-name">${highlight(h.name, query)}</span>
+          <span class="search-result-meta">${h.meta}</span>
+        </div>`).join('')}
+    </div>`).join('');
+
+  // Wire up click actions
+  let flatIdx = 0;
+  groups.forEach(g => {
+    g.hits.slice(0, 8).forEach((h, i) => {
+      const el = resultsEl.querySelector(`[data-group="${g.title}"][data-idx="${i}"]`);
+      if (el) el.addEventListener('click', h.action);
+    });
+  });
+}
+
+// Close search on outside click
+document.addEventListener('click', e => {
+  const overlay = document.getElementById('searchOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  if (!overlay.contains(e.target) && !e.target.closest('.search-icon-btn')) toggleSearch();
+});
+
+// ================================================================
+// XI BADGE NAVIGATION
+// ================================================================
 function navigateToXI(tag) {
   // Normalise: lowercase, strip "XI", trim
   const t = tag.toLowerCase().replace(/\bxi\b/g,'').replace(/21st century/g,'').trim();
@@ -1597,7 +1815,9 @@ function moveTierEntry(dataKey, fromTi, ei, toTi) {
 
 // ---- ENTRY CRUD ----
 function addEntry(dataKey, tierIdx) {
-  showEntryModal(dataKey, tierIdx, -1, {});
+  const data = getRankingData(dataKey);
+  const lastTier = Math.max(0, data.tiers.length - 1);
+  showEntryModal(dataKey, lastTier, -1, {});
 }
 function editEntry(dataKey, tierIdx, ei) {
   const data = getRankingData(dataKey);
@@ -1744,7 +1964,7 @@ function addRankingAdminButtons() {
     div.className = 'ranking-admin-actions';
     div.style.cssText = 'display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;';
     div.innerHTML = `
-      <button class="admin-add-btn" style="margin-top:0;" onclick="addEntry('ranking_${tab.key}', 0)">+ Add player</button>
+      <button class="admin-add-btn" style="margin-top:0;" onclick="addEntry('ranking_${tab.key}')">+ Add player</button>
       <button class="admin-add-btn" style="margin-top:0;" onclick="addTier('ranking_${tab.key}')">+ Add tier</button>`;
     container.appendChild(div);
     // Ensure first tier exists
