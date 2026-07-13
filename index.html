@@ -207,7 +207,38 @@
   .tier-1 { background: var(--gold-bg); color: var(--gold); }
   .tier-2 { background: var(--blue-bg); color: var(--blue); }
   .tier-3 { background: var(--gray-100); color: var(--gray-600); }
-  /* INLINE TEXT EDITING */
+  /* BLOG POSTS */
+  .post-feed { display: flex; flex-direction: column; gap: 0; }
+  .post-card { padding: 2rem 0; border-bottom: 1px solid var(--gray-100); position: relative; }
+  .post-card:first-child { padding-top: 0; }
+  .post-card-meta { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .post-card-date { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .post-card-category { font-size: 0.7rem; font-weight: 600; color: var(--gray-600); background: var(--gray-100); padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .post-card-title { font-family: var(--serif); font-size: 1.6rem; font-weight: 700; color: var(--black); margin-bottom: 0.5rem; line-height: 1.2; letter-spacing: -0.01em; cursor: pointer; }
+  .post-card-title:hover { color: var(--accent); }
+  .post-card-excerpt { font-family: var(--serif); font-size: 1rem; color: var(--gray-600); line-height: 1.65; max-width: 680px; margin-bottom: 0.75rem; }
+  .post-card-read-more { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; background: none; border: none; padding: 0; font-family: var(--sans); }
+  .post-card-read-more:hover { text-decoration: underline; }
+  .post-unpublished { opacity: 0.45; }
+  .post-status-badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 2px; background: var(--gray-200); color: var(--gray-600); }
+  .post-admin-bar { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.75rem; flex-wrap: wrap; }
+
+  /* FULL POST VIEW */
+  .post-full { max-width: 680px; }
+  .post-full-back { font-size: 0.8rem; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 2rem; font-family: var(--sans); font-weight: 500; display: flex; align-items: center; gap: 0.4rem; }
+  .post-full-back:hover { text-decoration: underline; }
+  .post-full-title { font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; color: var(--black); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .post-full-meta { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--gray-200); flex-wrap: wrap; }
+  .post-full-body { font-family: var(--serif); font-size: 1.1rem; line-height: 1.8; color: var(--gray-800); }
+  .post-full-body p { margin-bottom: 1.4em; }
+
+  /* PUBLISH TOGGLE */
+  .publish-toggle { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.78rem; font-weight: 600; font-family: var(--sans); }
+  .publish-toggle input { display: none; }
+  .toggle-track { width: 32px; height: 18px; background: var(--gray-200); border-radius: 9px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-track.on { background: var(--accent); }
+  .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: left 0.2s; }
+  .toggle-track.on .toggle-thumb { left: 17px; }
   [data-editable] { cursor: default; }
   .admin-active [data-editable] { border-bottom: 1.5px dashed rgba(45,92,63,0.5); cursor: text; transition: border-color 0.15s; border-radius: 2px; }
   .admin-active [data-editable]:hover { border-bottom-color: var(--accent); background: rgba(45,92,63,0.06); }
@@ -233,15 +264,15 @@
   <div class="nav-inner">
     <a class="nav-logo" href="#" onclick="showPage('home');return false;">Half Space</a>
     <div class="nav-tabs">
-      <button class="nav-tab" onclick="showPage('rankings')">Rankings</button>
-      <button class="nav-tab" onclick="showPage('country-xi')">Country 21st C. XIs</button>
-      <button class="nav-tab" onclick="showPage('club-xi')">Club XIs</button>
-      <button class="nav-tab" onclick="showPage('continental-xi')">Continental XIs</button>
-      <button class="nav-tab" onclick="showPage('managers')">Managers</button>
-      <button class="nav-tab" onclick="showPage('positions')">Positions</button>
-      <button class="nav-tab" onclick="showPage('diary')">Matchday Diary</button>
-      <button class="nav-tab" onclick="showPage('scouting')">Scouting</button>
-      <button class="nav-tab" onclick="showPage('contact')">Contact</button>
+      <button class="nav-tab" onclick="showPage('rankings')"><span data-editable="nav_rankings">Rankings</span></button>
+      <button class="nav-tab" onclick="showPage('country-xi')"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+      <button class="nav-tab" onclick="showPage('club-xi')"><span data-editable="nav_club">Club XIs</span></button>
+      <button class="nav-tab" onclick="showPage('continental-xi')"><span data-editable="nav_continental">Continental XIs</span></button>
+      <button class="nav-tab" onclick="showPage('managers')"><span data-editable="nav_managers">Managers</span></button>
+      <button class="nav-tab" onclick="showPage('positions')"><span data-editable="nav_positions">Positions</span></button>
+      <button class="nav-tab" onclick="showPage('diary')"><span data-editable="nav_diary">Matchday Diary</span></button>
+      <button class="nav-tab" onclick="showPage('scouting')"><span data-editable="nav_scouting">Scouting</span></button>
+      <button class="nav-tab" onclick="showPage('contact')"><span data-editable="nav_contact">Contact</span></button>
     </div>
     <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -251,15 +282,15 @@
 
 <div class="mobile-menu" id="mobileMenu">
   <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
-  <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">Rankings</button>
-  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">Country 21st C. XIs</button>
-  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">Club XIs</button>
-  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();">Continental XIs</button>
-  <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();">Managers</button>
-  <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();">Positions</button>
-  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();">Matchday Diary</button>
-  <button class="nav-tab" onclick="showPage('scouting');toggleMobileMenu();">Scouting</button>
-  <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();">Contact</button>
+  <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();"><span data-editable="nav_rankings">Rankings</span></button>
+  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();"><span data-editable="nav_club">Club XIs</span></button>
+  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();"><span data-editable="nav_continental">Continental XIs</span></button>
+  <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();"><span data-editable="nav_managers">Managers</span></button>
+  <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();"><span data-editable="nav_positions">Positions</span></button>
+  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();"><span data-editable="nav_diary">Matchday Diary</span></button>
+  <button class="nav-tab" onclick="showPage('scouting');toggleMobileMenu();"><span data-editable="nav_scouting">Scouting</span></button>
+  <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();"><span data-editable="nav_contact">Contact</span></button>
 </div>
 
 <!-- HOME -->
@@ -271,8 +302,10 @@
     <p data-editable="hero_tagline">Finding truth within football.</p>
   </div>
   <div class="content">
-    <div class="section-header"><span class="section-title">Latest</span></div>
-    <div class="empty-state"><p>Nothing here yet.</p><small>Posts will appear here as they're published.</small></div>
+    <div class="section-header">
+      <span class="section-title" data-editable="home_section_title">Latest</span>
+    </div>
+    <div id="homePostFeed"></div>
   </div>
 </div>
 
@@ -972,6 +1005,8 @@ function toggleAdmin() {
       document.getElementById('exportBtn').style.display = 'inline-block';
       applyAdminToCurrentPage();
       enableInlineEditing();
+      renderHomePostFeed();
+      addNewPostButton();
     } else if (pw !== null) {
       alert('Incorrect password.');
     }
@@ -986,6 +1021,7 @@ function exitAdmin() {
   document.getElementById('exportBtn').style.display = 'none';
   removeAdminUI();
   disableInlineEditing();
+  renderHomePostFeed();
 }
 
 function applyAdminToCurrentPage() {
@@ -1733,6 +1769,7 @@ window.showPage = function(id) {
   _origShowPage2(id);
   if (id === 'diary') renderDiary();
   if (id === 'scouting') renderScouting();
+  if (id === 'home') renderHomePostFeed();
 };
 
 // Hook admin mode to add diary/scouting edit buttons
@@ -1809,8 +1846,204 @@ function disableInlineEditing() {
   });
 }
 
+// ================================================================
+// BLOG POST SYSTEM
+// ================================================================
+
+function renderHomePostFeed() {
+  const feed = document.getElementById('homePostFeed');
+  if (!feed) return;
+  const posts = getData('blog_posts', []);
+  const published = posts.filter(p => p.published);
+  const drafts = posts.filter(p => !p.published);
+
+  let html = '';
+
+  // Published posts
+  if (published.length) {
+    html += `<div class="post-feed">${published.map(p => renderPostCard(p, 0, posts.indexOf(p))).join('')}</div>`;
+  } else {
+    html += `<div class="empty-state"><p>Nothing published yet.</p><small>${adminMode ? 'Write your first post below.' : 'Posts will appear here as they\'re published.'}</small></div>`;
+  }
+
+  // Drafts section — admin only
+  if (adminMode && drafts.length) {
+    html += `<div style="margin-top:3rem;padding-top:2rem;border-top:2px dashed var(--gray-200);">
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-400);margin-bottom:1.5rem;">Drafts — only visible to you</div>
+      <div class="post-feed">${drafts.map(p => renderPostCard(p, 0, posts.indexOf(p))).join('')}</div>
+    </div>`;
+  }
+
+  feed.innerHTML = html;
+}
+
+function renderPostCard(p, displayIdx, realIdx) {
+  const unpub = !p.published ? 'post-unpublished' : '';
+  const excerpt = p.body ? p.body.split('\n').filter(Boolean)[0] : '';
+  const truncated = excerpt && excerpt.length > 200 ? excerpt.slice(0, 200) + '…' : excerpt;
+  return `<div class="post-card ${unpub}">
+    <div class="post-card-meta">
+      <span class="post-card-date">${p.date || ''}</span>
+      ${p.category ? `<span class="post-card-category">${p.category}</span>` : ''}
+      ${!p.published ? `<span class="post-status-badge">Draft</span>` : ''}
+    </div>
+    <div class="post-card-title" onclick="openFullPost(${realIdx})">${p.title || 'Untitled'}</div>
+    ${truncated ? `<div class="post-card-excerpt">${truncated}</div>` : ''}
+    ${p.body && p.body.length > 200 ? `<button class="post-card-read-more" onclick="openFullPost(${realIdx})">Read more →</button>` : ''}
+    ${adminMode ? `<div class="post-admin-bar">
+      <label class="publish-toggle" onclick="togglePostPublished(${realIdx}, event)">
+        <div class="toggle-track ${p.published ? 'on' : ''}"><div class="toggle-thumb"></div></div>
+        <span style="color:var(--gray-600)">${p.published ? 'Published' : 'Draft'}</span>
+      </label>
+      <button class="admin-edit-btn" onclick="editPost(${realIdx})">Edit</button>
+      <button class="admin-edit-btn" style="background:#c0392b;" onclick="deletePost(${realIdx})">✕ Delete</button>
+    </div>` : ''}
+  </div>`;
+}
+
+function openFullPost(idx) {
+  const posts = getData('blog_posts', []);
+  const p = posts[idx];
+  if (!p) return;
+  const content = document.querySelector('#page-home .content');
+  if (!content) return;
+  content.innerHTML = `
+    <button class="post-full-back" onclick="closeFullPost()">← Back</button>
+    <div class="post-full">
+      <div class="post-full-meta">
+        <span class="post-card-date">${p.date || ''}</span>
+        ${p.category ? `<span class="post-card-category">${p.category}</span>` : ''}
+      </div>
+      <div class="post-full-title">${p.title || ''}</div>
+      <div class="post-full-body">${(p.body || '').split('\n').filter(Boolean).map(para => `<p>${para}</p>`).join('')}</div>
+    </div>`;
+}
+
+function closeFullPost() {
+  const content = document.querySelector('#page-home .content');
+  if (!content) return;
+  content.innerHTML = `
+    <div class="section-header">
+      <span class="section-title" data-editable="home_section_title">Latest</span>
+    </div>
+    <div id="homePostFeed"></div>`;
+  initInlineEditing();
+  renderHomePostFeed();
+  if (adminMode) addNewPostButton();
+}
+
+function togglePostPublished(idx, e) {
+  e.stopPropagation();
+  const posts = getData('blog_posts', []);
+  if (!posts[idx]) return;
+  posts[idx].published = !posts[idx].published;
+  setData('blog_posts', posts);
+  renderHomePostFeed();
+  if (adminMode) addNewPostButton();
+}
+
+function deletePost(idx) {
+  if (!confirm('Delete this post?')) return;
+  const posts = getData('blog_posts', []);
+  posts.splice(idx, 1);
+  setData('blog_posts', posts);
+  renderHomePostFeed();
+  if (adminMode) addNewPostButton();
+}
+
+function editPost(idx) {
+  const posts = getData('blog_posts', []);
+  showPostModal(idx, posts[idx] || {});
+}
+
+function addNewPostButton() {
+  const existing = document.getElementById('newPostBtn');
+  if (existing) existing.remove();
+  const feed = document.getElementById('homePostFeed');
+  if (!feed) return;
+  const btn = document.createElement('button');
+  btn.id = 'newPostBtn';
+  btn.className = 'admin-add-btn';
+  btn.textContent = '+ New post';
+  btn.onclick = () => showPostModal(-1, {});
+  feed.parentNode.insertBefore(btn, feed);
+}
+
+function showPostModal(idx, post) {
+  const existing = document.getElementById('adminModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;`;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:700px;font-family:var(--sans);margin:auto;">
+      <h3 style="font-family:var(--serif);font-size:1.4rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${idx === -1 ? 'New post' : 'Edit post'}</h3>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Title</label>
+          <input id="bp_title" type="text" value="${(post.title||'').replace(/"/g,'&quot;')}" placeholder="Post title" style="width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:1.1rem;font-family:var(--serif);outline:none;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Date</label>
+            <input id="bp_date" type="text" value="${post.date||''}" placeholder="12 Jul 2026" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Category (optional)</label>
+            <input id="bp_category" type="text" value="${post.category||''}" placeholder="Analysis, Opinion, Rankings…" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Body — press Enter for new paragraph</label>
+          <textarea id="bp_body" style="width:100%;padding:0.75rem 0.9rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:1rem;font-family:var(--serif);outline:none;min-height:320px;resize:vertical;line-height:1.7;">${post.body||''}</textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <label class="publish-toggle" id="bp_publish_toggle" style="cursor:pointer;">
+            <div class="toggle-track ${post.published ? 'on' : ''}" id="bp_toggle_track"><div class="toggle-thumb"></div></div>
+            <span id="bp_toggle_label" style="color:var(--gray-600);font-size:0.82rem;">${post.published ? 'Publish immediately' : 'Save as draft'}</span>
+          </label>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;">
+        <button onclick="document.getElementById('adminModal').remove()" style="padding:0.6rem 1.2rem;border:1.5px solid var(--gray-200);border-radius:3px;background:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;">Cancel</button>
+        <button onclick="savePost(${idx})" style="padding:0.6rem 1.4rem;border:none;border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:600;">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  // Wire up publish toggle
+  const track = document.getElementById('bp_toggle_track');
+  const label = document.getElementById('bp_toggle_label');
+  document.getElementById('bp_publish_toggle').addEventListener('click', () => {
+    track.classList.toggle('on');
+    label.textContent = track.classList.contains('on') ? 'Publish immediately' : 'Save as draft';
+  });
+
+  document.getElementById('bp_title').focus();
+}
+
+function savePost(idx) {
+  const title    = document.getElementById('bp_title').value.trim();
+  const date     = document.getElementById('bp_date').value.trim();
+  const category = document.getElementById('bp_category').value.trim();
+  const body     = document.getElementById('bp_body').value.trim();
+  const published = document.getElementById('bp_toggle_track').classList.contains('on');
+
+  if (!title) { alert('Title required.'); return; }
+
+  const post = { title, date, category, body, published };
+  const posts = getData('blog_posts', []);
+  if (idx === -1) posts.unshift(post);
+  else posts[idx] = post;
+  setData('blog_posts', posts);
+  document.getElementById('adminModal').remove();
+  renderHomePostFeed();
+  addNewPostButton();
+}
+
 loadData();
 initInlineEditing();
+renderHomePostFeed();
 </script>
 </body>
 </html>
