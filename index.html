@@ -275,9 +275,9 @@
   </div>
   <div class="nav-tab-band">
     <button class="nav-tab" onclick="showPage('rankings')">Rankings</button>
-    <button class="nav-tab" onclick="showPage('country-xi')">Country 21st C. XIs</button>
-    <button class="nav-tab" onclick="showPage('club-xi')">Club XIs</button>
-    <button class="nav-tab" onclick="showPage('continental-xi')">Continental XIs</button>
+    <button class="nav-tab" onclick="showPage('club-xi')">21st Century XI (Club)</button>
+    <button class="nav-tab" onclick="showPage('country-xi')">21st Century XI (Country)</button>
+    <button class="nav-tab" onclick="showPage('continental-xi')">21st Century XI (Continent)</button>
     <button class="nav-tab" onclick="showPage('managers')">Managers</button>
     <button class="nav-tab" onclick="showPage('positions')">Positions</button>
     <button class="nav-tab" onclick="showPage('diary')">Matchday Diary</button>
@@ -289,9 +289,9 @@
 <div class="mobile-menu" id="mobileMenu">
   <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
   <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">Rankings</button>
-  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">Country 21st C. XIs</button>
-  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">Club XIs</button>
-  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();">Continental XIs</button>
+  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">21st Century XI (Club)</button>
+  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">21st Century XI (Country)</button>
+  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();">21st Century XI (Continent)</button>
   <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();">Managers</button>
   <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();">Positions</button>
   <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();">Matchday Diary</button>
@@ -498,7 +498,7 @@
 <div class="page" id="page-club-xi">
   <div class="content-wide">
     <div id="club-list-view">
-      <div class="section-header"><span class="section-title">Club All-Time XIs</span><span class="section-sub">Premier League &amp; Champions League clubs</span></div>
+      <div class="section-header"><span class="section-title">Club 21st Century XIs</span><span class="section-sub">Premier League &amp; Champions League clubs</span></div>
       <div class="xi-country-grid" id="clubGrid"></div>
     </div>
     <div id="club-detail-view" style="display:none">
@@ -511,7 +511,33 @@
 <!-- CONTINENTAL XIs -->
 <div class="page" id="page-continental-xi">
   <div class="content">
-    <div class="empty-state"><p>Nothing here yet.</p></div>
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="showSubTab('continental','europe')">Europe</button>
+      <button class="sub-tab" onclick="showSubTab('continental','southamerica')">South America</button>
+      <button class="sub-tab" onclick="showSubTab('continental','northamerica')">North America</button>
+      <button class="sub-tab" onclick="showSubTab('continental','asia')">Asia</button>
+      <button class="sub-tab" onclick="showSubTab('continental','africa')">Africa</button>
+    </div>
+    <div id="continental-europe">
+      <div class="section-header"><span class="section-title">European 21st Century XI</span></div>
+      <div id="xi-europe"></div>
+    </div>
+    <div id="continental-southamerica" style="display:none">
+      <div class="section-header"><span class="section-title">South American 21st Century XI</span></div>
+      <div id="xi-southamerica"></div>
+    </div>
+    <div id="continental-northamerica" style="display:none">
+      <div class="section-header"><span class="section-title">North American 21st Century XI</span></div>
+      <div id="xi-northamerica"></div>
+    </div>
+    <div id="continental-asia" style="display:none">
+      <div class="section-header"><span class="section-title">Asian 21st Century XI</span></div>
+      <div id="xi-asia"></div>
+    </div>
+    <div id="continental-africa" style="display:none">
+      <div class="section-header"><span class="section-title">African 21st Century XI</span></div>
+      <div id="xi-africa"></div>
+    </div>
   </div>
 </div>
 
@@ -598,64 +624,64 @@
 // ---- COUNTRY DATA ----
 const COUNTRIES = [
   // EUROPE
-  { name: "France",        continent: "Europe",       wc: 2, euros: 2, bestWC: "Winner",    bestEuros: "Winner"    },
-  { name: "Germany",       continent: "Europe",       wc: 4, euros: 3, bestWC: "Winner",    bestEuros: "Winner"    },
-  { name: "Spain",         continent: "Europe",       wc: 1, euros: 3, bestWC: "Winner",    bestEuros: "Winner"    },
-  { name: "Italy",         continent: "Europe",       wc: 4, euros: 2, bestWC: "Winner",    bestEuros: "Winner"    },
-  { name: "England",       continent: "Europe",       wc: 1, euros: 0, bestWC: "Winner",    bestEuros: "Final"     },
-  { name: "Netherlands",   continent: "Europe",       wc: 0, euros: 1, bestWC: "Final",     bestEuros: "Winner"    },
-  { name: "Portugal",      continent: "Europe",       wc: 0, euros: 2, bestWC: "3rd Place", bestEuros: "Winner"    },
-  { name: "Belgium",       continent: "Europe",       wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "Semi-final"},
-  { name: "Croatia",       continent: "Europe",       wc: 0, euros: 0, bestWC: "Final",     bestEuros: "QF"        },
-  { name: "Czech Republic",continent: "Europe",       wc: 0, euros: 1, bestWC: "Final",     bestEuros: "Winner"    },
-  { name: "Denmark",       continent: "Europe",       wc: 0, euros: 1, bestWC: "QF",        bestEuros: "Winner"    },
-  { name: "Sweden",        continent: "Europe",       wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "Semi-final"},
-  { name: "Hungary",       continent: "Europe",       wc: 0, euros: 0, bestWC: "Final",     bestEuros: "Final"     },
-  { name: "Yugoslavia",    continent: "Europe",       wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "Final"     },
-  { name: "USSR / Russia", continent: "Europe",       wc: 0, euros: 1, bestWC: "4th Place", bestEuros: "Winner"    },
-  { name: "Poland",        continent: "Europe",       wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "QF"        },
-  { name: "Romania",       continent: "Europe",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "QF"        },
-  { name: "Greece",        continent: "Europe",       wc: 0, euros: 1, bestWC: "R16",       bestEuros: "Winner"    },
-  { name: "Turkey",        continent: "Europe",       wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "Semi-final"},
-  { name: "Switzerland",   continent: "Europe",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "Semi-final"},
-  { name: "Austria",       continent: "Europe",       wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "QF"        },
-  { name: "Slovakia",      continent: "Europe",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "R16"       },
-  { name: "Ukraine",       continent: "Europe",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "QF"        },
-  { name: "Serbia",        continent: "Europe",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "QF"        },
-  { name: "Scotland",      continent: "Europe",       wc: 0, euros: 0, bestWC: "Group",     bestEuros: "Group"     },
-  { name: "Wales",         continent: "Europe",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "Semi-final"},
-  { name: "Norway",        continent: "Europe",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "QF"        },
+  { name: "France",        continent: "Europe", wc: 2, euros: 2, bestWC: "Winner",    bestEuros: "Winner"    },
+  { name: "Germany",       continent: "Europe", wc: 4, euros: 3, bestWC: "Winner",    bestEuros: "Winner"    },
+  { name: "Spain",         continent: "Europe", wc: 1, euros: 3, bestWC: "Winner",    bestEuros: "Winner"    },
+  { name: "Italy",         continent: "Europe", wc: 4, euros: 2, bestWC: "Winner",    bestEuros: "Winner"    },
+  { name: "England",       continent: "Europe", wc: 1, euros: 0, bestWC: "Winner",    bestEuros: "Final"     },
+  { name: "Netherlands",   continent: "Europe", wc: 0, euros: 1, bestWC: "Final",     bestEuros: "Winner"    },
+  { name: "Portugal",      continent: "Europe", wc: 0, euros: 2, bestWC: "3rd Place", bestEuros: "Winner"    },
+  { name: "Belgium",       continent: "Europe", wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "Semi-final"},
+  { name: "Croatia",       continent: "Europe", wc: 0, euros: 0, bestWC: "Final",     bestEuros: "QF"        },
+  { name: "Czech Republic",continent: "Europe", wc: 0, euros: 1, bestWC: "Final",     bestEuros: "Winner"    },
+  { name: "Denmark",       continent: "Europe", wc: 0, euros: 1, bestWC: "QF",        bestEuros: "Winner"    },
+  { name: "Sweden",        continent: "Europe", wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "Semi-final"},
+  { name: "Hungary",       continent: "Europe", wc: 0, euros: 0, bestWC: "Final",     bestEuros: "Final"     },
+  { name: "Yugoslavia",    continent: "Europe", wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "Final"     },
+  { name: "USSR / Russia", continent: "Europe", wc: 0, euros: 1, bestWC: "4th Place", bestEuros: "Winner"    },
+  { name: "Poland",        continent: "Europe", wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "QF"        },
+  { name: "Romania",       continent: "Europe", wc: 0, euros: 0, bestWC: "QF",        bestEuros: "QF"        },
+  { name: "Greece",        continent: "Europe", wc: 0, euros: 1, bestWC: "R16",       bestEuros: "Winner"    },
+  { name: "Turkey",        continent: "Europe", wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "Semi-final"},
+  { name: "Switzerland",   continent: "Europe", wc: 0, euros: 0, bestWC: "QF",        bestEuros: "Semi-final"},
+  { name: "Austria",       continent: "Europe", wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "QF"        },
+  { name: "Slovakia",      continent: "Europe", wc: 0, euros: 0, bestWC: "R16",       bestEuros: "R16"       },
+  { name: "Ukraine",       continent: "Europe", wc: 0, euros: 0, bestWC: "QF",        bestEuros: "QF"        },
+  { name: "Serbia",        continent: "Europe", wc: 0, euros: 0, bestWC: "R16",       bestEuros: "QF"        },
+  { name: "Scotland",      continent: "Europe", wc: 0, euros: 0, bestWC: "Group",     bestEuros: "Group"     },
+  { name: "Wales",         continent: "Europe", wc: 0, euros: 0, bestWC: "R16",       bestEuros: "Semi-final"},
+  { name: "Norway",        continent: "Europe", wc: 0, euros: 0, bestWC: "QF",        bestEuros: "QF"        },
   { name: "Republic of Ireland", continent:"Europe",  wc: 0, euros: 0, bestWC: "QF",        bestEuros: "R16"       },
   { name: "Northern Ireland",    continent:"Europe",  wc: 0, euros: 0, bestWC: "QF",        bestEuros: "R16"       },
-  { name: "Slovenia",      continent: "Europe",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "QF"        },
+  { name: "Slovenia",      continent: "Europe", wc: 0, euros: 0, bestWC: "R16",       bestEuros: "QF"        },
 
   // SOUTH AMERICA
-  { name: "Brazil",        continent: "South America",wc: 5, euros: 0, bestWC: "Winner",    bestEuros: "—"         },
-  { name: "Argentina",     continent: "South America",wc: 3, euros: 0, bestWC: "Winner",    bestEuros: "—"         },
-  { name: "Uruguay",       continent: "South America",wc: 2, euros: 0, bestWC: "Winner",    bestEuros: "—"         },
-  { name: "Colombia",      continent: "South America",wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
-  { name: "Chile",         continent: "South America",wc: 0, euros: 0, bestWC: "3rd Place", bestEuros: "—"         },
-  { name: "Ecuador",       continent: "South America",wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
+  { name: "Brazil",        continent: "South America", wc: 5, euros: 0, copa: 9,  afcon: 0, bestWC: "Winner",    bestEuros: "—" },
+  { name: "Argentina",     continent: "South America", wc: 3, euros: 0, copa: 16, afcon: 0, bestWC: "Winner",    bestEuros: "—" },
+  { name: "Uruguay",       continent: "South America", wc: 2, euros: 0, copa: 15, afcon: 0, bestWC: "Winner",    bestEuros: "—" },
+  { name: "Colombia",      continent: "South America", wc: 0, euros: 0, copa: 1,  afcon: 0, bestWC: "QF",        bestEuros: "—" },
+  { name: "Chile",         continent: "South America", wc: 0, euros: 0, copa: 2,  afcon: 0, bestWC: "3rd Place", bestEuros: "—" },
+  { name: "Ecuador",       continent: "South America", wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "R16",       bestEuros: "—" },
 
   // NORTH AMERICA / CONCACAF
-  { name: "Mexico",        continent: "CONCACAF",     wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
-  { name: "USA",           continent: "CONCACAF",     wc: 0, euros: 0, bestWC: "Semi-final",bestEuros: "—"         },
+  { name: "Mexico",        continent: "CONCACAF",      wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "QF",        bestEuros: "—" },
+  { name: "USA",           continent: "CONCACAF",      wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "Semi-final",bestEuros: "—" },
 
   // AFRICA
-  { name: "Senegal",       continent: "Africa",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
-  { name: "Morocco",       continent: "Africa",       wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "—"         },
-  { name: "Ghana",         continent: "Africa",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
-  { name: "Ivory Coast",   continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
-  { name: "Cameroon",      continent: "Africa",       wc: 0, euros: 0, bestWC: "QF",        bestEuros: "—"         },
-  { name: "Nigeria",       continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
-  { name: "Algeria",       continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
-  { name: "Tunisia",       continent: "Africa",       wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
+  { name: "Senegal",       continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 1, bestWC: "QF",        bestEuros: "—" },
+  { name: "Morocco",       continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 1, bestWC: "4th Place", bestEuros: "—" },
+  { name: "Ghana",         continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 2, bestWC: "QF",        bestEuros: "—" },
+  { name: "Ivory Coast",   continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 3, bestWC: "R16",       bestEuros: "—" },
+  { name: "Cameroon",      continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 5, bestWC: "QF",        bestEuros: "—" },
+  { name: "Nigeria",       continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 3, bestWC: "R16",       bestEuros: "—" },
+  { name: "Algeria",       continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 2, bestWC: "R16",       bestEuros: "—" },
+  { name: "Tunisia",       continent: "Africa",        wc: 0, euros: 0, copa: 0,  afcon: 1, bestWC: "R16",       bestEuros: "—" },
 
   // ASIA
-  { name: "Japan",         continent: "Asia",         wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
-  { name: "South Korea",   continent: "Asia",         wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "—"         },
-  { name: "Australia",     continent: "Asia",         wc: 0, euros: 0, bestWC: "4th Place", bestEuros: "—"         },
-  { name: "Iran",          continent: "Asia",         wc: 0, euros: 0, bestWC: "R16",       bestEuros: "—"         },
+  { name: "Japan",         continent: "Asia",          wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "R16",       bestEuros: "—" },
+  { name: "South Korea",   continent: "Asia",          wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "4th Place", bestEuros: "—" },
+  { name: "Australia",     continent: "Asia",          wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "4th Place", bestEuros: "—" },
+  { name: "Iran",          continent: "Asia",          wc: 0, euros: 0, copa: 0,  afcon: 0, bestWC: "R16",       bestEuros: "—" },
 ];
 
 const HISTORICAL_GROUPS = [
@@ -819,6 +845,8 @@ function countryCard(c, showWC, showEuros, showFinish) {
   const trophies = [];
   if (showWC && c.wc > 0) trophies.push(`<span class="trophy-badge gold">WC ×${c.wc}</span>`);
   if (showEuros && c.euros > 0) trophies.push(`<span class="trophy-badge gold">Euros ×${c.euros}</span>`);
+  if (c.copa > 0) trophies.push(`<span class="trophy-badge gold">Copa ×${c.copa}</span>`);
+  if (c.afcon > 0) trophies.push(`<span class="trophy-badge gold">AFCON ×${c.afcon}</span>`);
   if (showFinish && c.bestWC !== '—') trophies.push(`<span class="trophy-badge">WC: ${c.bestWC}</span>`);
   if (showFinish && c.bestEuros !== '—') trophies.push(`<span class="trophy-badge">Euros: ${c.bestEuros}</span>`);
   const trophyHTML = trophies.length ? `<div class="xi-country-trophies">${trophies.join('')}</div>` : '';
@@ -1007,6 +1035,15 @@ function buildXIDetail(name, meta) {
 }
 
 // ---- CONTINENTAL XIs ----
+// ---- CONTINENTAL XIs ----
+function buildContinentalXIs() {
+  const map = { europe:'European', southamerica:'South American', northamerica:'North American', asia:'Asian', africa:'African' };
+  Object.keys(map).forEach(key => {
+    const el = document.getElementById('xi-' + key);
+    if (el) el.innerHTML = buildXIDetail(map[key], null);
+  });
+}
+
 // ---- CONTACT ----
 function handleContact(e) {
   e.preventDefault();
@@ -2389,6 +2426,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderHomePostFeed();
   renderPositions();
   buildClubGrid();
+  buildContinentalXIs();
   renderCountryDisplay();
 });
 </script>
