@@ -918,7 +918,7 @@ function showPage(id) {
   if (id === 'scouting') renderScouting();
   if (id === 'home') renderHomePostFeed();
   if (id === 'positions') renderPositions();
-  if (id === 'rankings') { renderAllRankings(); showRankingSection('overall'); }
+  if (id === 'rankings') { showRankingSection('overall'); }
   if (id === 'managers') renderAllRankings();
   window.scrollTo(0,0);
 }
@@ -2895,6 +2895,8 @@ document.addEventListener('DOMContentLoaded', function() {
   renderCountryDisplay();
   renderAllRankings();
   showPage('home');
+  // Re-render rankings after short delay as failsafe for baked data
+  setTimeout(() => renderAllRankings(), 100);
 });
 </script>
 </body>
