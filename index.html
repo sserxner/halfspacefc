@@ -273,29 +273,29 @@
     </button>
   </div>
   <div class="nav-tab-band">
-    <button class="nav-tab" data-page="rankings"><span data-editable="nav_rankings">Rankings</span></button>
-    <button class="nav-tab" data-page="country-xi"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-    <button class="nav-tab" data-page="club-xi"><span data-editable="nav_club">Club XIs</span></button>
-    <button class="nav-tab" data-page="continental-xi"><span data-editable="nav_continental">Continental XIs</span></button>
-    <button class="nav-tab" data-page="managers"><span data-editable="nav_managers">Managers</span></button>
-    <button class="nav-tab" data-page="positions"><span data-editable="nav_positions">Positions</span></button>
-    <button class="nav-tab" data-page="diary"><span data-editable="nav_diary">Matchday Diary</span></button>
-    <button class="nav-tab" data-page="scouting"><span data-editable="nav_scouting">Scouting</span></button>
-    <button class="nav-tab" data-page="contact"><span data-editable="nav_contact">Contact</span></button>
+    <button class="nav-tab" onclick="showPage('rankings')">Rankings</button>
+    <button class="nav-tab" onclick="showPage('country-xi')">Country 21st C. XIs</button>
+    <button class="nav-tab" onclick="showPage('club-xi')">Club XIs</button>
+    <button class="nav-tab" onclick="showPage('continental-xi')">Continental XIs</button>
+    <button class="nav-tab" onclick="showPage('managers')">Managers</button>
+    <button class="nav-tab" onclick="showPage('positions')">Positions</button>
+    <button class="nav-tab" onclick="showPage('diary')">Matchday Diary</button>
+    <button class="nav-tab" onclick="showPage('scouting')">Scouting</button>
+    <button class="nav-tab" onclick="showPage('contact')">Contact</button>
   </div>
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
-  <button class="nav-tab" data-page="home" data-mobile="true">Home</button>
-  <button class="nav-tab" data-page="rankings" data-mobile="true"><span data-editable="nav_rankings">Rankings</span></button>
-  <button class="nav-tab" data-page="country-xi" data-mobile="true"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-  <button class="nav-tab" data-page="club-xi" data-mobile="true"><span data-editable="nav_club">Club XIs</span></button>
-  <button class="nav-tab" data-page="continental-xi" data-mobile="true"><span data-editable="nav_continental">Continental XIs</span></button>
-  <button class="nav-tab" data-page="managers" data-mobile="true"><span data-editable="nav_managers">Managers</span></button>
-  <button class="nav-tab" data-page="positions" data-mobile="true"><span data-editable="nav_positions">Positions</span></button>
-  <button class="nav-tab" data-page="diary" data-mobile="true"><span data-editable="nav_diary">Matchday Diary</span></button>
-  <button class="nav-tab" data-page="scouting" data-mobile="true"><span data-editable="nav_scouting">Scouting</span></button>
-  <button class="nav-tab" data-page="contact" data-mobile="true"><span data-editable="nav_contact">Contact</span></button>
+  <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
+  <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">Rankings</button>
+  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">Country 21st C. XIs</button>
+  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">Club XIs</button>
+  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();">Continental XIs</button>
+  <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();">Managers</button>
+  <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();">Positions</button>
+  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();">Matchday Diary</button>
+  <button class="nav-tab" onclick="showPage('scouting');toggleMobileMenu();">Scouting</button>
+  <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();">Contact</button>
 </div>
 
 <!-- HOME -->
@@ -770,18 +770,6 @@ const CLUBS = [
 ];
 
 const FINISH_ORDER = ["Winner","Final","3rd Place","4th Place","Semi-final","QF","R16","Group","—"];
-
-// ---- NAV TAB CLICK HANDLING ----
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('.nav-tab[data-page]');
-  if (!btn) return;
-  // Don't navigate if a span is actively being edited
-  if (e.target.contentEditable === 'true') return;
-  const page = btn.getAttribute('data-page');
-  const isMobile = btn.getAttribute('data-mobile') === 'true';
-  showPage(page);
-  if (isMobile) toggleMobileMenu();
-});
 
 // ---- NAVIGATION ----
 function showPage(id) {
