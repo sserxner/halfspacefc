@@ -247,8 +247,6 @@
   [data-editable] { cursor: default; }
   .admin-active [data-editable] { border-bottom: 1.5px dashed rgba(45,92,63,0.5); cursor: text; transition: border-color 0.15s; border-radius: 2px; }
   .admin-active [data-editable]:hover { border-bottom-color: var(--accent); background: rgba(45,92,63,0.06); }
-  .nav-tab span[data-editable] { pointer-events: none; }
-  .admin-active .nav-tab span[data-editable] { pointer-events: auto; }
   .admin-active .nav-tab-band [data-editable]:hover { border-bottom-color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.08); border-radius: 2px; cursor: text; }
   [data-editable]:focus { outline: none; border-bottom-color: var(--accent) !important; background: rgba(45,92,63,0.08) !important; }
   .hero [data-editable]:focus { background: rgba(255,255,255,0.1) !important; border-bottom-color: rgba(255,255,255,0.8) !important; }
@@ -275,29 +273,29 @@
     </button>
   </div>
   <div class="nav-tab-band">
-    <button class="nav-tab" onclick="if(!adminMode)showPage('rankings')"><span data-editable="nav_rankings">Rankings</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('country-xi')"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('club-xi')"><span data-editable="nav_club">Club XIs</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('continental-xi')"><span data-editable="nav_continental">Continental XIs</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('managers')"><span data-editable="nav_managers">Managers</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('positions')"><span data-editable="nav_positions">Positions</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('diary')"><span data-editable="nav_diary">Matchday Diary</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('scouting')"><span data-editable="nav_scouting">Scouting</span></button>
-    <button class="nav-tab" onclick="if(!adminMode)showPage('contact')"><span data-editable="nav_contact">Contact</span></button>
+    <button class="nav-tab" data-page="rankings"><span data-editable="nav_rankings">Rankings</span></button>
+    <button class="nav-tab" data-page="country-xi"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+    <button class="nav-tab" data-page="club-xi"><span data-editable="nav_club">Club XIs</span></button>
+    <button class="nav-tab" data-page="continental-xi"><span data-editable="nav_continental">Continental XIs</span></button>
+    <button class="nav-tab" data-page="managers"><span data-editable="nav_managers">Managers</span></button>
+    <button class="nav-tab" data-page="positions"><span data-editable="nav_positions">Positions</span></button>
+    <button class="nav-tab" data-page="diary"><span data-editable="nav_diary">Matchday Diary</span></button>
+    <button class="nav-tab" data-page="scouting"><span data-editable="nav_scouting">Scouting</span></button>
+    <button class="nav-tab" data-page="contact"><span data-editable="nav_contact">Contact</span></button>
   </div>
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
-  <button class="nav-tab" onclick="if(!adminMode){showPage('home');toggleMobileMenu();}">Home</button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('rankings');toggleMobileMenu();}"><span data-editable="nav_rankings">Rankings</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('country-xi');toggleMobileMenu();}"><span data-editable="nav_country">Country 21st C. XIs</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('club-xi');toggleMobileMenu();}"><span data-editable="nav_club">Club XIs</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('continental-xi');toggleMobileMenu();}"><span data-editable="nav_continental">Continental XIs</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('managers');toggleMobileMenu();}"><span data-editable="nav_managers">Managers</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('positions');toggleMobileMenu();}"><span data-editable="nav_positions">Positions</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('diary');toggleMobileMenu();}"><span data-editable="nav_diary">Matchday Diary</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('scouting');toggleMobileMenu();}"><span data-editable="nav_scouting">Scouting</span></button>
-  <button class="nav-tab" onclick="if(!adminMode){showPage('contact');toggleMobileMenu();}"><span data-editable="nav_contact">Contact</span></button>
+  <button class="nav-tab" data-page="home" data-mobile="true">Home</button>
+  <button class="nav-tab" data-page="rankings" data-mobile="true"><span data-editable="nav_rankings">Rankings</span></button>
+  <button class="nav-tab" data-page="country-xi" data-mobile="true"><span data-editable="nav_country">Country 21st C. XIs</span></button>
+  <button class="nav-tab" data-page="club-xi" data-mobile="true"><span data-editable="nav_club">Club XIs</span></button>
+  <button class="nav-tab" data-page="continental-xi" data-mobile="true"><span data-editable="nav_continental">Continental XIs</span></button>
+  <button class="nav-tab" data-page="managers" data-mobile="true"><span data-editable="nav_managers">Managers</span></button>
+  <button class="nav-tab" data-page="positions" data-mobile="true"><span data-editable="nav_positions">Positions</span></button>
+  <button class="nav-tab" data-page="diary" data-mobile="true"><span data-editable="nav_diary">Matchday Diary</span></button>
+  <button class="nav-tab" data-page="scouting" data-mobile="true"><span data-editable="nav_scouting">Scouting</span></button>
+  <button class="nav-tab" data-page="contact" data-mobile="true"><span data-editable="nav_contact">Contact</span></button>
 </div>
 
 <!-- HOME -->
@@ -772,6 +770,20 @@ const CLUBS = [
 ];
 
 const FINISH_ORDER = ["Winner","Final","3rd Place","4th Place","Semi-final","QF","R16","Group","—"];
+
+// ---- NAV TAB CLICK HANDLING ----
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.nav-tab[data-page]');
+  if (!btn) return;
+  // If clicking directly on an editable span that's currently contenteditable, let it be
+  if (e.target.contentEditable === 'true') return;
+  const page = btn.getAttribute('data-page');
+  const isMobile = btn.getAttribute('data-mobile') === 'true';
+  if (!adminMode || !e.target.hasAttribute('data-editable')) {
+    showPage(page);
+    if (isMobile) toggleMobileMenu();
+  }
+});
 
 // ---- NAVIGATION ----
 function showPage(id) {
