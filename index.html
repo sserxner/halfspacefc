@@ -425,28 +425,33 @@
     <div id="searchResults"></div>
   </div>
   <div class="nav-tab-band">
-    <button class="nav-tab" onclick="showPage('rankings')">Rankings</button>
-    <button class="nav-tab" onclick="showPage('club-xi')">21<sup style="margin-right: 0.16em;">st</sup>&nbsp;Century XI (Club)</button>
-    <button class="nav-tab" onclick="showPage('country-xi')">21<sup style="margin-right: 0.16em;">st</sup>&nbsp;Century XI (Country)</button>
-    <button class="nav-tab" onclick="showPage('continental-xi')">21<sup style="margin-right: 0.16em;">st</sup>&nbsp;Century XI (Continent)</button>
+    <button class="nav-tab" onclick="showPage('diary')">Matchday Diaries</button>
+    <button class="nav-tab" onclick="showPage('transfers')">Transfer Recommendations</button>
+    <button class="nav-tab" onclick="showPage('present-rankings')">Present Rankings</button>
+    <div class="nav-dropdown" id="centuryRankingsDropdown">
+      <button type="button" class="nav-tab nav-dropdown-toggle" id="centuryRankingsToggle" aria-haspopup="true" aria-expanded="false">21<sup>st</sup>&nbsp;Century Rankings ▾</button>
+      <div class="nav-dropdown-menu" id="centuryRankingsMenu" role="menu">
+        <button type="button" data-century-page="rankings">Player Rankings</button>
+        <button type="button" data-century-page="club-xi">Club XIs</button>
+        <button type="button" data-century-page="country-xi">Country XIs</button>
+      </div>
+    </div>
     <button class="nav-tab" onclick="showPage('managers')">Influential Managers</button>
     <button class="nav-tab" onclick="showPage('positions')">Positions</button>
-    <button class="nav-tab" onclick="showPage('diary')">Matchday Diary</button>
-    <button class="nav-tab" onclick="showPage('scouting')">Scouting</button>
     <button class="nav-tab" onclick="showPage('contact')">Contact</button>
   </div>
 </nav>
 
 <div class="mobile-menu" id="mobileMenu">
   <button class="nav-tab" onclick="showPage('home');toggleMobileMenu();">Home</button>
-  <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">Rankings</button>
-  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">21<sup style="margin-right: 0.16em;">st</sup>&nbsp;Century XI (Club)</button>
-  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">21<sup style="margin-right: 0.16em;">st</sup>&nbsp;Century XI (Country)</button>
-  <button class="nav-tab" onclick="showPage('continental-xi');toggleMobileMenu();">21<sup style="margin-right: 0.16em;">st</sup>&nbsp;Century XI (Continent)</button>
+  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();">Matchday Diaries</button>
+  <button class="nav-tab" onclick="showPage('transfers');toggleMobileMenu();">Transfer Recommendations</button>
+  <button class="nav-tab" onclick="showPage('present-rankings');toggleMobileMenu();">Present Rankings</button>
+  <button class="nav-tab" onclick="showPage('rankings');toggleMobileMenu();">21st Century — Player Rankings</button>
+  <button class="nav-tab" onclick="showPage('club-xi');toggleMobileMenu();">21st Century — Club XIs</button>
+  <button class="nav-tab" onclick="showPage('country-xi');toggleMobileMenu();">21st Century — Country XIs</button>
   <button class="nav-tab" onclick="showPage('managers');toggleMobileMenu();">Influential Managers</button>
   <button class="nav-tab" onclick="showPage('positions');toggleMobileMenu();">Positions</button>
-  <button class="nav-tab" onclick="showPage('diary');toggleMobileMenu();">Matchday Diary</button>
-  <button class="nav-tab" onclick="showPage('scouting');toggleMobileMenu();">Scouting</button>
   <button class="nav-tab" onclick="showPage('contact');toggleMobileMenu();">Contact</button>
 </div>
 
@@ -463,6 +468,23 @@
       <span class="section-title" data-editable="home_section_title" title="Click to edit" contenteditable="true" style="cursor: text; outline: none; border-bottom: 1px dashed rgba(245, 208, 0, 0.5);">Latest</span>
     </div>
     <div id="homePostFeed"><div class="empty-state"><p>Nothing published yet.</p></div></div>
+  </div>
+</div>
+
+<!-- PRESENT RANKINGS -->
+<div class="page" id="page-present-rankings">
+  <div class="content">
+    <div class="section-header"><span class="section-title">Present Rankings</span><span class="section-sub">The best players in the world right now</span></div>
+    <div class="sub-tabs" id="present-primary-tabs"></div>
+    <div id="present-rank-content"></div>
+  </div>
+</div>
+
+<!-- TRANSFER RECOMMENDATIONS -->
+<div class="page" id="page-transfers">
+  <div class="content-wide">
+    <div class="section-header"><span class="section-title">Transfer Recommendations</span><span class="section-sub">Summer-window plans and proposed depth charts</span></div>
+    <div id="transferRecommendations"></div>
   </div>
 </div>
 
@@ -9753,6 +9775,8 @@ function showPage(id, historyMode) {
   if (id === 'home') renderHomePostFeed();
   if (id === 'positions') renderPositions();
   if (id === 'rankings') { renderAllRankings(); showRankingSection('overall'); }
+  if (id === 'club-xi') { buildClubGrid(); showClubList('none'); }
+  if (id === 'country-xi') { renderCountryDisplay(); showCountryList('none'); }
   if (id === 'managers') renderManagerEssays();
   writeHSHistory({ page: id, view: 'page' }, historyMode || 'push');
   window.scrollTo(0,0);
@@ -10024,6 +10048,7 @@ function showCountryDetail(identifier, historyMode) {
   const key='country_'+name.replace(/\s+/g,'_');
   restoreXIData(key,content); if (adminMode) makeXIEditable(key,content);
   writeHSHistory({page:'country-xi',view:'country-detail',item:countrySlug(name)},historyMode||'push');
+  requestAnimationFrame(()=>content.querySelector('.pitch')?.scrollIntoView({block:'start',behavior:'auto'}));
 }
 
 function showCountryList(historyMode) {
@@ -10125,6 +10150,7 @@ function showClubDetail(identifier,historyMode){
   content.innerHTML=buildXIDetail(name,null,fKey);
   const key='club_'+name.replace(/\s+/g,'_');restoreXIData(key,content);if(adminMode)makeXIEditable(key,content);
   writeHSHistory({page:'club-xi',view:'club-detail',item:clubSlug(name)},historyMode||'push');
+  requestAnimationFrame(()=>content.querySelector('.pitch')?.scrollIntoView({block:'start',behavior:'auto'}));
 }
 function showClubList(historyMode){document.getElementById('club-list-view').style.display='';document.getElementById('club-detail-view').style.display='none';writeHSHistory({page:'club-xi',view:'page'},historyMode||'none');}
 function returnToClubList(){const st=history.state;if(st&&st.halfspace&&st.view==='club-detail')history.back();else{showPage('club-xi');showClubList('replace');}}
@@ -12297,4 +12323,68 @@ function editXIManager(entityName, element) {
 })();
 </script>
 
+
+<style id="structural-navigation-update">
+.nav-dropdown{position:relative;display:flex}.nav-dropdown-menu{display:none;position:absolute;top:40px;left:0;min-width:210px;background:#0f2518;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 24px rgba(0,0,0,.22);z-index:300}.nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block}.nav-dropdown-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:rgba(255,255,255,.72);padding:.7rem 1rem;font:600 .72rem var(--sans);text-transform:uppercase;letter-spacing:.05em;cursor:pointer}.nav-dropdown-menu button:hover{background:rgba(255,255,255,.08);color:#fff}
+#page-rankings [id$="-now"],#page-rankings .sub-tabs:not(#rankings-primary-tabs){display:none!important}
+.transfer-entry{background:#fff;border:1px solid var(--gray-200);border-radius:6px;padding:1.5rem;margin-bottom:1.5rem}.transfer-entry-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1rem}.transfer-entry-title{font:700 1.45rem var(--serif);color:var(--accent)}.transfer-entry-meta{font-size:.75rem;color:var(--gray-400)}.transfer-entry-body{font:1rem/1.7 var(--serif);color:var(--gray-600);white-space:pre-wrap;margin-bottom:1.5rem}.transfer-actions{display:flex;gap:.4rem;flex-wrap:wrap}.transfer-depth{max-width:760px;margin-top:1rem}.transfer-depth .xi-wrapper{grid-template-columns:1fr}.admin-active .transfer-depth .xi-wrapper{grid-template-columns:1fr 1fr}
+@media(max-width:768px){.nav-dropdown{display:none}}
+</style>
+<script id="structural-navigation-update-script">
+(function(){
+const PLAYER_SECTIONS=['overall','gk','cb','fb','cm','am','w','f'];
+const LABELS={overall:'Overall',gk:'GKs',cb:'CBs',fb:'FBs',cm:'CMs',am:'AM / 10s',w:'Wingers',f:'Forwards'};
+let activePresent='overall';
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderRankKey(key,target){
+ const data=rankGet(key);let html='';let rank=1;
+ if(data.blurb)html+='<div class="ranking-blurb">'+esc(data.blurb)+'</div>';
+ (data.tiers||[]).forEach((tier,ti)=>{html+='<div class="tier-label"><span class="tier-label-name">'+esc(tier.name||('Tier '+(ti+1)))+'</span>'+(adminMode?'<span class="tier-admin-btns"><button class="rk-btn" onclick="rankRenameTier(\''+key+'\','+ti+')">Rename</button><button class="rk-btn rk-del" onclick="rankDeleteTier(\''+key+'\','+ti+')">✕</button></span>':'')+'</div>';
+ (tier.entries||[]).forEach((e,ei)=>{html+='<div class="ranking-row"><span class="ranking-num">'+(rank++)+'</span><span class="ranking-body"><span class="ranking-name">'+esc(e.name)+(e.detail?'<span class="ranking-detail"> — '+esc(e.detail)+'</span>':'')+'</span>'+(e.note?'<span class="ranking-note">'+esc(e.note)+'</span>':'')+'</span>'+(adminMode?'<span class="ranking-controls"><button class="rk-btn" onclick="rankMove(\''+key+'\','+ti+','+ei+',-1)">↑</button><button class="rk-btn" onclick="rankMove(\''+key+'\','+ti+','+ei+',1)">↓</button><button class="rk-btn" onclick="rankEdit(\''+key+'\','+ti+','+ei+')">Edit</button><button class="rk-btn rk-del" onclick="rankDelete(\''+key+'\','+ti+','+ei+')">✕</button></span>':'')+'</div>'})});
+ if(rank===1)html='<div class="empty-state"><p>Rankings coming soon.</p></div>';
+ if(adminMode)html+='<div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="admin-add-btn" onclick="rankAddEntry(\''+key+'\')">+ Add player</button><button class="admin-add-btn" onclick="rankAddTier(\''+key+'\')">+ Add tier</button></div>';
+ target.innerHTML=html;
+}
+window.showPresentRanking=function(sec){activePresent=sec;document.querySelectorAll('#present-primary-tabs .sub-tab').forEach(b=>b.classList.toggle('active',b.dataset.sec===sec));const t=document.getElementById('present-rank-content');if(t)renderRankKey(sec+'_now',t)};
+window.renderPresentRankings=function(){const tabs=document.getElementById('present-primary-tabs');if(!tabs)return;tabs.innerHTML=PLAYER_SECTIONS.map(s=>'<button class="sub-tab '+(s===activePresent?'active':'')+'" data-sec="'+s+'" onclick="showPresentRanking(\''+s+'\')">'+LABELS[s]+'</button>').join('');showPresentRanking(activePresent)};
+const oldShowPage=window.showPage||showPage;window.showPage=function(id,historyMode){if(id==='continental-xi')id='rankings';oldShowPage(id,historyMode);if(id==='present-rankings')renderPresentRankings();if(id==='transfers')renderTransfers()};showPage=window.showPage;
+const oldRankRender=rankRender;rankRender=function(sec){oldRankRender(sec);if(document.getElementById('page-present-rankings')?.classList.contains('active')&&sec===activePresent)showPresentRanking(sec)};
+function transferData(){return getData('transfer_recommendations_v1',[])||[]}function saveTransfers(a){setData('transfer_recommendations_v1',a);renderTransfers()}
+window.addTransferRecommendation=function(){const club=prompt('Club:');if(!club||!club.trim())return;const title=prompt('Recommendation title:','Summer Window Plan')||'Summer Window Plan';const date=prompt('Date:','')||'';const body=prompt('Your recommendations:','')||'';const a=transferData();a.push({id:'tr_'+Date.now(),club:club.trim(),title,date,body,formation:'4-3-3'});saveTransfers(a)};
+window.editTransferRecommendation=function(i){const a=transferData(),x=a[i];if(!x)return;x.club=prompt('Club:',x.club)||x.club;x.title=prompt('Title:',x.title)||x.title;x.date=prompt('Date:',x.date)||'';const b=prompt('Recommendations:',x.body);if(b!==null)x.body=b;saveTransfers(a)};
+window.deleteTransferRecommendation=function(i){if(!confirm('Delete this recommendation?'))return;const a=transferData();a.splice(i,1);saveTransfers(a)};
+window.renderTransfers=function(){const root=document.getElementById('transferRecommendations');if(!root)return;const a=transferData();root.innerHTML=(a.length?a.map((x,i)=>'<article class="transfer-entry"><div class="transfer-entry-head"><div><div class="transfer-entry-title">'+esc(x.club)+' — '+esc(x.title)+'</div><div class="transfer-entry-meta">'+esc(x.date)+'</div></div>'+(adminMode?'<div class="transfer-actions"><button class="rk-btn" onclick="editTransferRecommendation('+i+')">Edit</button><button class="rk-btn rk-del" onclick="deleteTransferRecommendation('+i+')">Delete</button></div>':'')+'</div><div class="transfer-entry-body">'+esc(x.body)+'</div><div class="transfer-depth" id="transfer-depth-'+i+'"></div></article>').join(''):'<div class="empty-state"><p>No transfer recommendations yet.</p></div>')+(adminMode?'<button class="admin-add-btn" onclick="addTransferRecommendation()">+ Add transfer recommendation</button>':'');a.forEach((x,i)=>{const c=document.getElementById('transfer-depth-'+i);if(!c)return;const fk=getData('formation_transfer_'+x.id,x.formation||'4-3-3');c.innerHTML=buildXIDetail(x.club+' Depth Chart',null,fk);restoreXIData('transfer_'+x.id,c);if(adminMode)makeXIEditable('transfer_'+x.id,c)})};
+// remove continental page and simplify 21C rankings
+window.addEventListener('DOMContentLoaded',()=>{document.getElementById('page-continental-xi')?.remove();document.getElementById('page-scouting')?.remove();PLAYER_SECTIONS.forEach(s=>{const sec=document.getElementById('rsec-'+s);if(sec){sec.querySelectorAll(':scope > .sub-tabs').forEach(x=>x.remove());const now=sec.querySelector('#'+s+'-now');if(now)now.remove();const cent=sec.querySelector('#'+s+'-century');if(cent)cent.style.display=''}});renderPresentRankings();renderTransfers()});
+// reliable keyword search
+window.runSearch=function(query){const q=String(query||'').trim().toLowerCase(),out=document.getElementById('searchResults');if(!out)return;if(q.length<2){out.innerHTML='';return}const hits=[];PLAYER_SECTIONS.forEach(sec=>['century','now'].forEach(era=>{const d=rankGet(sec+'_'+era);(d.tiers||[]).forEach(t=>(t.entries||[]).forEach(e=>{if([e.name,e.detail,e.note].join(' ').toLowerCase().includes(q))hits.push({name:e.name,meta:(era==='now'?'Present Rankings':'21st Century Rankings')+' · '+LABELS[sec],go:()=>{showPage(era==='now'?'present-rankings':'rankings');era==='now'?showPresentRanking(sec):showRankingSection(sec)}})}))}));const md=rankGet('mgr_century');(md.tiers||[]).forEach(t=>(t.entries||[]).forEach(e=>{if([e.name,e.detail,e.note].join(' ').toLowerCase().includes(q))hits.push({name:e.name,meta:'21st Century Rankings · Managers',go:()=>{showPage('rankings');showRankingSection('mgr')}})}));(getData('diary_entries',[])||[]).forEach(e=>{if([e.title,e.body,e.fixture,e.competition].join(' ').toLowerCase().includes(q))hits.push({name:e.title||e.fixture,meta:'Matchday Diary',go:()=>showPage('diary')})});transferData().forEach(e=>{if([e.club,e.title,e.body].join(' ').toLowerCase().includes(q))hits.push({name:e.club+' — '+e.title,meta:'Transfer Recommendations',go:()=>showPage('transfers')})});(getData('blog_posts',[])||[]).forEach(e=>{if([e.title,e.body,e.category].join(' ').toLowerCase().includes(q))hits.push({name:e.title,meta:'Story',go:()=>showPage('home')})});out.innerHTML=hits.length?hits.slice(0,30).map((h,i)=>'<button class="search-result" data-i="'+i+'"><span class="search-result-name">'+esc(h.name)+'</span><span class="search-result-meta">'+esc(h.meta)+'</span></button>').join(''):'<div class="search-empty">No results for “'+esc(query)+'”</div>';out.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{toggleSearch();hits[+b.dataset.i].go()})};
+})();
+</script>
+
+
+<style id="century-dropdown-repair">
+@media (min-width:769px){
+  .nav-tab-band{overflow:visible;}
+  .nav-dropdown{position:relative;display:flex;}
+  .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;min-width:220px;background:#0f2518;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 28px rgba(0,0,0,.28);z-index:1000;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:rgba(255,255,255,.75);padding:.72rem 1rem;font:600 .72rem var(--sans);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;}
+  .nav-dropdown-menu button:hover,.nav-dropdown-menu button:focus{background:rgba(255,255,255,.09);color:#fff;outline:none;}
+}
+</style>
+<script id="century-dropdown-repair-script">
+(function(){
+  function setupCenturyDropdown(){
+    const wrap=document.getElementById('centuryRankingsDropdown');
+    const toggle=document.getElementById('centuryRankingsToggle');
+    const menu=document.getElementById('centuryRankingsMenu');
+    if(!wrap||!toggle||!menu)return;
+    toggle.onclick=function(e){e.preventDefault();e.stopPropagation();const open=!wrap.classList.contains('open');wrap.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open));};
+    menu.querySelectorAll('[data-century-page]').forEach(btn=>{btn.onclick=function(e){e.preventDefault();e.stopPropagation();wrap.classList.remove('open');toggle.setAttribute('aria-expanded','false');const page=this.dataset.centuryPage;if(page==='managers-ranking'){showPage('rankings');showRankingSection('mgr');}else{showPage(page);}};});
+    document.addEventListener('click',e=>{if(!wrap.contains(e.target)){wrap.classList.remove('open');toggle.setAttribute('aria-expanded','false');}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){wrap.classList.remove('open');toggle.setAttribute('aria-expanded','false');}});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupCenturyDropdown);else setupCenturyDropdown();
+})();
+</script>
 </body></html>
