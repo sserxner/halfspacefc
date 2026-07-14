@@ -12280,4 +12280,105 @@ nav,.nav-tab-band{overflow:visible!important}
   document.addEventListener('DOMContentLoaded',()=>{try{renderHomePostFeed()}catch(e){console.error(e)}});
 })();
 </script>
-<button id="cmsToolbarButton" class="cms-floating">Content Manager</button><div id="hsContentManager" style="display: none;" data-tab="headlines"><div class="cms-shell"><div class="cms-head"><div><div class="cms-eyebrow">Half Space Admin</div><h2>Content Manager</h2></div><button class="cms-close" onclick="closeContentManager()">×</button></div><div id="cmsTabs" class="cms-tabs"><button class="" onclick="cmsSelectTab('stories')">Stories</button><button class="" onclick="cmsSelectTab('diaries')">Diaries</button><button class="" onclick="cmsSelectTab('transfers')">Transfer Recommendations</button><button class="active" onclick="cmsSelectTab('headlines')">Headlines</button><button class="" onclick="cmsSelectTab('featured')">Featured Story</button></div><div id="cmsBody" class="cms-body"><div class="cms-section-top"><div><h3>Homepage Headlines</h3><p>Reorder or customize the clickable Latest rail.</p></div></div><div class="cms-empty">Select “Headline” on a story, diary, or transfer recommendation.</div></div></div></div></body></html>
+<button id="cmsToolbarButton" class="cms-floating">Content Manager</button><div id="hsContentManager" style="display: none;" data-tab="headlines"><div class="cms-shell"><div class="cms-head"><div><div class="cms-eyebrow">Half Space Admin</div><h2>Content Manager</h2></div><button class="cms-close" onclick="closeContentManager()">×</button></div><div id="cmsTabs" class="cms-tabs"><button class="" onclick="cmsSelectTab('stories')">Stories</button><button class="" onclick="cmsSelectTab('diaries')">Diaries</button><button class="" onclick="cmsSelectTab('transfers')">Transfer Recommendations</button><button class="active" onclick="cmsSelectTab('headlines')">Headlines</button><button class="" onclick="cmsSelectTab('featured')">Featured Story</button></div><div id="cmsBody" class="cms-body"><div class="cms-section-top"><div><h3>Homepage Headlines</h3><p>Reorder or customize the clickable Latest rail.</p></div></div><div class="cms-empty">Select “Headline” on a story, diary, or transfer recommendation.</div></div></div></div>
+<style id="xi-tier-collapse-style-v1">
+/* Collapsible Club/Country XI tiers */
+#clubGrid .achievement-tier > .continent-group-title,
+#country-display .achievement-tier > .continent-group-title{
+  cursor:pointer;
+  user-select:none;
+  position:relative;
+  padding-right:3rem;
+}
+#clubGrid .achievement-tier > .continent-group-title::after,
+#country-display .achievement-tier > .continent-group-title::after{
+  content:'⌄';
+  position:absolute;
+  right:1rem;
+  top:50%;
+  transform:translateY(-50%);
+  font-family:var(--sans);
+  font-size:1rem;
+  color:rgba(255,255,255,.75);
+  transition:transform .16s ease;
+}
+#clubGrid .achievement-tier.xi-tier-collapsed > .continent-group-title::after,
+#country-display .achievement-tier.xi-tier-collapsed > .continent-group-title::after{
+  transform:translateY(-50%) rotate(-90deg);
+}
+#clubGrid .achievement-tier.xi-tier-collapsed > .xi-country-grid,
+#country-display .achievement-tier.xi-tier-collapsed > .xi-country-grid{
+  display:none!important;
+}
+#clubGrid .achievement-tier.xi-tier-collapsed,
+#country-display .achievement-tier.xi-tier-collapsed{
+  margin-bottom:.75rem;
+}
+#clubGrid .achievement-tier > .continent-group-title:focus-visible,
+#country-display .achievement-tier > .continent-group-title:focus-visible{
+  outline:2px solid #f5d000;
+  outline-offset:2px;
+}
+</style>
+<script id="xi-tier-collapse-script-v1">
+(function(){
+  const STORE='halfspace_xi_collapsed_tiers_v1';
+  function load(){
+    try{return JSON.parse(localStorage.getItem(STORE)||'{}')||{}}catch(e){return{}}
+  }
+  function save(v){try{localStorage.setItem(STORE,JSON.stringify(v))}catch(e){}}
+  function pageKind(group){return group.closest('#clubGrid')?'club':'country'}
+  function tierKey(group,index){
+    const title=group.querySelector(':scope > .continent-group-title');
+    const text=(title?.childNodes?.[0]?.textContent||title?.textContent||('tier-'+index)).trim().toLowerCase().replace(/\s+/g,'-');
+    return pageKind(group)+':'+text+':'+index;
+  }
+  function apply(root){
+    if(!root)return;
+    const state=load();
+    root.querySelectorAll('.achievement-tier').forEach((group,index)=>{
+      const title=group.querySelector(':scope > .continent-group-title');
+      const grid=group.querySelector(':scope > .xi-country-grid');
+      if(!title||!grid)return;
+      const key=tierKey(group,index);
+      title.dataset.xiTierKey=key;
+      title.setAttribute('role','button');
+      title.setAttribute('tabindex','0');
+      const collapsed=!!state[key];
+      group.classList.toggle('xi-tier-collapsed',collapsed);
+      title.setAttribute('aria-expanded',collapsed?'false':'true');
+    });
+  }
+  function toggle(title){
+    const group=title.closest('.achievement-tier');
+    if(!group)return;
+    const key=title.dataset.xiTierKey;
+    const collapsed=!group.classList.contains('xi-tier-collapsed');
+    group.classList.toggle('xi-tier-collapsed',collapsed);
+    title.setAttribute('aria-expanded',collapsed?'false':'true');
+    const state=load(); state[key]=collapsed; save(state);
+  }
+  document.addEventListener('click',function(e){
+    const title=e.target.closest('#clubGrid .achievement-tier > .continent-group-title, #country-display .achievement-tier > .continent-group-title');
+    if(!title)return;
+    if(e.target.closest('button,select,input,a,.xi-tier-header-controls'))return;
+    toggle(title);
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const title=e.target.closest('#clubGrid .achievement-tier > .continent-group-title, #country-display .achievement-tier > .continent-group-title');
+    if(!title)return;
+    e.preventDefault();toggle(title);
+  },true);
+  function setup(){
+    const club=document.getElementById('clubGrid');
+    const country=document.getElementById('country-display');
+    apply(club);apply(country);
+    [club,country].filter(Boolean).forEach(root=>new MutationObserver(()=>apply(root)).observe(root,{childList:true,subtree:true}));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+  window.applyXITierCollapse=()=>{apply(document.getElementById('clubGrid'));apply(document.getElementById('country-display'))};
+})();
+</script>
+
+</body></html>
