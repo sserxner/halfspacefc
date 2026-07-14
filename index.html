@@ -9660,4 +9660,91 @@ function editXIManager(entityName, element) {
 .hs-scout-modal-card{width:min(520px,100%);background:#fff;border-radius:7px;padding:1.5rem;box-shadow:0 18px 60px rgba(0,0,0,.3)}
 .hs-scout-modal-card h3{font-family:var(--serif);color:var(--accent);margin-bottom:1rem}.hs-scout-modal-card label{display:flex;flex-direction:column;gap:.3rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-600);margin-bottom:.8rem}.hs-scout-modal-card input,.hs-scout-modal-card textarea{font:inherit;text-transform:none;letter-spacing:0;padding:.65rem .75rem;border:1px solid var(--gray-200);border-radius:3px}.hs-scout-modal-card textarea{min-height:90px;resize:vertical}.hs-scout-modal-actions{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem}
 </style>
+
+<style id="scouting-rankings-style-fix">
+#scouting-primary-tabs{display:flex;gap:0;border-bottom:2px solid var(--gray-200);margin-bottom:1rem;overflow-x:auto;scrollbar-width:none}
+#scouting-primary-tabs::-webkit-scrollbar{display:none}
+#scouting-primary-tabs .sub-tab{flex:0 0 auto}
+#scouting-primary-tabs .sub-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.scouting-admin-toolbar{display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem}
+.scouting-admin-actions{display:flex;gap:.35rem;flex-wrap:wrap}
+.scouting-board-section{display:block}
+.scouting-tier-block{margin-bottom:1.1rem;background:#fff;border:1px solid var(--gray-200);border-radius:4px;overflow:hidden}
+.scouting-tier-header{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.6rem .8rem;background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+.scouting-tier-title{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#c8a800}
+.scouting-tier-actions{display:flex;gap:.3rem;flex-wrap:wrap}
+.scouting-player-list{padding:.35rem .7rem}
+.scouting-player-row{display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--gray-100)}
+.scouting-player-row:last-child{border-bottom:none}
+.scouting-player-main{flex:1;min-width:0}
+.scouting-player-name{font-family:var(--serif);font-size:.9rem;font-weight:700}
+.scouting-player-detail{font-size:.72rem;color:var(--gray-400)}
+.scouting-player-note{font-family:var(--serif);font-size:.78rem;color:var(--gray-600);font-style:italic;margin-top:.15rem}
+.scouting-player-controls{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
+.scouting-empty{font-family:var(--serif);font-style:italic;color:var(--gray-400);padding:.75rem 0}
+</style>
+<script id="scouting-rankings-mechanism-fix">
+(function(){
+  const POS_KEY='scouting_position_defs_v3';
+  const BOARD_KEY='scouting_tier_boards_v2';
+  const defaults=[['GK','Goalkeepers'],['CB','Centre Backs'],['FB','Full Backs'],['CM','Central Midfielders'],['AM10','Attacking Midfielders / 10s'],['W','Wingers'],['F','Forwards']].map(([id,label])=>({id,label}));
+  let activePosition='GK';
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function positions(){
+    let a=getData(POS_KEY,null);
+    if(!Array.isArray(a)||!a.length){
+      const old=getData('scouting_position_defs_v2',null);
+      a=Array.isArray(old)&&old.length?old.map(x=>({id:String(x.id),label:String(x.label||x.id)})):defaults.map(x=>({...x}));
+      setData(POS_KEY,a);
+    }
+    a=a.filter(x=>x&&x.id).map(x=>({id:String(x.id),label:String(x.label||x.id)}));
+    if(!a.some(x=>x.id===activePosition)) activePosition=a[0].id;
+    return a;
+  }
+  function blankBoard(){return {blurb:'',tiers:[{name:'Top Tier',entries:[]},{name:'Second Tier',entries:[]},{name:'Watchlist',entries:[]}]}}
+  function boards(){
+    let d=getData(BOARD_KEY,null);
+    if(!d||typeof d!=='object'){
+      const old=getData('scouting_tier_boards_v1',null);
+      d=old&&typeof old==='object'?JSON.parse(JSON.stringify(old)):{};
+      positions().forEach(p=>{if(!d[p.id])d[p.id]=blankBoard()});
+      setData(BOARD_KEY,d);
+    }
+    positions().forEach(p=>{if(!d[p.id])d[p.id]=blankBoard();if(!Array.isArray(d[p.id].tiers))d[p.id].tiers=[]});
+    return d;
+  }
+  function saveBoards(d){setData(BOARD_KEY,d);renderScouting()}
+  function addPlayer(ti){
+    const d=boards(),tier=d[activePosition]?.tiers?.[ti];if(!tier)return;
+    const name=prompt('Player name:');if(!name||!name.trim())return;
+    const club=prompt('Club:')||'';
+    const nationality=prompt('Nationality:')||'';
+    const note=prompt('Scouting note:')||'';
+    tier.entries.push({name:name.trim(),club,nationality,note});saveBoards(d);
+  }
+  function editPlayer(ti,pi){const d=boards(),p=d[activePosition].tiers[ti].entries[pi];if(!p)return;const n=prompt('Player name:',p.name||'');if(n===null||!n.trim())return;p.name=n.trim();p.club=prompt('Club:',p.club||'')||'';p.nationality=prompt('Nationality:',p.nationality||'')||'';p.note=prompt('Scouting note:',p.note||'')||'';saveBoards(d)}
+  function deletePlayer(ti,pi){if(!confirm('Remove this player?'))return;const d=boards();d[activePosition].tiers[ti].entries.splice(pi,1);saveBoards(d)}
+  function movePlayer(ti,pi,dir){const d=boards(),a=d[activePosition].tiers[ti].entries,j=pi+dir;if(j<0||j>=a.length)return;[a[pi],a[j]]=[a[j],a[pi]];saveBoards(d)}
+  function movePlayerTier(ti,pi,to){if(to===ti)return;const d=boards(),from=d[activePosition].tiers[ti].entries,[item]=from.splice(pi,1);d[activePosition].tiers[to].entries.push(item);saveBoards(d)}
+  window.showScoutingSection=function(id){if(!positions().some(p=>p.id===id))return;activePosition=id;renderScouting()};
+  window.scoutAddPosition=function(){const label=prompt('New position name:');if(!label||!label.trim())return;const a=positions();let base=label.trim().toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')||'POSITION',id=base,n=2;while(a.some(x=>x.id===id))id=base+'_'+n++;a.push({id,label:label.trim()});setData(POS_KEY,a);const d=boards();d[id]=blankBoard();setData(BOARD_KEY,d);activePosition=id;renderScouting()};
+  window.scoutRenamePosition=function(){const a=positions(),p=a.find(x=>x.id===activePosition);if(!p)return;const n=prompt('Position name:',p.label);if(!n||!n.trim())return;p.label=n.trim();setData(POS_KEY,a);renderScouting()};
+  window.scoutMovePosition=function(dir){const a=positions(),i=a.findIndex(x=>x.id===activePosition),j=i+dir;if(i<0||j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];setData(POS_KEY,a);renderScouting()};
+  window.scoutDeletePosition=function(){const a=positions();if(a.length===1)return alert('At least one position must remain.');if(!confirm('Delete this position and all of its scouting data?'))return;const i=a.findIndex(x=>x.id===activePosition),d=boards();delete d[activePosition];a.splice(i,1);activePosition=a[Math.min(i,a.length-1)].id;setData(POS_KEY,a);setData(BOARD_KEY,d);renderScouting()};
+  window.scoutAddTier=function(){const n=prompt('Tier name:');if(!n||!n.trim())return;const d=boards();d[activePosition].tiers.push({name:n.trim(),entries:[]});saveBoards(d)};
+  window.scoutRenameTier=function(ti){const d=boards(),t=d[activePosition].tiers[ti],n=prompt('Tier name:',t.name);if(!n||!n.trim())return;t.name=n.trim();saveBoards(d)};
+  window.scoutDeleteTier=function(ti){const d=boards(),t=d[activePosition].tiers[ti];if(t.entries.length&&!confirm('Delete this tier and all players in it?'))return;if(!t.entries.length&&!confirm('Delete this tier?'))return;d[activePosition].tiers.splice(ti,1);saveBoards(d)};
+  window.renderScouting=function(){
+    const root=document.getElementById('scoutingContent');if(!root)return;
+    const ps=positions(),d=boards(),b=d[activePosition]||blankBoard(),idx=ps.findIndex(x=>x.id===activePosition);
+    root.innerHTML=`<div id="scouting-primary-tabs" class="sub-tabs">${ps.map(p=>`<button type="button" class="sub-tab ${p.id===activePosition?'active':''}" data-scout-tab="${esc(p.id)}">${esc(p.label)}</button>`).join('')}</div>
+    ${adminMode?`<div class="scouting-admin-toolbar"><div class="scouting-admin-actions"><button class="rk-btn" data-action="add-position">+ Position</button><button class="rk-btn" data-action="rename-position">Rename position</button><button class="rk-btn" data-action="move-position" data-dir="-1" ${idx<=0?'disabled':''}>← Position</button><button class="rk-btn" data-action="move-position" data-dir="1" ${idx>=ps.length-1?'disabled':''}>Position →</button><button class="rk-btn rk-del" data-action="delete-position">Delete position</button></div><button class="admin-add-btn" style="margin:0" data-action="add-tier">+ Add tier</button></div>`:''}
+    <div class="scouting-board-section">${b.tiers.map((t,ti)=>`<section class="scouting-tier-block"><div class="scouting-tier-header"><span class="scouting-tier-title">${esc(t.name||'Tier '+(ti+1))}</span>${adminMode?`<span class="scouting-tier-actions"><button class="rk-btn" data-action="add-player" data-tier="${ti}">+ Add player</button><button class="rk-btn" data-action="rename-tier" data-tier="${ti}">Rename</button><button class="rk-btn rk-del" data-action="delete-tier" data-tier="${ti}">Delete</button></span>`:''}</div><div class="scouting-player-list">${(t.entries||[]).map((p,pi)=>`<div class="scouting-player-row"><span class="ranking-num">${pi+1}</span><div class="scouting-player-main"><div class="scouting-player-name">${esc(p.name)}</div><div class="scouting-player-detail">${esc([p.club,p.nationality].filter(Boolean).join(' · '))}</div>${p.note?`<div class="scouting-player-note">${esc(p.note)}</div>`:''}</div>${adminMode?`<div class="scouting-player-controls"><button class="rk-btn" data-action="move-player" data-tier="${ti}" data-player="${pi}" data-dir="-1">↑</button><button class="rk-btn" data-action="move-player" data-tier="${ti}" data-player="${pi}" data-dir="1">↓</button><button class="rk-btn" data-action="edit-player" data-tier="${ti}" data-player="${pi}">Edit</button><select class="rk-tier-sel" data-action="move-player-tier" data-tier="${ti}" data-player="${pi}">${b.tiers.map((x,xi)=>`<option value="${xi}" ${xi===ti?'selected':''}>${esc(x.name||'Tier '+(xi+1))}</option>`).join('')}</select><button class="rk-btn rk-del" data-action="delete-player" data-tier="${ti}" data-player="${pi}">✕</button></div>`:''}</div>`).join('')||'<div class="scouting-empty">No players in this tier.</div>'}</div></section>`).join('')||'<div class="empty-state"><p>No tiers yet.</p></div>'}</div>`;
+    root.onclick=e=>{const tab=e.target.closest('[data-scout-tab]');if(tab){e.preventDefault();showScoutingSection(tab.dataset.scoutTab);return}const x=e.target.closest('[data-action]');if(!x)return;const a=x.dataset.action,ti=Number(x.dataset.tier),pi=Number(x.dataset.player);if(a==='add-position')scoutAddPosition();else if(a==='rename-position')scoutRenamePosition();else if(a==='move-position')scoutMovePosition(Number(x.dataset.dir));else if(a==='delete-position')scoutDeletePosition();else if(a==='add-tier')scoutAddTier();else if(a==='add-player')addPlayer(ti);else if(a==='rename-tier')scoutRenameTier(ti);else if(a==='delete-tier')scoutDeleteTier(ti);else if(a==='move-player')movePlayer(ti,pi,Number(x.dataset.dir));else if(a==='edit-player')editPlayer(ti,pi);else if(a==='delete-player')deletePlayer(ti,pi)};
+    root.onchange=e=>{const x=e.target.closest('select[data-action="move-player-tier"]');if(x)movePlayerTier(Number(x.dataset.tier),Number(x.dataset.player),Number(x.value))};
+  };
+  document.addEventListener('DOMContentLoaded',renderScouting);
+})();
+</script>
+
 </body></html>
