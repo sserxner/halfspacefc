@@ -5439,13 +5439,16 @@ function renderHistorical(container) {
 }
 
 function showCountryDetail(identifier, historyMode) {
-  const country = resolveCountry(identifier) || {name:String(identifier),wc:0,euros:0,copa:0,afcon:0,bestWC:'—',bestEuros:'—'};
+  const country = resolveCountry(identifier);
+  if (!country) { console.error('Unknown country XI requested:', identifier); return; }
   const name = country.name;
   const listView=document.getElementById('country-list-view'), detailView=document.getElementById('country-detail-view'), content=document.getElementById('country-detail-content');
   if (!listView || !detailView || !content) return;
   listView.style.display='none'; detailView.style.display='';
   window.__lastMeta=country; content.replaceChildren(); content.dataset.countryId=countrySlug(name); content.dataset.countryName=name;
-  const fKey=getData('formation_'+name.replace(/\s+/g,'_'),'4-3-3');
+  const formationStorageKey='formation_'+name.replace(/\s+/g,'_');
+  const storedFormation=getXIDataValue(formationStorageKey) || '4-3-3';
+  const fKey=FORMATIONS[storedFormation] ? storedFormation : '4-3-3';
   content.innerHTML=buildXIDetail(name,country,fKey);
   const key='country_'+name.replace(/\s+/g,'_');
   restoreXIData(key,content); if (adminMode) makeXIEditable(key,content);
@@ -5545,7 +5548,10 @@ function showClubDetail(identifier,historyMode){
   if(!listView||!detailView||!content)return;
   listView.style.display='none';detailView.style.display='';window.__lastMeta=null;window.__activeClubXI=name;
   content.replaceChildren();content.dataset.clubId=clubSlug(name);content.dataset.clubName=name;
-  const fKey=getData('formation_'+name.replace(/\s+/g,'_'),'4-3-3');content.innerHTML=buildXIDetail(name,null,fKey);
+  const formationStorageKey='formation_'+name.replace(/\s+/g,'_');
+  const storedFormation=getXIDataValue(formationStorageKey) || '4-3-3';
+  const fKey=FORMATIONS[storedFormation] ? storedFormation : '4-3-3';
+  content.innerHTML=buildXIDetail(name,null,fKey);
   const key='club_'+name.replace(/\s+/g,'_');restoreXIData(key,content);if(adminMode)makeXIEditable(key,content);
   writeHSHistory({page:'club-xi',view:'club-detail',item:clubSlug(name)},historyMode||'push');
 }
@@ -5770,8 +5776,14 @@ function buildContinentalXIs() {
   Object.keys(map).forEach(key => {
     const el = document.getElementById('xi-' + key);
     const name = map[key];
-    const fKey = getData('formation_' + name.replace(/\s+/g,'_'), '4-3-3');
-    if (el) el.innerHTML = buildXIDetail(name, null, fKey);
+    const storedFormation = getData('formation_' + name.replace(/\s+/g,'_'), '4-3-3');
+    const fKey = FORMATIONS[storedFormation] ? storedFormation : '4-3-3';
+    if (el) {
+      el.innerHTML = buildXIDetail(name, null, fKey);
+      const entityKey = name.replace(/\s+/g,'_');
+      restoreXIData(entityKey, el);
+      if (adminMode) makeXIEditable(entityKey, el);
+    }
   });
 }
 
@@ -5790,6 +5802,15 @@ let adminMode = false;
 let siteData = {};
 
 const DATA_KEY = 'halfspace_data';
+
+function escapeHTML(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 function loadData() {
   try {
@@ -5831,8 +5852,21 @@ function applyAdminToCurrentPage() {
   if (id === 'page-scouting') renderScouting();
   if (id === 'page-diary') renderDiary();
   if (id === 'page-positions') renderPositions();
-  if (id === 'page-country-xi') renderCountryDisplay();
-  if (id === 'page-club-xi') buildClubGrid();
+  if (id === 'page-country-xi') {
+    renderCountryDisplay();
+    const detail = document.getElementById('country-detail-content');
+    if (detail && document.getElementById('country-detail-view')?.style.display !== 'none' && detail.dataset.countryName) {
+      makeXIEditable('country_' + detail.dataset.countryName.replace(/\s+/g,'_'), detail);
+    }
+  }
+  if (id === 'page-club-xi') {
+    buildClubGrid();
+    const detail = document.getElementById('club-detail-content');
+    if (detail && document.getElementById('club-detail-view')?.style.display !== 'none' && detail.dataset.clubName) {
+      makeXIEditable('club_' + detail.dataset.clubName.replace(/\s+/g,'_'), detail);
+    }
+  }
+  if (id === 'page-continental-xi') buildContinentalXIs();
   if (id === 'page-home') { renderHomePostFeed(); addNewPostButton(); }
 }
 
@@ -6295,6 +6329,19 @@ function saveXISlot(storageKey) {
   if (modal) modal.remove();
 }
 
+function getXIDataValue(primaryKey, legacyKey) {
+  const baked = window.__HALFSPACE_DATA__ || {};
+  const current = getData(primaryKey, undefined);
+  if (current !== undefined && current !== null && String(current).trim() !== '') return current;
+  const legacyCurrent = legacyKey ? getData(legacyKey, undefined) : undefined;
+  if (legacyCurrent !== undefined && legacyCurrent !== null && String(legacyCurrent).trim() !== '') return legacyCurrent;
+  const bakedPrimary = baked[primaryKey];
+  if (bakedPrimary !== undefined && bakedPrimary !== null && String(bakedPrimary).trim() !== '') return bakedPrimary;
+  const bakedLegacy = legacyKey ? baked[legacyKey] : undefined;
+  if (bakedLegacy !== undefined && bakedLegacy !== null && String(bakedLegacy).trim() !== '') return bakedLegacy;
+  return '';
+}
+
 function restoreXIData(entityKey, container) {
   if (!container) return;
   const slots = container.querySelectorAll('.xi-player-row');
@@ -6302,7 +6349,7 @@ function restoreXIData(entityKey, container) {
     const nameSpan = row.querySelector('.xi-player-name');
     const posKey = row.getAttribute('data-pos-key') || `pos_${i}`;
     const posIdx = parseInt(row.getAttribute('data-pos-index') ?? i);
-    const saved = getData(`xi_${entityKey}_${posKey}`, '') || getData(`xi_${entityKey}_pos_${i}`, '');
+    const saved = getXIDataValue(`xi_${entityKey}_${posKey}`, `xi_${entityKey}_pos_${i}`);
     if (saved) {
       nameSpan.textContent = saved;
       nameSpan.classList.remove('empty');
@@ -6323,7 +6370,7 @@ function restoreXIData(entityKey, container) {
   const benchSlots = container.querySelectorAll('.bench-slot');
   benchSlots.forEach((slot, i) => {
     const nameSpan = slot.querySelector('.bench-name');
-    const saved = getData(`xi_${entityKey}_bench_${i}`, '');
+    const saved = getXIDataValue(`xi_${entityKey}_bench_${i}`);
     if (saved) {
       nameSpan.textContent = saved;
       slot.classList.remove('empty');
@@ -6361,18 +6408,33 @@ function loadData() {
     const local = raw ? JSON.parse(raw) : {};
     siteData = Object.assign({}, baked, local);
 
+    const isBlank = value => value === '' || value === null || value === undefined ||
+      (Array.isArray(value) && value.length === 0) ||
+      (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0);
+
+    // A legacy export could save empty XI/formation/manager keys into localStorage.
+    // Empty local values must never erase populated values baked into the published file.
+    Object.keys(baked).forEach(key => {
+      const protectedContentKey = key.startsWith('xi_') || key.startsWith('formation_');
+      if (protectedContentKey && !isBlank(baked[key]) && isBlank(local[key])) {
+        siteData[key] = baked[key];
+      }
+    });
+
     // Restore populated baked rankings when an older cached build saved these lists as empty.
-    // Any locally edited list containing at least one player remains untouched.
     ['ranking_gk_century','ranking_cb_century','ranking_cm_century','ranking_am_century'].forEach(key => {
       const bakedRanking = baked[key];
       const localRanking = local[key];
       const countEntries = ranking => ((ranking && ranking.tiers) || [])
         .reduce((total, tier) => total + (((tier || {}).entries || []).length), 0);
-      if (countEntries(bakedRanking) > 0 && countEntries(localRanking) === 0) {
-        siteData[key] = bakedRanking;
-      }
+      if (countEntries(bakedRanking) > 0 && countEntries(localRanking) === 0) siteData[key] = bakedRanking;
     });
-  } catch(e) { siteData = Object.assign({}, baked); }
+
+    saveData();
+  } catch(e) {
+    console.error('Half Space data recovery:', e);
+    siteData = Object.assign({}, baked);
+  }
 }
 
 // ================================================================
@@ -6875,6 +6937,12 @@ function buildExportHTML() {
   const navActive = 'class="nav-tab ' + 'active"';
   const navPlain  = 'class="nav-' + 'tab"';
   html = html.split(navActive).join(navPlain);
+  // Export a clean public body state.
+  html = html.replace(/<body([^>]*)class="([^"]*\badmin-active\b[^"]*)"([^>]*)>/i, function(_, a, cls, b) {
+    const clean = cls.split(/\s+/).filter(Boolean).filter(c => c !== 'admin-active').join(' ');
+    return '<body' + a + (clean ? ' class="' + clean + '"' : '') + b + '>';
+  });
+
   // Hide admin chrome in the exported copy
   const tbId = 'id="admin' + 'Toolbar" style="';
   const bnId = 'id="admin' + 'Banner" style="';
@@ -7021,7 +7089,7 @@ setTimeout(ensureAdminRoute, 0);
 <div id="adminBanner" style="display:none"><span>Edit mode — browser saves are private until you click “Export index.html” or “Save to GitHub”</span></div>
 
 <style id="halfspace-architecture-overrides">
-  /* XI presentation: full-width tactics board, surname-only markers, no duplicate written lineup. */
+  /* XI presentation: full-width tactics board, exact editor-entered labels, no duplicate written lineup. */
   .content:has(.xi-wrapper) { max-width: 1280px; }
   .xi-wrapper, .admin-active .xi-wrapper { grid-template-columns: minmax(0, 1fr) !important; width: 100%; }
   .xi-details, .admin-active .xi-details { display: none !important; }
@@ -7185,7 +7253,7 @@ const _halfspaceBuildXIDetail = buildXIDetail;
 buildXIDetail = function(name, meta, formationKey) {
   let html = _halfspaceBuildXIDetail(name, meta, formationKey);
   const managerKey = 'xi_manager_' + String(name).replace(/\s+/g, '_');
-  const managerName = getData(managerKey, '');
+  const managerName = getXIDataValue(managerKey);
   const nameForClick = String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   const managerText = managerName ? `MGR: ${escapeHTML(managerName)}` : 'MGR: Add manager';
   const hiddenClass = !managerName && !adminMode ? ' xi-manager-empty' : '';
