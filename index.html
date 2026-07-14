@@ -12387,4 +12387,142 @@ window.runSearch=function(query){const q=String(query||'').trim().toLowerCase(),
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupCenturyDropdown);else setupCenturyDropdown();
 })();
 </script>
+
+<style id="halfspace-content-manager-styles">
+.cms-floating{position:fixed;right:1rem;bottom:5rem;z-index:997;border:0;border-radius:999px;background:#d4aa00;color:#0f2518;font:700 .78rem var(--sans);padding:.7rem 1rem;box-shadow:0 5px 18px rgba(0,0,0,.22);cursor:pointer}.cms-home-admin{display:flex;justify-content:flex-end;margin-bottom:1rem}.cms-primary{border:0;border-radius:3px;background:var(--accent);color:#fff;font:600 .78rem var(--sans);padding:.55rem .85rem;cursor:pointer}.cms-clickable,.cms-content-card,.hs-headline{cursor:pointer}.cms-card-type,.cms-type,.cms-eyebrow{font:700 .62rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.25rem}.cms-content-card.cms-diary{border-left:4px solid #8a6400}.cms-content-card.cms-transfer{border-left:4px solid #1a3a6b}.cms-content-card.cms-story{border-left:4px solid var(--accent)}.hs-headline{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--gray-100);padding:.8rem 0;font-family:inherit}.cms-empty-rail{font-family:var(--serif);font-style:italic;color:var(--gray-400);padding:1rem 0}.hs-home-dashboard{align-items:start}
+#hsContentManager{position:fixed;inset:0;z-index:100000;background:rgba(8,20,12,.82);display:none;align-items:center;justify-content:center;padding:1.25rem}.cms-shell{width:min(1050px,100%);height:min(850px,94vh);background:#f7f6f2;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 80px rgba(0,0,0,.35)}.cms-head{background:#0f2518;color:#fff;padding:1.25rem 1.5rem;display:flex;justify-content:space-between;align-items:center}.cms-head h2{font-family:var(--serif);font-size:1.7rem}.cms-head .cms-eyebrow{color:rgba(255,255,255,.55)}.cms-close{border:0;background:none;color:#fff;font-size:2rem;cursor:pointer}.cms-tabs{display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid var(--gray-200)}.cms-tabs button{border:0;background:none;padding:.9rem 1rem;font:600 .76rem var(--sans);white-space:nowrap;color:var(--gray-600);cursor:pointer;border-bottom:3px solid transparent}.cms-tabs button.active{color:var(--accent);border-bottom-color:#d4aa00}.cms-body{padding:1.25rem 1.5rem;overflow:auto}.cms-section-top{display:flex;justify-content:space-between;align-items:start;gap:1rem;margin-bottom:1rem}.cms-section-top h3{font-family:var(--serif);font-size:1.35rem;color:var(--accent)}.cms-section-top p{font-size:.8rem;color:var(--gray-600)}.cms-item{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:1rem;align-items:center;background:#fff;border:1px solid var(--gray-200);padding:.85rem 1rem;margin-bottom:.55rem;border-radius:4px}.cms-item h4,.cms-feature-choice h4{font-family:var(--serif);font-size:1rem}.cms-meta{font-size:.72rem;color:var(--gray-400)}.cms-checks{display:flex;gap:.65rem;flex-wrap:wrap;justify-content:flex-end}.cms-checks label{font-size:.7rem;color:var(--gray-600);white-space:nowrap}.cms-edit,.cms-row-actions button{border:1px solid var(--gray-200);background:#fff;color:var(--accent);border-radius:3px;padding:.35rem .55rem;font:600 .68rem var(--sans);cursor:pointer}.cms-row-actions{display:flex;gap:.3rem;flex-wrap:wrap}.cms-row-actions .danger{color:#9b2020}.cms-order{font-family:var(--serif);font-weight:700;color:#c8a800}.cms-feature-choice{background:#fff;border-left:4px solid #d4aa00;padding:1.25rem;border-radius:4px}.cms-feature-choice p{font-family:var(--serif);color:var(--gray-600);margin:.6rem 0 1rem}.cms-empty{text-align:center;padding:3rem 1rem;font-family:var(--serif);font-style:italic;color:var(--gray-400)}
+@media(max-width:760px){.cms-item{grid-template-columns:1fr}.cms-checks{justify-content:flex-start}.cms-floating{bottom:4.5rem}.cms-shell{height:96vh}.cms-body{padding:1rem}.cms-headline-row{grid-template-columns:auto 1fr}.cms-headline-row .cms-row-actions{grid-column:1/-1}}
+</style>
+
+<script id="halfspace-content-manager-script">
+(function(){
+  const CMS_FEATURE='hs_featured_content_v1';
+  const CMS_HEADLINES='hs_headline_content_v1';
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const slug=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  function transfers(){return typeof transferData==='function'?(transferData()||[]):(getData('transfer_recommendations',[])||[])}
+  function saveTransfersSafe(a){if(typeof saveTransfers==='function')saveTransfers(a);else setData('transfer_recommendations',a)}
+  function ensureIds(){
+    const groups=[['story',getData('blog_posts',[])||[]],['diary',getData('diary_entries',[])||[]],['transfer',transfers()]];
+    groups.forEach(([type,a])=>{let changed=false;a.forEach(x=>{if(!x._cmsId){x._cmsId=type+'_'+slug();changed=true}if(x.searchHidden===undefined){x.searchHidden=false;changed=true}if(x.homeVisible===undefined){x.homeVisible=type==='story';changed=true}});if(changed){if(type==='story')setData('blog_posts',a);else if(type==='diary')setData('diary_entries',a);else saveTransfersSafe(a)}});
+  }
+  function allItems(){ensureIds();const out=[];
+    (getData('blog_posts',[])||[]).forEach((x,i)=>out.push({type:'story',index:i,id:x._cmsId,title:x.title||'Untitled story',meta:[x.category,x.date].filter(Boolean).join(' · '),body:x.body||'',published:x.published!==false,raw:x}));
+    (getData('diary_entries',[])||[]).forEach((x,i)=>out.push({type:'diary',index:i,id:x._cmsId,title:x.title||x.fixture||'Matchday diary',meta:[x.fixture,x.competition,x.date].filter(Boolean).join(' · '),body:x.body||'',published:x.published!==false,raw:x}));
+    transfers().forEach((x,i)=>out.push({type:'transfer',index:i,id:x._cmsId,title:[x.club,x.title].filter(Boolean).join(' — ')||'Transfer recommendation',meta:x.date||'',body:x.body||'',published:x.published!==false,raw:x}));
+    return out;
+  }
+  function findItem(ref){return allItems().find(x=>x.type===ref?.type&&x.id===ref?.id)||null}
+  function saveItem(item){let a;if(item.type==='story'){a=getData('blog_posts',[])||[];a[item.index]=item.raw;setData('blog_posts',a)}else if(item.type==='diary'){a=getData('diary_entries',[])||[];a[item.index]=item.raw;setData('diary_entries',a)}else{a=transfers();a[item.index]=item.raw;saveTransfersSafe(a)}}
+  function openItem(item){if(!item)return;if(item.type==='story'){showPage('home');setTimeout(()=>document.getElementById('cms-card-'+item.id)?.scrollIntoView({behavior:'smooth',block:'start'}),40)}else if(item.type==='diary'){showPage('diary');setTimeout(()=>document.querySelectorAll('#diaryGrid .diary-entry')[item.index]?.scrollIntoView({behavior:'smooth',block:'start'}),50)}else{showPage('transfers');setTimeout(()=>document.querySelectorAll('#transferRecommendations .transfer-entry')[item.index]?.scrollIntoView({behavior:'smooth',block:'start'}),50)}}
+  function featureRef(){return getData(CMS_FEATURE,null)}
+  function headlines(){return getData(CMS_HEADLINES,[])||[]}
+  function setFeatured(type,id){setData(CMS_FEATURE,{type,id});renderHomePostFeed();renderCMS()}
+  function setHeadline(type,id,on){let a=headlines().filter(r=>!(r.type===type&&r.id===id));if(on)a.push({type,id,text:''});setData(CMS_HEADLINES,a);renderHomePostFeed();renderCMS()}
+  function moveHeadline(i,d){const a=headlines(),j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];setData(CMS_HEADLINES,a);renderHomePostFeed();renderCMS()}
+  function editHeadline(i){const a=headlines(),it=findItem(a[i]);if(!it)return;const v=prompt('Custom headline text:',a[i].text||it.title);if(v===null)return;a[i].text=v.trim();setData(CMS_HEADLINES,a);renderHomePostFeed();renderCMS()}
+  function typeLabel(t){return t==='story'?'Stories':t==='diary'?'Diaries':'Transfer Recommendations'}
+  function excerptText(s,n=300){const t=String(s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();return t.length>n?t.slice(0,n).trimEnd()+'…':t}
+  window.openContentManager=function(tab){if(!adminMode)return;let m=document.getElementById('hsContentManager');if(!m){m=document.createElement('div');m.id='hsContentManager';m.innerHTML='<div class="cms-shell"><div class="cms-head"><div><div class="cms-eyebrow">Half Space Admin</div><h2>Content Manager</h2></div><button class="cms-close" onclick="closeContentManager()">×</button></div><div id="cmsTabs" class="cms-tabs"></div><div id="cmsBody" class="cms-body"></div></div>';document.body.appendChild(m)}m.style.display='flex';m.dataset.tab=tab||m.dataset.tab||'stories';renderCMS()};
+  window.closeContentManager=function(){const m=document.getElementById('hsContentManager');if(m)m.style.display='none'};
+  window.cmsSelectTab=function(t){const m=document.getElementById('hsContentManager');if(m){m.dataset.tab=t;renderCMS()}};
+  window.cmsToggle=function(type,id,key){const item=allItems().find(x=>x.type===type&&x.id===id);if(!item)return;item.raw[key]=!item.raw[key];saveItem(item);renderCMS();renderHomePostFeed()};
+  window.cmsFeature=function(type,id){const f=featureRef();if(f&&f.type===type&&f.id===id){setData(CMS_FEATURE,null);renderHomePostFeed();renderCMS()}else setFeatured(type,id)};
+  window.cmsHeadline=function(type,id){const on=!headlines().some(r=>r.type===type&&r.id===id);setHeadline(type,id,on)};
+  window.cmsEdit=function(type,id){const x=allItems().find(z=>z.type===type&&z.id===id);if(!x)return;closeContentManager();if(type==='story'&&typeof editPost==='function')editPost(x.index);else if(type==='diary'&&typeof editDiaryEntry==='function')editDiaryEntry(x.index);else if(type==='transfer'&&typeof editTransferRecommendation==='function')editTransferRecommendation(x.index);setTimeout(()=>openContentManager(type==='story'?'stories':type==='diary'?'diaries':'transfers'),80)};
+  window.cmsCreate=function(type){closeContentManager();if(type==='story'&&typeof addPost==='function')addPost();else if(type==='story'&&typeof addNewPostButton==='function'){showPage('home');addNewPostButton()}else if(type==='diary'&&typeof addDiaryEntry==='function')addDiaryEntry();else if(type==='transfer'&&typeof addTransferRecommendation==='function')addTransferRecommendation();setTimeout(()=>openContentManager(type==='story'?'stories':type==='diary'?'diaries':'transfers'),120)};
+  window.cmsMoveHeadline=(i,d)=>moveHeadline(i,d);window.cmsEditHeadline=i=>editHeadline(i);window.cmsRemoveHeadline=i=>{const a=headlines();a.splice(i,1);setData(CMS_HEADLINES,a);renderCMS();renderHomePostFeed()};
+  window.renderCMS=function(){const m=document.getElementById('hsContentManager');if(!m||m.style.display==='none')return;ensureIds();const tab=m.dataset.tab||'stories';const tabs=[['stories','Stories'],['diaries','Diaries'],['transfers','Transfer Recommendations'],['headlines','Headlines'],['featured','Featured Story']];document.getElementById('cmsTabs').innerHTML=tabs.map(([k,l])=>`<button class="${tab===k?'active':''}" onclick="cmsSelectTab('${k}')">${l}</button>`).join('');const body=document.getElementById('cmsBody');
+    if(['stories','diaries','transfers'].includes(tab)){const type=tab==='stories'?'story':tab==='diaries'?'diary':'transfer';const arr=allItems().filter(x=>x.type===type);body.innerHTML=`<div class="cms-section-top"><div><h3>${typeLabel(type)}</h3><p>Manage the original content and control where it appears.</p></div><button class="cms-primary" onclick="cmsCreate('${type}')">+ New</button></div>`+(arr.length?arr.map(x=>{const hf=featureRef(),isF=hf&&hf.type===x.type&&hf.id===x.id,isH=headlines().some(r=>r.type===x.type&&r.id===x.id);return `<article class="cms-item"><div class="cms-item-main"><div class="cms-type">${typeLabel(x.type)}</div><h4>${esc(x.title)}</h4><div class="cms-meta">${esc(x.meta)}</div></div><div class="cms-checks"><label><input type="checkbox" ${x.raw.homeVisible?'checked':''} onchange="cmsToggle('${x.type}','${x.id}','homeVisible')"> Homepage</label><label><input type="checkbox" ${isH?'checked':''} onchange="cmsHeadline('${x.type}','${x.id}')"> Headline</label><label><input type="checkbox" ${isF?'checked':''} onchange="cmsFeature('${x.type}','${x.id}')"> Featured</label><label><input type="checkbox" ${!x.raw.searchHidden?'checked':''} onchange="cmsToggle('${x.type}','${x.id}','searchHidden')"> Search</label>${x.type==='story'?`<label><input type="checkbox" ${x.raw.published!==false?'checked':''} onchange="cmsToggle('${x.type}','${x.id}','published')"> Published</label>`:''}</div><button class="cms-edit" onclick="cmsEdit('${x.type}','${x.id}')">Edit</button></article>`}).join(''):'<div class="cms-empty">No content yet.</div>')}
+    else if(tab==='headlines'){const a=headlines();body.innerHTML='<div class="cms-section-top"><div><h3>Homepage Headlines</h3><p>Reorder or customize the clickable Latest rail.</p></div></div>'+(a.length?a.map((r,i)=>{const x=findItem(r);return `<article class="cms-item cms-headline-row"><div class="cms-order">${i+1}</div><div class="cms-item-main"><div class="cms-type">${esc(typeLabel(r.type))}</div><h4>${esc(r.text||(x?x.title:'Missing content'))}</h4></div><div class="cms-row-actions"><button onclick="cmsMoveHeadline(${i},-1)" ${i===0?'disabled':''}>↑</button><button onclick="cmsMoveHeadline(${i},1)" ${i===a.length-1?'disabled':''}>↓</button><button onclick="cmsEditHeadline(${i})">Edit text</button><button class="danger" onclick="cmsRemoveHeadline(${i})">Remove</button></div></article>`}).join(''):'<div class="cms-empty">Select “Headline” on a story, diary, or transfer recommendation.</div>')}
+    else{const f=featureRef(),x=findItem(f);body.innerHTML='<div class="cms-section-top"><div><h3>Featured Story</h3><p>Choose one item to lead the homepage.</p></div></div>'+(x?`<article class="cms-feature-choice"><div class="cms-type">${esc(typeLabel(x.type))}</div><h4>${esc(x.title)}</h4><p>${esc(excerptText(x.body,220))}</p><button class="cms-edit" onclick="cmsEdit('${x.type}','${x.id}')">Edit content</button></article>`:'<div class="cms-empty">No featured content selected. Use the Featured checkbox in a content tab.</div>')}
+  };
+  function injectManagerButton(){if(!adminMode)return;if(!document.getElementById('cmsToolbarButton')){const b=document.createElement('button');b.id='cmsToolbarButton';b.className='cms-floating';b.textContent='Content Manager';b.onclick=()=>openContentManager();document.body.appendChild(b)}}
+  const oldActivate=window.activateAdminMode||activateAdminMode;window.activateAdminMode=function(){oldActivate();injectManagerButton()};activateAdminMode=window.activateAdminMode;
+  const oldExit=window.exitAdminPanel;window.exitAdminPanel=function(){oldExit();document.getElementById('cmsToolbarButton')?.remove();closeContentManager()};
+  window.renderHomePostFeed=function(){ensureIds();const feed=document.getElementById('homePostFeed');if(!feed)return;let items=allItems().filter(x=>adminMode||x.published);const f=findItem(featureRef())||items.find(x=>x.raw.homeVisible)||items[0];const hs=headlines().map((r,i)=>({r,i,x:findItem(r)})).filter(z=>z.x&&(adminMode||z.x.published));const recent=items.filter(x=>x.raw.homeVisible&&(!f||x.id!==f.id)).slice().reverse();if(!f&&!recent.length){feed.innerHTML='<div class="empty-state"><p>Nothing published yet.</p></div>'+(adminMode?'<button class="admin-add-btn" onclick="openContentManager()">Open Content Manager</button>':'');return}
+    const feature=f?`<article class="hs-feature cms-clickable" onclick="cmsOpenPublic('${f.type}','${f.id}')"><div class="hs-kicker">Featured Story</div><div class="cms-card-type">${esc(typeLabel(f.type))}</div><h2>${esc(f.title)}</h2><div class="hs-meta">${esc(f.meta)}</div><div class="hs-excerpt">${esc(excerptText(f.body,380))}</div></article>`:'';
+    const cards=recent.map(x=>`<article class="post-card cms-content-card cms-${x.type}" id="cms-card-${x.id}" onclick="cmsOpenPublic('${x.type}','${x.id}')"><div class="cms-card-type">${esc(typeLabel(x.type))}</div><div class="post-card-meta">${esc(x.meta)}</div><div class="post-card-title">${esc(x.title)}</div><div class="post-card-excerpt">${esc(excerptText(x.body,360))}</div></article>`).join('');
+    const rail=hs.map(({r,i,x})=>`<button class="hs-headline" onclick="cmsOpenPublic('${x.type}','${x.id}')"><span class="hs-headline-name">${esc(r.text||x.title)}</span><span class="hs-headline-meta">${esc(typeLabel(x.type)+(x.meta?' · '+x.meta:''))}</span></button>`).join('')||'<div class="cms-empty-rail">No headlines selected.</div>';
+    feed.innerHTML=`${adminMode?'<div class="cms-home-admin"><button class="cms-primary" onclick="openContentManager()">Open Content Manager</button></div>':''}<div class="hs-home-dashboard"><main>${feature}<div class="hs-latest-title">Latest From Half Space</div>${cards||'<div class="cms-empty-rail">Choose content for the homepage in Content Manager.</div>'}</main><aside class="hs-headlines"><div class="hs-headlines-title">Latest</div>${rail}</aside></div>`};
+  window.cmsOpenPublic=function(type,id){openItem(allItems().find(x=>x.type===type&&x.id===id))};
+  window.runSearch=function(query){const q=String(query||'').trim().toLowerCase(),out=document.getElementById('searchResults');if(!out)return;if(q.length<2){out.innerHTML='';return}const hits=[];if(typeof PLAYER_SECTIONS!=='undefined')PLAYER_SECTIONS.forEach(sec=>['century','now'].forEach(era=>{const d=rankGet(sec+'_'+era);(d.tiers||[]).forEach(t=>(t.entries||[]).forEach(e=>{if([e.name,e.detail,e.note].join(' ').toLowerCase().includes(q))hits.push({name:e.name,meta:(era==='now'?'Present Rankings':'21st Century Rankings')+' · '+((typeof LABELS!=='undefined'&&LABELS[sec])||sec.toUpperCase()),go:()=>{showPage(era==='now'?'present-rankings':'rankings');era==='now'?showPresentRanking(sec):showRankingSection(sec)}})}))}));const md=rankGet('mgr_century');(md.tiers||[]).forEach(t=>(t.entries||[]).forEach(e=>{if([e.name,e.detail,e.note].join(' ').toLowerCase().includes(q))hits.push({name:e.name,meta:'21st Century Rankings · Managers',go:()=>{showPage('rankings');showRankingSection('mgr')}})}));allItems().filter(x=>!x.raw.searchHidden&&(adminMode||x.published)).forEach(x=>{if([x.title,x.meta,x.body].join(' ').toLowerCase().includes(q))hits.push({name:x.title,meta:typeLabel(x.type),go:()=>openItem(x)})});out.innerHTML=hits.length?hits.slice(0,40).map((h,i)=>'<button class="search-result" data-cms-i="'+i+'"><span class="search-result-name">'+esc(h.name)+'</span><span class="search-result-meta">'+esc(h.meta)+'</span></button>').join(''):'<div class="search-empty">No results for “'+esc(query)+'”</div>';out.querySelectorAll('[data-cms-i]').forEach(b=>b.onclick=()=>{toggleSearch();hits[+b.dataset.cmsI].go()})};
+  document.addEventListener('DOMContentLoaded',()=>{ensureIds();if(adminMode)injectManagerButton();renderHomePostFeed()});
+})();
+
+</script>
 </body></html>
+<style id="halfspace-aesthetic-pass-v1">
+/* Larger, more visible waypoint navigation */
+.nav-logo-bar{height:52px}
+.nav-logo{font-size:1.12rem;letter-spacing:.14em}
+.nav-tab-band{min-height:58px;padding:0 1.35rem;gap:.15rem;justify-content:center;overflow-x:auto}
+.nav-tab{height:58px;padding:0 1.2rem;font-size:.78rem;font-weight:700;letter-spacing:.075em;color:rgba(255,255,255,.68);border-bottom-width:4px}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,.055)}
+.nav-tab.active{color:#fff;background:rgba(255,255,255,.07);border-bottom-color:#f5d000}
+.nav-dropdown-menu{top:58px!important;min-width:245px!important}
+.nav-dropdown-menu button{padding:.9rem 1.1rem!important;font-size:.76rem!important}
+
+/* Tighter editorial rankings */
+.ranking-row{gap:.55rem;padding:.32rem 0}
+.ranking-row:hover{margin:0 -.35rem;padding-left:.35rem;padding-right:.35rem}
+.ranking-num{min-width:1.55rem;font-size:.76rem;padding-top:.01rem}
+.ranking-body{gap:.06rem}
+.ranking-name{font-size:.84rem;line-height:1.22}
+.ranking-detail{font-size:.69rem}
+.ranking-note{font-size:.73rem;line-height:1.28;margin-top:.03rem}
+.tier-label{margin-top:.55rem;padding:.35rem 0 .18rem;margin-bottom:.08rem}
+.tier-label-name{font-size:.64rem}
+.ranking-controls{transform:scale(.92);transform-origin:right top}
+
+/* Editorial homepage */
+.hs-home-dashboard{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:2rem;align-items:start}
+.hs-feature{background:#fff;border:1px solid var(--gray-200);border-top:5px solid var(--accent);border-radius:5px;padding:2rem;margin-bottom:2rem;box-shadow:0 8px 28px rgba(15,37,24,.06)}
+.hs-feature h2{font-family:var(--serif);font-size:clamp(2rem,4vw,3.45rem);line-height:1.02;letter-spacing:-.025em;margin:.35rem 0 .8rem;color:var(--black)}
+.hs-kicker,.hs-headlines-title,.hs-latest-title{font-size:.68rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+.hs-meta,.hs-headline-meta{font-size:.7rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em}
+.hs-excerpt{font-family:var(--serif);font-size:1.05rem;line-height:1.65;color:var(--gray-600);max-width:700px}
+.hs-headlines{position:sticky;top:126px;background:#10271a;color:#fff;border-radius:5px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.14)}
+.hs-headlines-title{color:#10271a;background:#f5d000;padding:.75rem 1rem}
+.hs-headline{padding:.88rem 1rem;border-bottom:1px solid rgba(255,255,255,.11);cursor:pointer;transition:background .15s,transform .15s}
+.hs-headline:last-child{border-bottom:0}
+.hs-headline:hover{background:rgba(255,255,255,.08)}
+.hs-headline-name{font-family:var(--serif);font-size:.94rem;font-weight:700;line-height:1.25;color:#fff}
+.hs-headline-meta{margin-top:.25rem;color:rgba(255,255,255,.46)}
+.hs-latest-title{margin:1.25rem 0 .3rem;padding-bottom:.55rem;border-bottom:2px solid #d4aa00}
+
+/* Different content types read differently */
+.post-card{background:#fff;border:1px solid var(--gray-200);border-left:4px solid var(--accent);border-radius:4px;padding:1.25rem 1.35rem;margin:0 0 .85rem}
+.diary-entry{background:#fff;border:1px solid var(--gray-200);border-top:4px solid #d4aa00;border-radius:5px;padding:1.35rem 1.5rem;margin-bottom:1rem}
+.diary-entry:first-child{padding-top:1.35rem}
+.transfer-entry{border-left:5px solid var(--accent);box-shadow:0 7px 20px rgba(15,37,24,.045)}
+.transfer-entry-title:before{content:'WINDOW PLAN';display:block;font:800 .6rem var(--sans);letter-spacing:.14em;color:#b28e00;margin-bottom:.25rem}
+.xi-country-card{position:relative;overflow:hidden}
+.xi-country-card:after{content:'XI';position:absolute;right:.6rem;bottom:.25rem;font:800 1.7rem var(--serif);color:rgba(45,92,63,.06)}
+
+@media(max-width:980px){.nav-tab{padding:0 .78rem;font-size:.7rem}.hs-home-dashboard{grid-template-columns:1fr}.hs-headlines{position:static;order:-1}}
+@media(max-width:768px){.nav-tab-band{display:flex!important;justify-content:flex-start;min-height:52px;padding:0 .35rem}.nav-tab{display:flex!important;height:52px;font-size:.68rem;padding:0 .75rem}.nav-hamburger{display:none}.mobile-menu{display:none!important}.nav-dropdown{display:flex!important}.nav-dropdown-menu{position:fixed!important;top:104px!important;left:.5rem!important;right:.5rem!important;min-width:0!important}.content,.content-wide{padding-left:1rem;padding-right:1rem}}
+</style>
+
+<script id="halfspace-aesthetic-pass-script-v1">
+(function(){
+  const escHS=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function hsPosts(){return getData('blog_posts',[])||[]}
+  function hsSavePosts(a){setData('blog_posts',a);renderHomePostFeed()}
+  window.hsEditHeadlineText=function(i){const a=hsPosts(),p=a[i];if(!p)return;const value=prompt('Headline text:',p.headlineText||p.title||'');if(value===null)return;p.headlineText=value.trim();hsSavePosts(a)};
+  window.hsOpenHeadline=function(i){const el=document.getElementById('hs-home-post-'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
+  const oldRender=window.renderHomePostFeed;
+  window.renderHomePostFeed=function(){
+    const feed=document.getElementById('homePostFeed');if(!feed)return;
+    const a=hsPosts(),visible=adminMode?a:a.filter(p=>p.published);
+    if(!visible.length){feed.innerHTML='<div class="empty-state"><p>Nothing published yet.</p></div>';if(adminMode&&typeof addNewPostButton==='function')addNewPostButton();return}
+    const feature=visible.find(p=>p.featured&&p.published)||visible.find(p=>p.featured)||visible[0],fi=a.indexOf(feature);
+    let headlines=visible.map(p=>({p,i:a.indexOf(p)})).filter(x=>x.p.headline&&x.i!==fi).sort((x,y)=>(x.p.headlineOrder??999)-(y.p.headlineOrder??999));
+    if(!headlines.length)headlines=visible.filter(p=>p!==feature).slice(0,7).map(p=>({p,i:a.indexOf(p)}));
+    const latest=visible.map(p=>{const i=a.indexOf(p);return `<article class="post-card" id="hs-home-post-${i}"><div class="post-card-meta"><span>${escHS([p.date,p.category].filter(Boolean).join(' · '))}</span>${!p.published?'<span class="post-status-badge">Draft</span>':''}</div><div class="post-card-title">${escHS(p.title||'Untitled')}</div><div class="post-card-excerpt">${escHS(typeof excerpt==='function'?excerpt(p.body,430):(p.body||'').slice(0,430))}</div>${adminMode?`<div class="hs-story-admin"><button class="rk-btn" onclick="editPost(${i})">Edit</button><button class="rk-btn" onclick="togglePostPublish(${i})">${p.published?'Unpublish':'Publish'}</button><button class="rk-btn" onclick="hsToggleFeatured(${i})">${p.featured?'Unfeature':'Feature'}</button><button class="rk-btn" onclick="hsToggleHeadline(${i})">${p.headline?'Remove headline':'Headline'}</button><button class="rk-btn" onclick="hsEditHeadlineText(${i})">Edit headline text</button><button class="rk-btn rk-del" onclick="deletePost(${i})">Delete</button></div>`:''}</article>`}).join('');
+    feed.innerHTML=`<div class="hs-home-dashboard"><main><article class="hs-feature"><div class="hs-kicker">Featured Story</div><h2>${escHS(feature.title||'Untitled')}</h2><div class="hs-meta">${escHS([feature.category,feature.date].filter(Boolean).join(' · '))}</div><div class="hs-excerpt">${escHS(typeof excerpt==='function'?excerpt(feature.body,380):(feature.body||'').slice(0,380))}</div>${adminMode?`<div class="hs-story-admin"><button class="rk-btn" onclick="editPost(${fi})">Edit</button><button class="rk-btn" onclick="hsToggleFeatured(${fi})">${feature.featured?'Unfeature':'Make featured'}</button><button class="rk-btn" onclick="hsToggleHeadline(${fi})">${feature.headline?'Remove headline':'Add headline'}</button></div>`:''}</article><div class="hs-latest-title">Recent Analysis</div>${latest}</main><aside class="hs-headlines"><div class="hs-headlines-title">Latest</div>${headlines.map(({p,i},k)=>`<div class="hs-headline" onclick="hsOpenHeadline(${i})"><div class="hs-headline-name">${escHS(p.headlineText||p.title||'Untitled')}</div><div class="hs-headline-meta">${escHS([p.category,p.date].filter(Boolean).join(' · '))}</div>${adminMode?`<div class="hs-story-admin" onclick="event.stopPropagation()"><button class="rk-btn" onclick="hsMoveHeadline(${i},-1)" ${k===0?'disabled':''}>↑</button><button class="rk-btn" onclick="hsMoveHeadline(${i},1)" ${k===headlines.length-1?'disabled':''}>↓</button><button class="rk-btn" onclick="hsEditHeadlineText(${i})">Edit text</button><button class="rk-btn rk-del" onclick="hsToggleHeadline(${i})">Remove</button></div>`:''}</div>`).join('')||'<div class="hs-headline"><div class="hs-headline-name">No headlines selected.</div></div>'}</aside></div>`;
+    if(adminMode&&typeof addNewPostButton==='function')addNewPostButton();
+  };
+  document.addEventListener('DOMContentLoaded',()=>{try{renderHomePostFeed()}catch(e){console.error(e)}});
+})();
+</script>
