@@ -471,10 +471,7 @@
       <div id="overall-century">
         <div class="section-header"><span class="section-title">Best Players of the 21<sup>st</sup>&nbsp;Century</span><span class="section-sub">All positions</span></div>
         
-      <div class="rank-content"><div class="tier-legend">
-          <div class="tier-legend-title">How to read the tiers <span class="tier-legend-edit" onclick="editTierLegend()">Edit</span></div>
-          <div class="tier-legend-body"><em style="color:var(--gray-300)">Click Edit to add a legend.</em></div>
-        </div><p style="color:var(--gray-400);font-style:italic;font-family:var(--serif);font-size:0.88rem;padding:0.5rem 0;">No entries yet.</p><div class="hm-section"><div class="hm-title">Honorable Mentions</div><div class="hm-title" style="font-size:0.62rem;color:var(--accent);margin-bottom:0.35rem;">Still playing</div>
+      <div class="rank-content"><p style="color:var(--gray-400);font-style:italic;font-family:var(--serif);font-size:0.88rem;padding:0.5rem 0;">No entries yet.</p><div class="hm-section"><div class="hm-title">Honorable Mentions</div><div class="hm-title" style="font-size:0.62rem;color:var(--accent);margin-bottom:0.35rem;">Still playing</div>
         <div class="hm-list"></div>
         <div class="hm-title" style="font-size:0.62rem;color:var(--gray-600);margin-top:0.75rem;margin-bottom:0.35rem;">No longer playing</div>
         <div class="hm-list"></div>
@@ -485,10 +482,7 @@
       <div id="overall-now" style="display:none">
         <div class="section-header"><span class="section-title">Best Players Right Now</span><span class="section-sub">Active players only</span></div>
         
-      <div class="rank-content"><div class="tier-legend">
-          <div class="tier-legend-title">How to read the tiers <span class="tier-legend-edit" onclick="editTierLegend()">Edit</span></div>
-          <div class="tier-legend-body"><em style="color:var(--gray-300)">Click Edit to add a legend.</em></div>
-        </div><p style="color:var(--gray-400);font-style:italic;font-family:var(--serif);font-size:0.88rem;padding:0.5rem 0;">No entries yet.</p><div class="hm-section"><div class="hm-title">Honorable Mentions</div><div class="hm-title" style="font-size:0.62rem;color:var(--accent);margin-bottom:0.35rem;">Still playing</div>
+      <div class="rank-content"><p style="color:var(--gray-400);font-style:italic;font-family:var(--serif);font-size:0.88rem;padding:0.5rem 0;">No entries yet.</p><div class="hm-section"><div class="hm-title">Honorable Mentions</div><div class="hm-title" style="font-size:0.62rem;color:var(--accent);margin-bottom:0.35rem;">Still playing</div>
         <div class="hm-list"></div>
         <div class="hm-title" style="font-size:0.62rem;color:var(--gray-600);margin-top:0.75rem;margin-bottom:0.35rem;">No longer playing</div>
         <div class="hm-list"></div>
@@ -5068,17 +5062,6 @@ function rankRender(sec) {
     const data = rankGet(key);
     let html = '';
 
-    // Tier legend only on overall
-    if (sec === 'overall') {
-      const legend = getData('tier_legend','');
-      if (legend || adminMode) {
-        html += `<div class="tier-legend">
-          <div class="tier-legend-title">How to read the tiers ${adminMode ? '<span class="tier-legend-edit" onclick="editTierLegend()">Edit</span>' : ''}</div>
-          <div class="tier-legend-body">${legend || '<em style="color:var(--gray-300)">Click Edit to add a legend.</em>'}</div>
-        </div>`;
-      }
-    }
-
     if (data.tiers.every(t => !t.entries.length)) {
       html += adminMode
         ? '<p style="color:var(--gray-400);font-style:italic;font-family:var(--serif);font-size:0.88rem;padding:0.5rem 0;">No entries yet.</p>'
@@ -5568,6 +5551,18 @@ function loadData() {
     const raw = localStorage.getItem(DATA_KEY);
     const local = raw ? JSON.parse(raw) : {};
     siteData = Object.assign({}, baked, local);
+
+    // Restore populated baked rankings when an older cached build saved these lists as empty.
+    // Any locally edited list containing at least one player remains untouched.
+    ['ranking_gk_century','ranking_cb_century','ranking_cm_century','ranking_am_century'].forEach(key => {
+      const bakedRanking = baked[key];
+      const localRanking = local[key];
+      const countEntries = ranking => ((ranking && ranking.tiers) || [])
+        .reduce((total, tier) => total + (((tier || {}).entries || []).length), 0);
+      if (countEntries(bakedRanking) > 0 && countEntries(localRanking) === 0) {
+        siteData[key] = bakedRanking;
+      }
+    });
   } catch(e) { siteData = Object.assign({}, baked); }
 }
 
