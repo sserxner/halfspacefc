@@ -9654,7 +9654,6 @@ async function handleContact(e) {
 // ADMIN / EDIT SYSTEM
 // ================================================================
 
-const ADMIN_PASSWORD = 'fayegula';
 let adminMode = false;
 let siteData = {};
 
@@ -10708,7 +10707,7 @@ function disableInlineEditing() {
 }
 
 // ================================================================
-// ADMIN PANEL — hash-gated, password-protected
+// ADMIN PANEL — verified through Supabase site_admins
 // ================================================================
 function activateAdminMode() {
   adminMode = true;
@@ -10746,7 +10745,6 @@ window.exitAdminPanel = function() {
   if (banner) banner.style.display = 'none';
   disableInlineEditing();
   removeAdminUI();
-  sessionStorage.removeItem('hs_authed');
   if (window.location.hash === '#admin') history.replaceState(null, '', window.location.pathname);
   // Re-render current page without admin controls
   renderAllRankings();
@@ -10760,41 +10758,75 @@ window.exitAdminPanel = function() {
   if (active) showPage(active.id.replace('page-',''));
 };
 
-function showAdminLogin() {
+async function showAdminLogin() {
   if (adminMode) return;
-  if (sessionStorage.getItem('hs_authed') === '1') { activateAdminMode(); return; }
-  const ex = document.getElementById('adminLoginModal');
-  if (ex) ex.remove();
+
+  const existing = document.getElementById('adminLoginModal');
+  if (existing) existing.remove();
+
+  const db = window.HalfSpaceSupabase;
+  if (!db) {
+    setTimeout(showAdminLogin, 120);
+    return;
+  }
+
+  let session = null;
+  try {
+    const result = await db.auth.getSession();
+    session = result.data.session;
+  } catch (error) {
+    console.error('Could not read admin session:', error);
+  }
+
+  if (session?.user) {
+    try {
+      const { data: isAdmin, error } = await db.rpc('is_site_admin');
+      if (error) throw error;
+      if (isAdmin) {
+        activateAdminMode();
+        return;
+      }
+    } catch (error) {
+      console.error('Admin verification failed:', error);
+    }
+  }
+
   const panel = document.createElement('div');
   panel.id = 'adminLoginModal';
   panel.style.cssText = 'position:fixed;inset:0;background:#0a1f12;z-index:99999;display:flex;align-items:center;justify-content:center;padding:2rem';
-  panel.innerHTML = '<div style="background:#fff;border-radius:8px;padding:2.5rem;width:100%;max-width:380px;font-family:var(--sans)">' +
+  const signedInButNotAdmin = !!session?.user;
+  panel.innerHTML = '<div style="background:#fff;border-radius:8px;padding:2.5rem;width:100%;max-width:400px;font-family:var(--sans)">' +
     '<h2 style="font-family:var(--serif);font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:0.4rem">Half Space</h2>' +
-    '<p style="font-size:0.85rem;color:var(--gray-400);margin-bottom:1.5rem">Admin access</p>' +
-    '<div id="admin-login-error" style="font-size:0.8rem;color:#c0392b;margin-bottom:0.75rem;display:none">Wrong password</div>' +
-    '<input id="admin-pw" type="password" placeholder="Password" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:1rem;font-family:var(--sans);outline:none;margin-bottom:1rem">' +
-    '<button id="admin-login-btn" style="width:100%;padding:0.75rem;background:var(--accent);color:#fff;border:none;border-radius:3px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--sans);margin-bottom:0.5rem">Enter</button>' +
+    '<p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:1.5rem">' +
+      (signedInButNotAdmin
+        ? 'The signed-in account does not have administrator access.'
+        : 'Sign in with your Half Space administrator account to enter edit mode.') +
+    '</p>' +
+    (!signedInButNotAdmin
+      ? '<button id="admin-account-signin" style="width:100%;padding:0.75rem;background:var(--accent);color:#fff;border:none;border-radius:3px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--sans);margin-bottom:0.5rem">Sign in</button>'
+      : '<button id="admin-account-signout" style="width:100%;padding:0.75rem;background:var(--accent);color:#fff;border:none;border-radius:3px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--sans);margin-bottom:0.5rem">Use a different account</button>') +
+    '<button id="admin-access-check" style="width:100%;padding:0.65rem;background:transparent;color:var(--accent);border:1.5px solid var(--accent);border-radius:3px;font-size:0.85rem;cursor:pointer;font-family:var(--sans);margin-bottom:0.5rem">Check access</button>' +
     '<button id="admin-cancel-btn" style="width:100%;padding:0.6rem;background:transparent;color:var(--gray-400);border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.85rem;cursor:pointer;font-family:var(--sans)">Cancel</button>' +
     '</div>';
   document.body.appendChild(panel);
-  const pw = document.getElementById('admin-pw');
-  function tryLogin() {
-    if (pw.value === ADMIN_PASSWORD) {
-      sessionStorage.setItem('hs_authed', '1');
-      panel.remove();
-      activateAdminMode();
-    } else {
-      document.getElementById('admin-login-error').style.display = 'block';
-      pw.value = ''; pw.focus();
-    }
-  }
-  document.getElementById('admin-login-btn').onclick = tryLogin;
-  pw.onkeydown = function(e) { if (e.key === 'Enter') tryLogin(); };
+
+  document.getElementById('admin-account-signin')?.addEventListener('click', function() {
+    panel.remove();
+    window.HSCommunity?.openAuth('signin');
+  });
+  document.getElementById('admin-account-signout')?.addEventListener('click', async function() {
+    await db.auth.signOut();
+    panel.remove();
+    window.HSCommunity?.openAuth('signin');
+  });
+  document.getElementById('admin-access-check').onclick = function() {
+    panel.remove();
+    showAdminLogin();
+  };
   document.getElementById('admin-cancel-btn').onclick = function() {
     panel.remove();
     if (window.location.hash === '#admin') history.replaceState(null, '', window.location.pathname);
   };
-  setTimeout(function() { pw.focus(); }, 100);
 }
 
 window.addEventListener('hashchange', function() {
@@ -10961,8 +10993,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // and hosts that restore the URL hash after DOMContentLoaded.
 function ensureAdminRoute() {
   if (window.location.hash !== '#admin' || adminMode) return;
-  if (sessionStorage.getItem('hs_authed') === '1') activateAdminMode();
-  else showAdminLogin();
+  showAdminLogin();
 }
 window.addEventListener('load', ensureAdminRoute);
 window.addEventListener('pageshow', ensureAdminRoute);
@@ -12217,6 +12248,7 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   .hs-comments-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-end;margin-bottom:1rem}.hs-comments-title{font:700 1.45rem var(--serif);color:var(--accent)}.hs-comments-count{font:.75rem var(--sans);color:var(--gray-400)}
   .hs-sort{display:flex;gap:.25rem}.hs-sort button{border:0;background:none;font:600 .7rem var(--sans);color:var(--gray-400);cursor:pointer;padding:.25rem .35rem}.hs-sort button.active{color:var(--accent);text-decoration:underline}
   .hs-comment-form{display:block;width:100%;background:#fff;border:1px solid var(--gray-200);border-radius:5px;padding:1rem;margin-bottom:1.25rem}.hs-comment-form-grid{display:grid;width:100%;grid-template-columns:minmax(160px,220px) minmax(0,1fr);gap:.65rem}.hs-comment-form-grid input,.hs-comment-form-grid textarea{width:100%;min-width:0}.hs-comment-form textarea{grid-column:1/-1;min-height:120px}.hs-comment-form>.hs-form-actions{width:100%;justify-content:flex-end}.hs-comment-form>.hs-form-actions .hs-primary{flex:0 0 auto;white-space:nowrap}
+  .hs-commenting-as{grid-column:1/-1;font-size:.78rem;color:var(--gray-600);padding:.2rem 0 .1rem}.hs-commenting-as strong{color:var(--accent);font-weight:600}
   .hs-comment-list{display:flex;flex-direction:column}.hs-comment{padding:1rem 0;border-bottom:1px solid var(--gray-100)}.hs-comment.pinned{border-left:3px solid #d4aa00;padding-left:.9rem}.hs-comment.editor-pick{background:linear-gradient(90deg,rgba(212,170,0,.08),transparent);padding-left:.9rem}
   .hs-comment-meta{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap;margin-bottom:.35rem}.hs-comment-name{font:700 .9rem var(--serif);color:var(--black)}.hs-comment-badge{font:700 .58rem var(--sans);text-transform:uppercase;letter-spacing:.08em;color:#fff;background:var(--accent);padding:1px 5px;border-radius:2px}.hs-comment-badge.pick{background:#8a6400}.hs-comment-time{font:.68rem var(--sans);color:var(--gray-400)}
   .hs-comment-member{font:.66rem var(--sans);color:var(--gray-400)}.hs-comment-body{font:400 .92rem/1.58 var(--serif);white-space:pre-wrap;color:var(--gray-800);overflow-wrap:anywhere}
@@ -12271,7 +12303,7 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   function ensureAccountArea(){if($('#hsAccountArea'))return;const bar=document.querySelector('.nav-logo-bar');if(!bar)return;const el=document.createElement('div');el.id='hsAccountArea';el.className='hs-account-area';bar.appendChild(el);renderAccountArea()}
   function renderAccountArea(){const el=$('#hsAccountArea');if(!el)return;const mobile=window.matchMedia('(max-width:768px)').matches;if(mobile){el.innerHTML=state.user?'<button class="hs-account-btn hs-account-mobile" type="button" onclick="HSCommunity.account()">Account</button>':'<button class="hs-account-btn hs-account-mobile" type="button" onclick="HSCommunity.openAuth(\'signin\')">Account</button>';return}if(state.user){el.innerHTML='<span class="hs-member-chip">'+esc(state.profile?.display_name||state.user.email)+'</span><button class="hs-account-btn" type="button" onclick="HSCommunity.account()">Account</button><button class="hs-account-btn" type="button" onclick="HSCommunity.signOut()">Sign out</button>'}else{el.innerHTML='<button class="hs-account-btn" type="button" onclick="HSCommunity.openAuth(\'signin\')">Account</button>'}}
   function authStatus(msg,type=''){const el=$('#hsAuthStatus');if(el){el.textContent=msg||'';el.className='hs-status '+type}}
-  async function refreshIdentity(){const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;state.profile=null;state.isAdmin=false;if(state.user){const [{data:p},{data:a}]=await Promise.all([db.from('profiles').select('id,display_name,avatar_url,receive_new_post_emails,created_at').eq('id',state.user.id).maybeSingle(),db.rpc('is_site_admin')]);state.profile=p||null;state.isAdmin=!!a}renderAccountArea()}
+  async function refreshIdentity(sessionOverride){let session=sessionOverride;if(session===undefined){const result=await db.auth.getSession();session=result.data.session}state.user=session?.user||null;state.profile=null;state.isAdmin=false;if(state.user){const [{data:p},{data:a}]=await Promise.all([db.from('profiles').select('id,display_name,avatar_url,receive_new_post_emails,created_at').eq('id',state.user.id).maybeSingle(),db.rpc('is_site_admin')]);state.profile=p||null;state.isAdmin=!!a}renderAccountArea();return state.user}
   async function loadProfiles(ids){const uniq=[...new Set(ids.filter(Boolean))];state.profileMap.clear();if(!uniq.length)return;const {data}=await db.from('public_profiles').select('id,display_name,avatar_url,created_at').in('id',uniq);(data||[]).forEach(p=>state.profileMap.set(p.id,p))}
   async function loadComments(){const host=commentsHost();removeComments();if(!host)return;state.pageKey=derivePageKey();const [{data:comments,error},{data:settings}]=await Promise.all([db.from('comments').select('id,page_key,parent_id,user_id,guest_id,display_name,body,status,pinned,editors_pick,posted_as_editor,created_at,updated_at,edited_at').eq('page_key',state.pageKey).in('status',['published','deleted']),db.from('comment_settings').select('locked').eq('page_key',state.pageKey).maybeSingle()]);if(error){console.error(error);return}state.comments=comments||[];state.settings=settings||{locked:false};await loadProfiles(state.comments.map(c=>c.user_id));mountComments(host)}
   function removeComments(){document.querySelectorAll('.hs-comments').forEach(x=>x.remove())}
@@ -12280,7 +12312,7 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   function memberSince(id){const p=state.profileMap.get(id);if(!p?.created_at)return'';return 'Member since '+new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric'}).format(new Date(p.created_at))}
   async function recommendationCounts(){const ids=state.comments.filter(c=>c.status==='published').map(c=>c.id);if(!ids.length)return{};const [{data:m},{data:g}]=await Promise.all([db.from('comment_recommendations').select('comment_id').in('comment_id',ids),db.from('guest_comment_recommendations').select('comment_id').in('comment_id',ids)]);const out={};[...(m||[]),...(g||[])].forEach(r=>out[r.comment_id]=(out[r.comment_id]||0)+1);return out}
   async function renderComments(){const el=$('#hsComments');if(!el)return;const counts=await recommendationCounts();const roots=state.comments.filter(c=>!c.parent_id);const sorted=[...roots].sort((a,b)=>state.sort==='new'?new Date(b.created_at)-new Date(a.created_at):state.sort==='old'?new Date(a.created_at)-new Date(b.created_at):((b.pinned-a.pinned)||((counts[b.id]||0)-(counts[a.id]||0))||(new Date(b.created_at)-new Date(a.created_at))));el.innerHTML='<div class="hs-comments-inner"><div class="hs-comments-head"><div><div class="hs-comments-title">Comments</div><div class="hs-comments-count">'+state.comments.filter(c=>c.status==='published').length+' responses</div></div><div class="hs-sort"><button class="'+(state.sort==='top'?'active':'')+'" onclick="HSCommunity.sort(\'top\')">Top</button><button class="'+(state.sort==='new'?'active':'')+'" onclick="HSCommunity.sort(\'new\')">Newest</button><button class="'+(state.sort==='old'?'active':'')+'" onclick="HSCommunity.sort(\'old\')">Oldest</button></div></div>'+(state.isAdmin?'<div class="hs-admin-thread visible"><button onclick="HSCommunity.toggleLock()">'+(state.settings.locked?'Unlock comments':'Lock comments')+'</button></div>':'')+(state.settings.locked?'<div class="hs-locked">Comments are locked on this page.</div>':commentForm())+'<div class="hs-comment-list">'+(sorted.length?sorted.map(c=>commentHtml(c,counts,0)).join(''):'<div class="hs-empty-comments">No comments yet.</div>')+'</div></div>'}
-  function commentForm(parentId=''){const signed=!!state.user;const editor=state.isAdmin?'<label class="hs-check"><input id="hsPostAsEditor'+parentId+'" type="checkbox" '+(false?'checked':'')+'> Post as Editor</label>':'';return '<form class="hs-comment-form" onsubmit="HSCommunity.post(event,\''+parentId+'\')"><div class="hs-comment-form-grid">'+(signed?'':'<input id="hsGuestName'+parentId+'" maxlength="50" placeholder="Name" required><input id="hsGuestEmail'+parentId+'" type="email" placeholder="Email (optional)">')+'<textarea id="hsCommentBody'+parentId+'" maxlength="5000" placeholder="Write a comment" required></textarea></div><div class="hs-form-actions" style="margin-top:.65rem">'+editor+'<button class="hs-primary" type="submit">Post Comment</button>'+(parentId?'<button class="hs-secondary" type="button" onclick="HSCommunity.cancelReply()">Cancel</button>':'')+'</div><div id="hsPostStatus'+parentId+'" class="hs-status"></div></form>'}
+  function commentForm(parentId=''){const signed=!!state.user;const editor=state.isAdmin?'<label class="hs-check"><input id="hsPostAsEditor'+parentId+'" type="checkbox"> Post as Editor</label>':'';const identity=signed?'<div class="hs-commenting-as">Commenting as <strong>'+esc(state.profile?.display_name||state.user.email||'Member')+'</strong></div>':'';return '<form class="hs-comment-form" onsubmit="HSCommunity.post(event,\''+parentId+'\')"><div class="hs-comment-form-grid">'+identity+(signed?'':'<input id="hsGuestName'+parentId+'" maxlength="50" placeholder="Name" required><input id="hsGuestEmail'+parentId+'" type="email" placeholder="Email (optional)">')+'<textarea id="hsCommentBody'+parentId+'" maxlength="5000" placeholder="Write a comment" required></textarea></div><div class="hs-form-actions" style="margin-top:.65rem">'+editor+'<button class="hs-primary" type="submit">Post Comment</button>'+(parentId?'<button class="hs-secondary" type="button" onclick="HSCommunity.cancelReply()">Cancel</button>':'')+'</div><div id="hsPostStatus'+parentId+'" class="hs-status"></div></form>'}
   function commentHtml(c,counts,depth){const children=state.comments.filter(x=>x.parent_id===c.id).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));const prof=c.user_id?state.profileMap.get(c.user_id):null;const name=prof?.display_name||c.display_name||'Guest';const deleted=c.status==='deleted';const ownedMember=state.user&&c.user_id===state.user.id;const ownedGuest=!c.user_id&&state.guestOwned[c.id];const canEdit=(ownedMember||ownedGuest)&&!deleted&&(Date.now()-new Date(c.created_at).getTime()<15*60*1000);const badge=c.posted_as_editor?'<span class="hs-comment-badge">Editor</span>':'';const pick=c.editors_pick?'<span class="hs-comment-badge pick">Editor\'s Pick</span>':'';const member=c.user_id?'<span class="hs-comment-member">'+esc(memberSince(c.user_id))+'</span>':'';const admin=state.isAdmin&&!deleted?'<div class="hs-admin-comment-tools"><button onclick="HSCommunity.adminPin(\''+c.id+'\','+(!c.pinned)+')">'+(c.pinned?'Unpin':'Pin')+'</button><button onclick="HSCommunity.adminPick(\''+c.id+'\','+(!c.editors_pick)+')">'+(c.editors_pick?'Remove Editor\'s Pick':'Editor\'s Pick')+'</button><button onclick="HSCommunity.adminDelete(\''+c.id+'\')">Delete</button></div>':'';const actions=deleted?'':'<div class="hs-comment-actions"><button onclick="HSCommunity.recommend(\''+c.id+'\')">Recommend ('+(counts[c.id]||0)+')</button><button onclick="HSCommunity.reply(\''+c.id+'\')">Reply</button>'+(canEdit?'<button onclick="HSCommunity.edit(\''+c.id+'\')">Edit</button><button class="danger" onclick="HSCommunity.remove(\''+c.id+'\')">Delete</button>':'')+'</div>';return '<article class="hs-comment '+(c.pinned?'pinned ':'')+(c.editors_pick?'editor-pick':'')+'"><div class="hs-comment-meta"><span class="hs-comment-name">'+esc(name)+'</span>'+badge+pick+'<span class="hs-comment-time">'+formatDate(c.created_at)+(c.edited_at?' · Edited':'')+'</span>'+member+'</div><div class="hs-comment-body">'+esc(c.body)+'</div>'+actions+admin+(state.replyTo===c.id?'<div class="hs-reply-form">'+commentForm(c.id)+'</div>':'')+(children.length?'<div class="hs-replies">'+children.map(x=>commentHtml(x,counts,depth+1)).join('')+'</div>':'')+'</article>'}
   async function post(e,parentId){e.preventDefault();if(state.settings.locked)return;const body=$('#hsCommentBody'+parentId)?.value.trim();if(!body)return;const status=$('#hsPostStatus'+parentId);try{if(state.user){const postAsEditor=state.isAdmin?!!$('#hsPostAsEditor'+parentId)?.checked:false;const {data,error}=await db.rpc('post_member_comment',{p_page_key:state.pageKey,p_body:body,p_parent_id:parentId||null,p_post_as_editor:postAsEditor});if(error)throw error}else{const name=$('#hsGuestName'+parentId)?.value.trim(),email=$('#hsGuestEmail'+parentId)?.value.trim()||null,{id,token}=getGuest(),editToken=randomToken();const {data,error}=await db.rpc('post_guest_comment',{p_page_key:state.pageKey,p_display_name:name,p_body:body,p_guest_id:id,p_edit_token:editToken,p_guest_email:email,p_parent_id:parentId||null});if(error)throw error;state.guestOwned[data.id]={token:editToken,createdAt:data.created_at};saveOwned();setTimeout(()=>accountChoice(),150)}state.replyTo=null;await loadComments()}catch(err){if(status){status.textContent=err.message||String(err);status.className='hs-status error'}}}
   function accountChoice(){if(state.user)return;const existing=$('#hsCreateChoice');if(existing)existing.remove();const form=document.querySelector('#hsComments .hs-comment-form');if(!form)return;const box=document.createElement('div');box.id='hsCreateChoice';box.className='hs-create-choice';box.innerHTML='Do you want to create an account? <button class="hs-secondary" onclick="HSCommunity.openAuth(\'signup\')">Yes</button> <button class="hs-secondary" onclick="this.parentElement.remove()">No</button>';form.appendChild(box)}
@@ -12298,12 +12330,13 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   function openAuth(mode='signin'){resetAuthView();authMode(mode);$('#hsAuthModal').classList.add('open');$('#hsAuthModal').setAttribute('aria-hidden','false');setTimeout(()=>$('#hsAuthEmail')?.focus(),20)}
   function closeAuth(){$('#hsAuthModal').classList.remove('open');$('#hsAuthModal').setAttribute('aria-hidden','true');authStatus('');setTimeout(resetAuthView,180)}
   function authMode(mode){resetAuthView();state.authMode=mode;$('#hsSignInTab').classList.toggle('active',mode==='signin');$('#hsSignUpTab').classList.toggle('active',mode==='signup');$('#hsDisplayNameWrap').style.display=mode==='signup'?'block':'none';$('#hsNotifyWrap').style.display=mode==='signup'?'flex':'none';$('#hsAuthSubmit').textContent=mode==='signup'?'Create account':'Sign in';$('#hsAuthPassword').autocomplete=mode==='signup'?'new-password':'current-password';authStatus('')}
-  async function authSubmit(e){e.preventDefault();authStatus('Working...');const email=$('#hsAuthEmail').value.trim(),password=$('#hsAuthPassword').value;try{if(state.authMode==='signup'){const display=$('#hsDisplayName').value.trim();if(display.length<2)throw new Error('Display name must be at least 2 characters.');const notify=$('#hsNotifyNewPosts').checked;const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:'https://halfspacefc.com',data:{display_name:display,receive_new_post_emails:notify}}});if(error)throw error;if(data.session){await db.rpc('set_new_post_email_preference',{p_enabled:notify});await refreshIdentity();showAuthSuccess('Account created.');await loadComments()}else showAuthSuccess('Check your email to confirm your account.')}else{const {error}=await db.auth.signInWithPassword({email,password});if(error)throw error;await refreshIdentity();closeAuth();await loadComments()}}catch(err){authStatus(err.message||String(err),'error')}}
+  async function authSubmit(e){e.preventDefault();authStatus('Working...');const email=$('#hsAuthEmail').value.trim(),password=$('#hsAuthPassword').value;try{if(state.authMode==='signup'){const display=$('#hsDisplayName').value.trim();if(display.length<2)throw new Error('Display name must be at least 2 characters.');const notify=$('#hsNotifyNewPosts').checked;const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:'https://halfspacefc.com',data:{display_name:display,receive_new_post_emails:notify}}});if(error)throw error;if(data.session){await db.rpc('set_new_post_email_preference',{p_enabled:notify});await refreshIdentity();showAuthSuccess('Account created.');await loadComments()}else showAuthSuccess('Check your email to confirm your account. You will be signed in when you return.')}else{const {error}=await db.auth.signInWithPassword({email,password});if(error)throw error;await refreshIdentity();closeAuth();await loadComments()}}catch(err){authStatus(err.message||String(err),'error')}}
   async function signOut(){await db.auth.signOut();await refreshIdentity();await loadComments()}
   function account(){if(!state.user)return openAuth('signin');const name=prompt('Display name:',state.profile?.display_name||'');if(name===null)return;const notify=confirm('Notify you about new posts?\n\nOK = Yes, Cancel = No');db.rpc('update_own_profile',{p_display_name:name,p_avatar_url:state.profile?.avatar_url||null,p_notify_new_posts:notify}).then(async({error})=>{if(error)alert(error.message);else{await refreshIdentity();alert('Account updated.')}})}
   function sort(v){state.sort=v;renderComments()}
   function patchNavigation(){if(window.__hsNavPatched)return;window.__hsNavPatched=true;const names=['showPage','showPresentRanking','showRankingSection','showNBAPosition','showTVCategory'];names.forEach(name=>{const orig=window[name];if(typeof orig==='function'){window[name]=function(){const r=orig.apply(this,arguments);setTimeout(loadComments,30);return r}}});document.addEventListener('click',e=>{if(e.target.closest('.sub-tab,.xi-country-card,.nav-tab'))setTimeout(()=>{if(derivePageKey()!==state.pageKey)loadComments()},60)})}
-  async function init(){loadOwned();ensureAccountArea();$('#hsAuthForm')?.addEventListener('submit',authSubmit);$('#hsAuthModal')?.addEventListener('click',e=>{if(e.target.id==='hsAuthModal')closeAuth()});await refreshIdentity();patchNavigation();await loadComments();db.auth.onAuthStateChange(async()=>{await refreshIdentity();await loadComments()})}
+  async function restoreSessionFromRedirect(){try{const url=new URL(window.location.href);const code=url.searchParams.get('code');if(code){const {error}=await db.auth.exchangeCodeForSession(code);if(error)console.error('Account confirmation error:',error);url.searchParams.delete('code');history.replaceState({},document.title,url.pathname+(url.searchParams.toString()?'?'+url.searchParams.toString():'')+url.hash)}}catch(err){console.error('Session restore error:',err)}}
+  async function init(){loadOwned();ensureAccountArea();$('#hsAuthForm')?.addEventListener('submit',authSubmit);$('#hsAuthModal')?.addEventListener('click',e=>{if(e.target.id==='hsAuthModal')closeAuth()});db.auth.onAuthStateChange(async(event,session)=>{await refreshIdentity(session);await loadComments()});await restoreSessionFromRedirect();await refreshIdentity();patchNavigation();await loadComments()}
   window.addEventListener('resize',()=>{clearTimeout(window.__hsAccountResize);window.__hsAccountResize=setTimeout(renderAccountArea,120)});
   window.HSCommunity={openAuth,closeAuth,authMode,signOut,account,sort,post,recommend,reply,cancelReply,edit,remove,adminPin,adminPick,adminDelete,toggleLock,loadComments};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
@@ -12475,6 +12508,51 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('hsPublishingModal')?.classList.contains('open'))close()});
   window.HSPublishing={open,close};
+})();
+</script>
+
+<style id="hs-dropdown-dismiss-fix">
+@media (min-width:769px){
+  .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu{display:none!important}
+}
+</style>
+<script id="hs-dropdown-and-admin-security-final">
+(function(){
+  'use strict';
+
+  function closeDropdown(wrap){
+    if(!wrap)return;
+    wrap.classList.remove('open');
+    wrap.classList.add('hs-dropdown-dismissed');
+    const toggle=wrap.querySelector('.nav-dropdown-toggle');
+    if(toggle){toggle.setAttribute('aria-expanded','false');toggle.blur();}
+  }
+
+  function setupDropdown(wrapId, menuId){
+    const wrap=document.getElementById(wrapId);
+    const menu=document.getElementById(menuId);
+    if(!wrap||!menu)return;
+    menu.addEventListener('click',function(event){
+      if(event.target.closest('button')) closeDropdown(wrap);
+    },true);
+    wrap.addEventListener('pointerleave',function(){
+      wrap.classList.remove('hs-dropdown-dismissed');
+    });
+  }
+
+  async function verifyAdminAfterAuth(){
+    if(location.hash!=='#admin' || window.adminMode || document.body.classList.contains('admin-active'))return;
+    setTimeout(function(){ if(typeof window.showAdminLogin==='function') window.showAdminLogin(); },50);
+  }
+
+  function init(){
+    setupDropdown('centuryRankingsDropdown','centuryRankingsMenu');
+    setupDropdown('miscDropdown','miscMenu');
+    const db=window.HalfSpaceSupabase;
+    if(db?.auth?.onAuthStateChange){db.auth.onAuthStateChange(verifyAdminAfterAuth)}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
 </body></html>
