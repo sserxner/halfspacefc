@@ -346,4 +346,331 @@
   @media (max-width: 900px) { .achievement-tier .xi-country-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 640px) { .achievement-tier .xi-country-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 420px) { .achievement-tier .xi-country-grid { grid-template-columns: 1fr; } }
-  
+        .admin-edit-btn {
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 2px;
+        border: none;
+        background: #2d5c3f;
+        color: #fff;
+        cursor: pointer;
+        font-family: var(--sans);
+        display: block;
+        margin-top: 3px;
+      }
+      .admin-edit-btn:hover {
+        background: #1a3a2a;
+      }
+      .admin-add-btn {
+        display: block;
+        margin-top: 1.25rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.5rem 1.1rem;
+        border: 1.5px dashed var(--accent);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font-family: var(--sans);
+        transition: all 0.15s;
+      }
+      .admin-add-btn:hover {
+        background: var(--green-light);
+      }
+      #me_name:focus,
+      #me_detail:focus,
+      #me_note:focus,
+      #xi_name_input:focus {
+        border-color: var(--accent);
+      }
+      #adminPanel {
+        position: fixed;
+        inset: 0;
+        background: #0a1f12;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      #adminPanel .panel-box {
+        background: #fff;
+        border-radius: 8px;
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 400px;
+        font-family: var(--sans);
+      }
+      #adminPanel h2 {
+        font-family: "Averia Serif Libre", serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d5c3f;
+        margin-bottom: 0.4rem;
+      }
+      #adminPanel p {
+        font-size: 0.85rem;
+        color: #9b9a93;
+        margin-bottom: 1.5rem;
+      }
+      #adminPanel input {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border: 1.5px solid #e0dfd8;
+        border-radius: 3px;
+        font-size: 1rem;
+        font-family: var(--sans);
+        outline: none;
+        margin-bottom: 1rem;
+      }
+      #adminPanel input:focus {
+        border-color: #2d5c3f;
+      }
+      #adminPanel .panel-error {
+        font-size: 0.8rem;
+        color: #9b2020;
+        margin-bottom: 0.75rem;
+        display: none;
+      }
+      #adminPanel .panel-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: #2d5c3f;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--sans);
+        margin-bottom: 0.5rem;
+      }
+      #adminPanel .panel-btn:hover {
+        background: #224832;
+      }
+      #adminPanel .panel-exit {
+        width: 100%;
+        padding: 0.6rem;
+        background: transparent;
+        color: #9b9a93;
+        border: 1.5px solid #e0dfd8;
+        border-radius: 3px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-family: var(--sans);
+      }
+      #adminPanel .panel-exit:hover {
+        color: #0f0f0f;
+        border-color: #9b9a93;
+      }
+      #adminToolbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #0a1f12;
+        z-index: 998;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1.5rem;
+        gap: 1rem;
+        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
+      }
+      #adminToolbar .tb-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      #adminToolbar .tb-status {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-family: var(--sans);
+      }
+      #adminToolbar .tb-indicator {
+        width: 8px;
+        height: 8px;
+        background: #4caf50;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      #adminToolbar .tb-btn {
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.5rem 1.1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: var(--sans);
+        border: none;
+        white-space: nowrap;
+      }
+      #adminToolbar .tb-github {
+        background: #238636;
+        color: #fff;
+      }
+      #adminToolbar .tb-github:hover {
+        background: #1a6e2a;
+      }
+      #adminToolbar .tb-github:disabled {
+        background: #555;
+        cursor: not-allowed;
+      }
+      #adminToolbar .tb-download {
+        background: #1a3a6b;
+        color: #fff;
+      }
+      #adminToolbar .tb-download:hover {
+        background: #142d56;
+      }
+      #adminToolbar .tb-exit {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      #adminToolbar .tb-exit:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+      #adminBanner {
+        display: none;
+        position: fixed;
+        top: 84px;
+        left: 0;
+        right: 0;
+        z-index: 98;
+        background: #2d5c3f;
+        color: rgba(255, 255, 255, 0.85);
+        font-family: var(--sans);
+        font-size: 0.78rem;
+        font-weight: 500;
+        padding: 0.4rem 1.5rem;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* EDITABLE XI TIERS */
+      .xi-tier-header-controls {
+        display: none;
+        align-items: center;
+        gap: 0.3rem;
+        margin-left: auto;
+      }
+      .admin-active .xi-tier-header-controls {
+        display: flex;
+      }
+      .xi-tier-btn {
+        font-size: 0.62rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        cursor: pointer;
+        font-family: var(--sans);
+      }
+      .xi-tier-btn:hover {
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .xi-tier-btn.danger {
+        border-color: rgba(255, 190, 190, 0.55);
+        color: #ffd0d0;
+      }
+      .xi-tier-card-wrap {
+        position: relative;
+        min-width: 0;
+      }
+      .xi-tier-card-wrap > .xi-country-card {
+        height: 100%;
+      }
+      .xi-tier-card-controls {
+        display: none;
+        gap: 0.3rem;
+        align-items: center;
+        margin-top: 0.35rem;
+      }
+      .admin-active .xi-tier-card-controls {
+        display: flex;
+      }
+      .xi-tier-card-controls select {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.66rem;
+        padding: 3px 4px;
+        border: 1px solid var(--gray-200);
+        border-radius: 2px;
+        background: #fff;
+        color: var(--gray-600);
+        font-family: var(--sans);
+      }
+      .xi-tier-card-controls button {
+        font-size: 0.62rem;
+        padding: 2px 6px;
+        border: 1px solid var(--gray-200);
+        border-radius: 2px;
+        background: #fff;
+        color: var(--accent);
+        cursor: pointer;
+        font-family: var(--sans);
+      }
+      .xi-tier-card-controls button:hover {
+        background: var(--green-light);
+        border-color: var(--accent);
+      }
+      .xi-tier-add {
+        margin-top: 1rem;
+      }
+.hs-scout-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        background: rgba(10, 31, 18, 0.72);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+      .hs-scout-modal-card {
+        width: min(520px, 100%);
+        background: #fff;
+        border-radius: 7px;
+        padding: 1.5rem;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.3);
+      }
+      .hs-scout-modal-card h3 {
+        font-family: var(--serif);
+        color: var(--accent);
+        margin-bottom: 1rem;
+      }
+      .hs-scout-modal-card label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--gray-600);
+        margin-bottom: 0.8rem;
+      }
+      .hs-scout-modal-card input,
+      .hs-scout-modal-card textarea {
+        font: inherit;
+        text-transform: none;
+        letter-spacing: 0;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 3px;
+      }
+      .hs-scout-modal-card textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+      .hs-scout-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
