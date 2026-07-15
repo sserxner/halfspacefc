@@ -514,7 +514,8 @@ input,textarea,select,button{max-width:100%}
   .content,.content-wide{padding-left:.65rem!important;padding-right:.65rem!important}
   .card-wrap{padding-left:.7rem;padding-right:.7rem}
 }
-</style>\n</head>
+</style>
+</head>
 <body style="padding-bottom: 64px;">
 <nav>
 <div class="nav-logo-bar">
@@ -12307,4 +12308,69 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+
+<style id="hs-mobile-final-cascade-fix">
+@media (max-width:768px){
+  html,body{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important}
+  body{position:relative!important}
+  nav{height:58px!important;min-height:58px!important;max-width:100%!important;overflow:visible!important}
+  .nav-logo-bar{height:58px!important;min-height:58px!important;width:100%!important;max-width:100%!important;padding:0 5.35rem!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}
+  .nav-logo{display:block!important;max-width:100%!important;white-space:nowrap!important;font-size:.84rem!important;letter-spacing:.12em!important;text-align:center!important}
+  .nav-tab-band{display:none!important;height:0!important;min-height:0!important;overflow:hidden!important;padding:0!important;margin:0!important;border:0!important}
+  .nav-dropdown{display:none!important}
+  .nav-hamburger{display:flex!important;visibility:visible!important;pointer-events:auto!important;position:absolute!important;left:.55rem!important;right:auto!important;top:50%!important;transform:translateY(-50%)!important;width:44px!important;height:44px!important;z-index:1002!important;align-items:center!important;justify-content:center!important}
+  .nav-hamburger span{display:block!important;width:23px!important;height:2px!important}
+  .hs-account-area{position:absolute!important;right:.55rem!important;left:auto!important;top:50%!important;transform:translateY(-50%)!important;z-index:1002!important;max-width:88px!important}
+  .hs-account-area .hs-account-btn{max-width:88px!important;min-height:38px!important;padding:.42rem .55rem!important;font-size:.61rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .search-icon-btn{display:none!important}
+  .mobile-menu{display:flex!important;flex-direction:column!important;position:fixed!important;top:58px!important;bottom:0!important;left:0!important;right:auto!important;width:min(86vw,340px)!important;max-width:340px!important;height:calc(100dvh - 58px)!important;max-height:none!important;padding:.35rem 0 calc(1rem + env(safe-area-inset-bottom))!important;background:#0f2518!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:1001!important;box-shadow:12px 0 32px rgba(0,0,0,.3)!important;transform:translateX(-105%)!important;visibility:hidden!important;pointer-events:none!important;transition:transform .22s ease,visibility .22s ease!important}
+  .mobile-menu.open{transform:translateX(0)!important;visibility:visible!important;pointer-events:auto!important}
+  .mobile-menu .nav-tab{display:flex!important;width:100%!important;min-height:49px!important;height:auto!important;flex:0 0 auto!important;justify-content:flex-start!important;padding:.8rem 1.1rem!important;border-bottom:1px solid rgba(255,255,255,.08)!important;color:rgba(255,255,255,.78)!important;text-align:left!important;font-size:.74rem!important}
+  .mobile-menu .nav-tab.active{color:#fff!important;background:rgba(255,255,255,.1)!important}
+  .page,.hero,.content,.content-wide,footer{width:100%!important;max-width:100%!important;min-width:0!important}
+  .hero{padding:3.3rem 1rem 3rem!important}
+  .hero h1{font-size:clamp(2.8rem,15vw,4.25rem)!important}
+  .content,.content-wide{padding-left:.85rem!important;padding-right:.85rem!important}
+  /* Position navigation is a visible compact grid on phones. */
+  #rankings-primary-tabs,#present-primary-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:.4rem!important;width:100%!important;overflow:visible!important;border-bottom:0!important;margin:0 0 1.25rem!important;padding:0!important}
+  #rankings-primary-tabs .sub-tab,#present-primary-tabs .sub-tab{display:flex!important;align-items:center!important;justify-content:center!important;min-width:0!important;width:100%!important;min-height:42px!important;height:auto!important;padding:.48rem .25rem!important;margin:0!important;border:1px solid var(--gray-200)!important;border-radius:3px!important;background:#fff!important;font-size:.67rem!important;line-height:1.15!important;text-align:center!important;white-space:normal!important}
+  #rankings-primary-tabs .sub-tab.active,#present-primary-tabs .sub-tab.active{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+  .sub-tabs:not(#rankings-primary-tabs):not(#present-primary-tabs){display:flex!important;overflow-x:auto!important;overflow-y:hidden!important;flex-wrap:nowrap!important;-webkit-overflow-scrolling:touch!important}
+  .sub-tabs:not(#rankings-primary-tabs):not(#present-primary-tabs) .sub-tab{display:flex!important;flex:0 0 auto!important}
+}
+@media(max-width:390px){
+  .nav-logo-bar{padding-left:4.8rem!important;padding-right:4.8rem!important}
+  .nav-logo{font-size:.75rem!important}
+  #rankings-primary-tabs,#present-primary-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+</style>
+<script id="hs-mobile-final-drawer-script">
+(function(){
+  function menu(){return document.getElementById('mobileMenu')}
+  window.toggleMobileMenu=function(){
+    const m=menu(); if(!m)return;
+    const opening=!m.classList.contains('open');
+    m.classList.toggle('open',opening);
+    document.documentElement.style.overflow=opening?'hidden':'';
+    document.body.style.overflow=opening?'hidden':'';
+  };
+  document.addEventListener('click',function(e){
+    const m=menu(); if(!m||!m.classList.contains('open'))return;
+    if(e.target.closest('.nav-hamburger')||e.target.closest('#mobileMenu'))return;
+    m.classList.remove('open');
+    document.documentElement.style.overflow=''; document.body.style.overflow='';
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape')return; const m=menu(); if(!m)return;
+    m.classList.remove('open'); document.documentElement.style.overflow=''; document.body.style.overflow='';
+  });
+  document.addEventListener('DOMContentLoaded',function(){
+    const m=menu(); if(!m)return;
+    m.querySelectorAll('.nav-tab').forEach(b=>b.addEventListener('click',()=>{
+      m.classList.remove('open'); document.documentElement.style.overflow=''; document.body.style.overflow='';
+    }));
+  });
+})();
+</script>
+
 </body></html>
