@@ -48614,6 +48614,7 @@
               btn.textContent = "✓ Saved! Live in ~30s";
               btn.style.background = "#2ea043";
             }
+            window.HSAutosave?.clearDraft();
             setTimeout(function () {
               if (btn) {
                 btn.textContent = origText;
@@ -48719,9 +48720,9 @@
     <div id="adminToolbar" style="display: none">
       <div class="tb-left">
         <div class="tb-indicator"></div>
-        <<span id="autosaveStatus" class="tb-status"> Ready </span>
+        <span id="autosaveStatus" class="tb-status">Ready</span>
       </div>
-      <div style="display: flex; gap: 0.6rem">
+      <div class="tb-actions" style="display: flex; gap: 0.6rem">
         <button
           class="tb-btn"
           id="hsUndoButton"
@@ -48739,6 +48740,14 @@
           disabled
         >
           ↷ Redo
+        </button>
+        <button
+          class="tb-btn hs-preview-toggle"
+          id="hsPreviewButton"
+          type="button"
+          aria-pressed="false"
+        >
+          ◉ Preview
         </button>
         <button
           class="tb-btn tb-publish"
@@ -51819,6 +51828,7 @@
     <script src="admin.js"></script>
     <script src="history.js"></script>
     <script src="autosave.js"></script>
+    <script src="preview.js"></script>
     <style id="hs-dropdown-dismiss-fix">
       @media (min-width: 769px) {
         .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {
