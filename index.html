@@ -9515,11 +9515,12 @@ async function handleContact(e) {
   submit.textContent = 'Sending…';
 
   try {
-    if (typeof db === 'undefined' || !db.functions) {
+    const contactDb = window.HalfSpaceSupabase;
+    if (!contactDb || !contactDb.functions) {
       throw new Error('Contact service is unavailable. Please try again shortly.');
     }
 
-    const { data, error } = await db.functions.invoke('send-contact-email', {
+    const { data, error } = await contactDb.functions.invoke('send-contact-email', {
       body: payload
     });
 
@@ -12147,6 +12148,7 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   const SUPABASE_URL='https://zocfrjdbgeseqvlgrydp.supabase.co';
   const SUPABASE_KEY='sb_publishable_REGRr-XawBqGZcx4radzKA_f8ZwUSr_';
   const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  window.HalfSpaceSupabase=db;
   const state={user:null,profile:null,isAdmin:false,authMode:'signin',sort:'top',pageKey:'',comments:[],settings:{locked:false},profileMap:new Map(),guestOwned:{},replyTo:null};
   const COMMENT_PAGES=new Set(['present-rankings','transfers','rankings','country-xi','club-xi','tv','nba','diary','managers']);
   const GUEST_ID_KEY='hs_guest_id_v1', GUEST_TOKEN_KEY='hs_guest_token_v1', GUEST_OWNED_KEY='hs_guest_owned_v1';
