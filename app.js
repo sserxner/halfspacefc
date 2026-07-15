@@ -1833,3 +1833,62 @@
           document.addEventListener("DOMContentLoaded", init);
         else init();
       })();
+
+
+// hs-dropdown-close-after-selection-v2
+(() => {
+  "use strict";
+
+  const dropdownIds = ["centuryRankingsDropdown", "miscDropdown"];
+
+  function closeDropdown(dropdown) {
+    if (!dropdown) return;
+
+    dropdown.classList.remove("open");
+    dropdown.classList.add("hs-dropdown-dismissed");
+
+    dropdown
+      .querySelectorAll('[aria-expanded="true"]')
+      .forEach((element) => element.setAttribute("aria-expanded", "false"));
+  }
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const selectedItem = event.target.closest(
+        [
+          "#centuryRankingsDropdown a",
+          "#centuryRankingsDropdown button:not([aria-haspopup])",
+          "#centuryRankingsDropdown [role='menuitem']",
+          "#miscDropdown a",
+          "#miscDropdown button:not([aria-haspopup])",
+          "#miscDropdown [role='menuitem']",
+        ].join(","),
+      );
+
+      if (!selectedItem) return;
+
+      const dropdown = selectedItem.closest(
+        "#centuryRankingsDropdown, #miscDropdown",
+      );
+
+      closeDropdown(dropdown);
+    },
+    true,
+  );
+
+  dropdownIds.forEach((id) => {
+    const dropdown = document.getElementById(id);
+    if (!dropdown) return;
+
+    dropdown.addEventListener("mouseleave", () => {
+      dropdown.classList.remove("hs-dropdown-dismissed");
+    });
+
+    dropdown.addEventListener("focusout", (event) => {
+      if (!dropdown.contains(event.relatedTarget)) {
+        dropdown.classList.remove("hs-dropdown-dismissed");
+      }
+    });
+  });
+})();

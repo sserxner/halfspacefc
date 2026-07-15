@@ -674,3 +674,15 @@
         gap: 0.5rem;
         margin-top: 1rem;
       }
+
+
+/* hs-dropdown-dismissed-v2 */
+#centuryRankingsDropdown.hs-dropdown-dismissed [class*="dropdown"],
+#centuryRankingsDropdown.hs-dropdown-dismissed [role="menu"],
+#miscDropdown.hs-dropdown-dismissed [class*="dropdown"],
+#miscDropdown.hs-dropdown-dismissed [role="menu"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

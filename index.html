@@ -48726,6 +48726,24 @@
       </div>
       <div style="display: flex; gap: 0.6rem">
         <button
+          class="tb-btn"
+          id="hsUndoButton"
+          type="button"
+          onclick="window.HSHistory?.undo()"
+          disabled
+        >
+          ↶ Undo
+        </button>
+        <button
+          class="tb-btn"
+          id="hsRedoButton"
+          type="button"
+          onclick="window.HSHistory?.redo()"
+          disabled
+        >
+          ↷ Redo
+        </button>
+        <button
           class="tb-btn tb-publish"
           id="openPublishingBtn"
           onclick="HSPublishing.open()"
@@ -48930,7 +48948,7 @@
         }
       }
     </style>
-<script src="app.js"></script>
+    <script src="app.js"></script>
     <style id="halfspace-position-subtypes-styles">
       .positions-parent-grid {
         display: grid;
@@ -49016,7 +49034,7 @@
         margin-right: 0.16em;
       }
     </style>
-<style id="halfspace-requested-updates">
+    <style id="halfspace-requested-updates">
       /* Requested masthead cleanup */
       .hero-divider {
         display: none !important;
@@ -49333,7 +49351,7 @@
         }
       }
     </style>
-<style id="scouting-rankings-style-fix">
+    <style id="scouting-rankings-style-fix">
       #scouting-primary-tabs {
         display: flex;
         gap: 0;
@@ -49443,7 +49461,7 @@
         padding: 0.75rem 0;
       }
     </style>
-<style id="structural-navigation-update">
+    <style id="structural-navigation-update">
       .nav-dropdown {
         position: relative;
         display: flex;
@@ -49533,7 +49551,7 @@
         }
       }
     </style>
-<style id="century-dropdown-repair">
+    <style id="century-dropdown-repair">
       @media (min-width: 769px) {
         .nav-tab-band {
           overflow: visible;
@@ -49577,7 +49595,7 @@
         }
       }
     </style>
-<style id="halfspace-content-manager-styles">
+    <style id="halfspace-content-manager-styles">
       .cms-floating {
         position: fixed;
         right: 1rem;
@@ -49826,8 +49844,8 @@
         }
       }
     </style>
-<script src="features.js"></script>
-<style id="century-dropdown-final-fix">
+    <script src="features.js"></script>
+    <style id="century-dropdown-final-fix">
       nav,
       .nav-tab-band {
         overflow: visible !important;
@@ -49871,7 +49889,7 @@
         }
       }
     </style>
-<style id="halfspace-aesthetic-pass-v1">
+    <style id="halfspace-aesthetic-pass-v1">
       /* Larger, more visible waypoint navigation */
       .nav-logo-bar {
         height: 52px;
@@ -50143,7 +50161,7 @@
         }
       }
     </style>
-<div data-tab="headlines" id="hsContentManager" style="display: none">
+    <div data-tab="headlines" id="hsContentManager" style="display: none">
       <div class="cms-shell">
         <div class="cms-head">
           <div>
@@ -50221,7 +50239,7 @@
         outline-offset: 2px;
       }
     </style>
-<style id="misc-structure-step1-style">
+    <style id="misc-structure-step1-style">
       #miscDropdown {
         position: relative;
         display: flex;
@@ -50243,7 +50261,7 @@
         }
       }
     </style>
-<style id="ranking-player-card-style">
+    <style id="ranking-player-card-style">
       .rank-card-trigger {
         cursor: pointer;
       }
@@ -50421,7 +50439,7 @@
         }
       }
     </style>
-<style id="ranking-card-unification-style">
+    <style id="ranking-card-unification-style">
       .rank-card-trigger .ranking-name {
         display: flex;
         align-items: baseline;
@@ -50447,7 +50465,7 @@
         outline-offset: 2px;
       }
     </style>
-<style id="nba-ranking-module-style">
+    <style id="nba-ranking-module-style">
       body:not(.admin-active) #cmsToolbarButton {
         display: none !important;
       }
@@ -50574,7 +50592,7 @@
         display: flex;
       }
     </style>
-<style id="music-playlist-module-style">
+    <style id="music-playlist-module-style">
       #music-playlist-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -50707,7 +50725,7 @@
         }
       }
     </style>
-<style id="tv-ranking-module-style">
+    <style id="tv-ranking-module-style">
       #tv-category-tabs {
         margin-bottom: 1.25rem;
       }
@@ -50782,7 +50800,7 @@
         }
       }
     </style>
-<!-- HALF SPACE MEMBERS + COMMENTS (Supabase) -->
+    <!-- HALF SPACE MEMBERS + COMMENTS (Supabase) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style id="hs-community-styles">
       .hs-account-area {
@@ -51332,8 +51350,8 @@
         </form>
       </div>
     </div>
-<script src="comments.js"></script>
-<style id="hs-mobile-final-cascade-fix">
+    <script src="comments.js"></script>
+    <style id="hs-mobile-final-cascade-fix">
       @media (max-width: 768px) {
         html,
         body {
@@ -51554,7 +51572,7 @@
         }
       }
     </style>
-<style id="desktop-century-hover-account-fix">
+    <style id="desktop-century-hover-account-fix">
       @media (min-width: 769px) {
         #centuryRankingsDropdown:hover #centuryRankingsMenu,
         #centuryRankingsDropdown:focus-within #centuryRankingsMenu {
@@ -51801,13 +51819,14 @@
         </form>
       </div>
     </div>
-<script src="admin.js"></script>
-<style id="hs-dropdown-dismiss-fix">
+    <script src="admin.js"></script>
+    <script src="history.js"></script>
+    <style id="hs-dropdown-dismiss-fix">
       @media (min-width: 769px) {
         .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {
           display: none !important;
         }
       }
     </style>
-</body>
+  </body>
 </html>
