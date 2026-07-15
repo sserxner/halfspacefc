@@ -22,6 +22,7 @@
   function setStatus(text, color = "") {
     const element = getStatusElement();
     if (!element) return;
+
     element.textContent = text;
     element.style.color = color;
   }
@@ -34,20 +35,18 @@
     try {
       return JSON.parse(localStorage.getItem(DATA_KEY) || "{}");
     } catch (error) {
-      console.error("Autosave could not read site data:", error);
+      console.error("Could not read Half Space data:", error);
       return {};
     }
   }
 
   function createSnapshot() {
-    return JSON.stringify(readSiteData());
-  }
-
-  function savedTimeLabel(timestamp = Date.now()) {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    try {
+      return JSON.stringify(readSiteData());
+    } catch (error) {
+      console.error("Could not create Autosave snapshot:", error);
+      return "";
+    }
   }
 
   function saveDraft() {
@@ -55,25 +54,25 @@
 
     try {
       const snapshot = createSnapshot();
-
-      if (snapshot === lastSavedSnapshot) {
-        setStatus(`Saved ${savedTimeLabel()}`, "#3cb371");
-        return;
-      }
-
-      const timestamp = Date.now();
+      if (!snapshot || snapshot === lastSavedSnapshot) return;
 
       localStorage.setItem(
         AUTOSAVE_KEY,
         JSON.stringify({
           siteData: JSON.parse(snapshot),
-          timestamp,
+          timestamp: Date.now(),
         }),
       );
 
       lastSavedSnapshot = snapshot;
       lastObservedSnapshot = snapshot;
-      setStatus(`Saved ${savedTimeLabel(timestamp)}`, "#3cb371");
+
+      const time = new Date().toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      setStatus(`Saved ${time}`, "#3cb371");
     } catch (error) {
       console.error("Autosave failed:", error);
       setStatus("Save failed", "#cc4444");
@@ -84,7 +83,8 @@
     if (restoring || !isAdminActive()) return;
 
     clearTimeout(saveTimer);
-    setStatus("Saving…", "");
+    setStatus("Saving…");
+
     saveTimer = setTimeout(saveDraft, SAVE_DELAY);
   }
 
@@ -95,42 +95,64 @@
     const snapshot = createSnapshot();
     lastSavedSnapshot = snapshot;
     lastObservedSnapshot = snapshot;
+
     setStatus("Published", "#3cb371");
   }
 
   function recoverDraft() {
+    if (sessionStorage.getItem("halfspace_draft_restored") === "1") {
+      sessionStorage.removeItem("halfspace_draft_restored");
+      lastSavedSnapshot = createSnapshot();
+      lastObservedSnapshot = lastSavedSnapshot;
+      return;
+    }
+
     try {
-      const currentSnapshot = createSnapshot();
       const raw = localStorage.getItem(AUTOSAVE_KEY);
 
-      lastSavedSnapshot = currentSnapshot;
-      lastObservedSnapshot = currentSnapshot;
-
-      if (!raw) return;
+      if (!raw) {
+        lastSavedSnapshot = createSnapshot();
+        lastObservedSnapshot = lastSavedSnapshot;
+        return;
+      }
 
       const saved = JSON.parse(raw);
-      if (!saved || !saved.siteData) {
+
+      if (!saved?.siteData) {
         localStorage.removeItem(AUTOSAVE_KEY);
+        lastSavedSnapshot = createSnapshot();
+        lastObservedSnapshot = lastSavedSnapshot;
         return;
       }
 
       const draftSnapshot = JSON.stringify(saved.siteData);
+      const currentSnapshot = createSnapshot();
 
       if (draftSnapshot === currentSnapshot) {
         localStorage.removeItem(AUTOSAVE_KEY);
+        lastSavedSnapshot = currentSnapshot;
+        lastObservedSnapshot = currentSnapshot;
         return;
       }
 
-      const restore = window.confirm(
-        `Recover unpublished draft from ${savedTimeLabel(saved.timestamp)}?`,
+      const time = new Date(saved.timestamp).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      const shouldRestore = window.confirm(
+        `Recover unpublished draft from ${time}?`,
       );
 
-      if (!restore) {
+      if (!shouldRestore) {
         localStorage.removeItem(AUTOSAVE_KEY);
+        lastSavedSnapshot = currentSnapshot;
+        lastObservedSnapshot = currentSnapshot;
         return;
       }
 
       restoring = true;
+
       localStorage.setItem(DATA_KEY, draftSnapshot);
 
       if (typeof siteData !== "undefined") {
@@ -138,18 +160,48 @@
       }
 
       localStorage.removeItem(AUTOSAVE_KEY);
+      sessionStorage.setItem("halfspace_draft_restored", "1");
       window.location.reload();
     } catch (error) {
       console.error("Draft recovery failed:", error);
+      restoring = false;
     }
   }
 
-  document.addEventListener("input", scheduleSave, true);
-  document.addEventListener("change", scheduleSave, true);
-  window.addEventListener("halfspace:history-restored", scheduleSave);
+  document.addEventListener(
+    "input",
+    () => {
+      scheduleSave();
+    },
+    true,
+  );
 
-  // Half Space uses prompts and custom buttons for many edits. Polling the
-  // central siteData state catches those changes without relying on form events.
+  document.addEventListener(
+    "change",
+    () => {
+      scheduleSave();
+    },
+    true,
+  );
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (
+        event.target.closest(
+          ".admin-edit-btn, .admin-add-btn, .rk-btn, .xi-tier-btn, [data-admin-action], button",
+        )
+      ) {
+        setTimeout(scheduleSave, 700);
+      }
+    },
+    true,
+  );
+
+  window.addEventListener("halfspace:history-restored", () => {
+    setTimeout(scheduleSave, 100);
+  });
+
   setInterval(() => {
     if (restoring || !isAdminActive()) return;
 
