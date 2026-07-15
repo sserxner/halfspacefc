@@ -10974,6 +10974,7 @@ setTimeout(ensureAdminRoute, 0);
 <span class="tb-status">Draft saved in this browser — export or publish to make changes public</span>
 </div>
 <div style="display:flex;gap:0.6rem;">
+<button class="tb-btn tb-publish" id="openPublishingBtn" onclick="HSPublishing.open()">✦ Publishing</button>
 <button class="tb-btn tb-github" id="githubSaveBtn" onclick="saveToGitHub()">⬆ Save to GitHub</button>
 <button class="tb-btn tb-download" id="exportSiteBtn" onclick="exportSite()">⬇ Export index.html</button>
 <button class="tb-btn tb-exit" onclick="exitAdminPanel()">✕ Exit</button>
@@ -12382,4 +12383,98 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   }
 }
 </style>
+
+<style id="hs-publishing-styles">
+  #adminToolbar .tb-publish{background:#d4aa00;color:#102418}
+  #adminToolbar .tb-publish:hover{background:#f0c51a}
+  .hs-publishing-modal{position:fixed;inset:0;z-index:100300;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(5,15,9,.76)}
+  .hs-publishing-modal.open{display:flex}
+  .hs-publishing-card{position:relative;width:min(620px,100%);max-height:calc(100dvh - 2rem);overflow:auto;background:#fff;border-radius:8px;padding:1.5rem;box-shadow:0 24px 80px rgba(0,0,0,.38)}
+  .hs-publishing-card h2{font:700 1.65rem var(--serif);color:var(--accent);margin:0 0 .2rem}
+  .hs-publishing-card>p{font:.82rem var(--sans);color:var(--gray-600);margin:0 0 1.1rem}
+  .hs-publishing-close{position:absolute;right:.85rem;top:.65rem;border:0;background:none;color:var(--gray-600);font-size:1.45rem;cursor:pointer}
+  .hs-publishing-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  .hs-publishing-field{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+  .hs-publishing-field.full{grid-column:1/-1}
+  .hs-publishing-field label{font:600 .7rem var(--sans);letter-spacing:.07em;text-transform:uppercase;color:var(--gray-600)}
+  .hs-publishing-field input,.hs-publishing-field select,.hs-publishing-field textarea{width:100%;min-width:0;border:1px solid var(--gray-200);border-radius:3px;padding:.65rem .75rem;background:#fff;color:var(--black);font:.88rem var(--sans);outline:none}
+  .hs-publishing-field input:focus,.hs-publishing-field select:focus,.hs-publishing-field textarea:focus{border-color:var(--accent)}
+  .hs-publishing-field textarea{min-height:110px;resize:vertical}
+  .hs-publishing-check{display:flex;align-items:center;gap:.5rem;font:.82rem var(--sans);color:var(--gray-600);margin:.9rem 0}
+  .hs-publishing-check input{width:auto}
+  .hs-publishing-actions{display:flex;align-items:center;gap:.65rem;justify-content:flex-end;flex-wrap:wrap}
+  .hs-publishing-status{flex:1;min-width:180px;font:.78rem var(--sans);color:var(--gray-600)}
+  .hs-publishing-status.error{color:var(--red)}.hs-publishing-status.success{color:var(--accent)}
+  .hs-publishing-submit{border:0;border-radius:3px;background:var(--accent);color:#fff;padding:.68rem 1rem;font:600 .82rem var(--sans);cursor:pointer}
+  .hs-publishing-submit:hover{background:var(--accent-hover)}.hs-publishing-submit:disabled{opacity:.55;cursor:wait}
+  @media(max-width:640px){.hs-publishing-modal{align-items:flex-end;padding:0}.hs-publishing-card{width:100%;max-height:92dvh;border-radius:12px 12px 0 0;padding:1.2rem}.hs-publishing-grid{grid-template-columns:1fr}.hs-publishing-field.full{grid-column:auto}.hs-publishing-actions{align-items:stretch;flex-direction:column}.hs-publishing-submit{width:100%}}
+</style>
+<div class="hs-publishing-modal" id="hsPublishingModal" aria-hidden="true">
+  <div class="hs-publishing-card" role="dialog" aria-modal="true" aria-labelledby="hsPublishingTitle">
+    <button class="hs-publishing-close" type="button" aria-label="Close" onclick="HSPublishing.close()">×</button>
+    <h2 id="hsPublishingTitle">Publishing</h2>
+    <p>Register a newly published post and optionally notify subscribed members.</p>
+    <form id="hsPublishingForm">
+      <div class="hs-publishing-grid">
+        <div class="hs-publishing-field full"><label for="hsPublishTitle">Title</label><input id="hsPublishTitle" maxlength="200" required></div>
+        <div class="hs-publishing-field"><label for="hsPublishCategory">Category</label><select id="hsPublishCategory"><option value="article">Article</option><option value="matchday_diary">Matchday Diary</option><option value="transfer_recommendation">Transfer Recommendation</option><option value="notebook">Notebook</option><option value="tv_review">TV Review</option></select></div>
+        <div class="hs-publishing-field"><label for="hsPublishSlug">Slug</label><input id="hsPublishSlug" maxlength="200" required placeholder="my-new-post"></div>
+        <div class="hs-publishing-field full"><label for="hsPublishUrl">Live URL</label><input id="hsPublishUrl" type="url" maxlength="1000" required></div>
+        <div class="hs-publishing-field full"><label for="hsPublishSummary">Summary (optional)</label><textarea id="hsPublishSummary"></textarea></div>
+      </div>
+      <label class="hs-publishing-check"><input id="hsPublishNotify" type="checkbox" checked> Notify subscribers</label>
+      <div class="hs-publishing-actions"><div class="hs-publishing-status" id="hsPublishingStatus"></div><button class="hs-publishing-submit" id="hsPublishingSubmit" type="submit">Publish notification</button></div>
+    </form>
+  </div>
+</div>
+<script id="hs-publishing-script">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  let slugWasEdited=false;
+  function slugify(v){return String(v||'').toLowerCase().trim().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,200)}
+  function status(message,type=''){const el=$('hsPublishingStatus');if(!el)return;el.textContent=message||'';el.className='hs-publishing-status'+(type?' '+type:'')}
+  function open(){
+    if(!window.adminMode && !document.body.classList.contains('admin-active'))return;
+    const modal=$('hsPublishingModal'); if(!modal)return;
+    $('hsPublishUrl').value=location.href.split('#')[0];
+    status(''); modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+    setTimeout(()=>$('hsPublishTitle')?.focus(),20);
+  }
+  function close(){const modal=$('hsPublishingModal');if(!modal)return;modal.classList.remove('open');modal.setAttribute('aria-hidden','true');status('')}
+  async function submit(e){
+    e.preventDefault();
+    const db=window.HalfSpaceSupabase;
+    if(!db){status('Supabase is unavailable.','error');return}
+    const {data:{user}}=await db.auth.getUser();
+    if(!user){status('Sign in through Account with your admin member account first.','error');return}
+    const button=$('hsPublishingSubmit');button.disabled=true;button.textContent='Publishing…';status('Registering post…');
+    const args={
+      p_category:$('hsPublishCategory').value,
+      p_title:$('hsPublishTitle').value.trim(),
+      p_slug:$('hsPublishSlug').value.trim(),
+      p_url:$('hsPublishUrl').value.trim(),
+      p_summary:$('hsPublishSummary').value.trim()||null,
+      p_notify_subscribers:$('hsPublishNotify').checked
+    };
+    try{
+      const {data,error}=await db.rpc('admin_publish_new_post',args);
+      if(error)throw error;
+      status(args.p_notify_subscribers?'Post registered. Subscriber email has been queued.':'Post registered without an email notification.','success');
+      setTimeout(()=>{ $('hsPublishingForm').reset(); $('hsPublishNotify').checked=true; slugWasEdited=false; close(); },1800);
+    }catch(err){
+      const msg=err?.message||String(err);
+      status(/duplicate key|unique/i.test(msg)?'That slug has already been used. Choose another slug.':msg,'error');
+    }finally{button.disabled=false;button.textContent='Publish notification'}
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    $('hsPublishingForm')?.addEventListener('submit',submit);
+    $('hsPublishTitle')?.addEventListener('input',e=>{if(!slugWasEdited)$('hsPublishSlug').value=slugify(e.target.value)});
+    $('hsPublishSlug')?.addEventListener('input',()=>{slugWasEdited=true});
+    $('hsPublishingModal')?.addEventListener('click',e=>{if(e.target.id==='hsPublishingModal')close()});
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('hsPublishingModal')?.classList.contains('open'))close()});
+  window.HSPublishing={open,close};
+})();
+</script>
 </body></html>
