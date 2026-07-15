@@ -12553,9 +12553,9 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
 </style>
 <script id="nba-ranking-module-script">
 (function(){
-  const POSITIONS=[['LG','Lead Guards'],['G','Guards'],['GW','Guards / Wings'],['W','Wings'],['F','Forwards'],['FC','Forwards / Centers'],['C','Centers']];
+  const POSITIONS=[['OVERALL','Overall'],['LG','Lead Guards'],['G','Guards'],['GW','Guards / Wings'],['W','Wings'],['F','Forwards'],['FC','Forwards / Centers'],['C','Centers']];
   const DATA_KEY='nba_rankings_v1', COLLAPSE_KEY='nba_collapsed_tiers_v1';
-  let active='LG';
+  let active='OVERALL';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function defaults(){const d={};POSITIONS.forEach(([id])=>d[id]={blurb:'',tiers:[{name:'GOAT',entries:[]},{name:'Legend',entries:[]},{name:'World Class',entries:[]},{name:'Elite',entries:[]}]});return d}
   function data(){let d=getData(DATA_KEY,null);if(!d||typeof d!=='object'){d=defaults();setData(DATA_KEY,d)}POSITIONS.forEach(([id])=>{if(!d[id])d[id]=defaults()[id];if(!Array.isArray(d[id].tiers))d[id].tiers=[]});return d}
@@ -12644,11 +12644,11 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
 <script id="tv-ranking-module-script">
 (function(){
  const POS_KEY='tv_category_defs_v1', DATA_PREFIX='tv_ranking_', COLLAPSE_KEY='tv_collapsed_tiers_v1';
- const defaults=[['drama','Drama'],['comedy','Comedy'],['limited','Limited Series'],['animation','Animation'],['documentary','Documentary']].map(([id,label])=>({id,label}));
- let active='drama';
+ const defaults=[['overall','Overall'],['drama','Drama'],['comedy','Comedy'],['limited','Limited Series'],['animation','Animation'],['documentary','Documentary']].map(([id,label])=>({id,label}));
+ let active='overall';
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
- function categories(){let a=getData(POS_KEY,null);if(!Array.isArray(a)||!a.length){a=defaults.map(x=>({...x}));setData(POS_KEY,a)}a=a.filter(x=>x&&x.id).map(x=>({id:String(x.id),label:String(x.label||x.id)}));if(!a.some(x=>x.id===active))active=a[0].id;return a}
+ function categories(){let a=getData(POS_KEY,null);if(!Array.isArray(a)||!a.length){a=defaults.map(x=>({...x}));setData(POS_KEY,a)}a=a.filter(x=>x&&x.id).map(x=>({id:String(x.id),label:String(x.label||x.id)}));if(!a.some(x=>x.id==='overall')){a.unshift({id:'overall',label:'Overall'});setData(POS_KEY,a)}else{a=[a.find(x=>x.id==='overall'),...a.filter(x=>x.id!=='overall')];setData(POS_KEY,a)}if(!a.some(x=>x.id===active))active=a[0].id;return a}
  function key(id){return DATA_PREFIX+id}
  function blank(){return {blurb:'',tiers:[{name:'Masterpiece',entries:[]},{name:'Excellent',entries:[]},{name:'Very Good',entries:[]},{name:'Worth Watching',entries:[]}]}}
  function data(id){let d=getData(key(id),null);if(!d||typeof d!=='object'){d=blank();setData(key(id),d)}if(!Array.isArray(d.tiers))d.tiers=[];return d}
