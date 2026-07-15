@@ -12268,7 +12268,7 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
   function derivePageKey(){const p=currentPage();let suffix='';if(p==='present-rankings')suffix=activeButtonValue('#present-primary-tabs','data-sec');else if(p==='rankings')suffix=activeButtonValue('#rankings-primary-tabs','data-sec');else if(p==='nba')suffix=activeButtonValue('#nba-position-tabs','data-position');else if(p==='tv')suffix=activeButtonValue('#tv-category-tabs','data-category');else if(p==='country-xi'){const h=document.querySelector('#page-country-xi .section-title');suffix=h?h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-'):''}else if(p==='club-xi'){const h=document.querySelector('#page-club-xi .section-title');suffix=h?h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-'):''}return 'halfspace:'+p+(suffix?':'+suffix:'')}
   function commentsHost(){const p=currentPage();if(!COMMENT_PAGES.has(p))return null;return document.querySelector('#page-'+CSS.escape(p))}
   function ensureAccountArea(){if($('#hsAccountArea'))return;const bar=document.querySelector('.nav-logo-bar');if(!bar)return;const el=document.createElement('div');el.id='hsAccountArea';el.className='hs-account-area';bar.appendChild(el);renderAccountArea()}
-  function renderAccountArea(){const el=$('#hsAccountArea');if(!el)return;const mobile=window.matchMedia('(max-width:768px)').matches;if(mobile){el.innerHTML=state.user?'<button class="hs-account-btn hs-account-mobile" type="button" onclick="HSCommunity.account()">Account</button>':'<button class="hs-account-btn hs-account-mobile" type="button" onclick="HSCommunity.openAuth(\'signin\')">Account</button>';return}if(state.user){el.innerHTML='<span class="hs-member-chip">'+esc(state.profile?.display_name||state.user.email)+'</span><button class="hs-account-btn" type="button" onclick="HSCommunity.account()">Account</button><button class="hs-account-btn" type="button" onclick="HSCommunity.signOut()">Sign out</button>'}else{el.innerHTML='<button class="hs-account-btn" type="button" onclick="HSCommunity.openAuth(\'signin\')">Sign in</button><button class="hs-account-btn" type="button" onclick="HSCommunity.openAuth(\'signup\')">Create account</button>'}}
+  function renderAccountArea(){const el=$('#hsAccountArea');if(!el)return;const mobile=window.matchMedia('(max-width:768px)').matches;if(mobile){el.innerHTML=state.user?'<button class="hs-account-btn hs-account-mobile" type="button" onclick="HSCommunity.account()">Account</button>':'<button class="hs-account-btn hs-account-mobile" type="button" onclick="HSCommunity.openAuth(\'signin\')">Account</button>';return}if(state.user){el.innerHTML='<span class="hs-member-chip">'+esc(state.profile?.display_name||state.user.email)+'</span><button class="hs-account-btn" type="button" onclick="HSCommunity.account()">Account</button><button class="hs-account-btn" type="button" onclick="HSCommunity.signOut()">Sign out</button>'}else{el.innerHTML='<button class="hs-account-btn" type="button" onclick="HSCommunity.openAuth(\'signin\')">Account</button>'}}
   function authStatus(msg,type=''){const el=$('#hsAuthStatus');if(el){el.textContent=msg||'';el.className='hs-status '+type}}
   async function refreshIdentity(){const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;state.profile=null;state.isAdmin=false;if(state.user){const [{data:p},{data:a}]=await Promise.all([db.from('profiles').select('id,display_name,avatar_url,receive_new_post_emails,created_at').eq('id',state.user.id).maybeSingle(),db.rpc('is_site_admin')]);state.profile=p||null;state.isAdmin=!!a}renderAccountArea()}
   async function loadProfiles(ids){const uniq=[...new Set(ids.filter(Boolean))];state.profileMap.clear();if(!uniq.length)return;const {data}=await db.from('public_profiles').select('id,display_name,avatar_url,created_at').in('id',uniq);(data||[]).forEach(p=>state.profileMap.set(p.id,p))}
@@ -12373,4 +12373,13 @@ body:not(.admin-active) #cmsToolbarButton{display:none!important}
 })();
 </script>
 
+
+<style id="desktop-century-hover-account-fix">
+@media (min-width: 769px) {
+  #centuryRankingsDropdown:hover #centuryRankingsMenu,
+  #centuryRankingsDropdown:focus-within #centuryRankingsMenu {
+    display: block !important;
+  }
+}
+</style>
 </body></html>
