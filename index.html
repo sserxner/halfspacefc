@@ -48719,10 +48719,7 @@
     <div id="adminToolbar" style="display: none">
       <div class="tb-left">
         <div class="tb-indicator"></div>
-        <span class="tb-status"
-          >Draft saved in this browser — export or publish to make changes
-          public</span
-        >
+        <<span id="autosaveStatus" class="tb-status"> Ready </span>
       </div>
       <div style="display: flex; gap: 0.6rem">
         <button
@@ -51821,6 +51818,7 @@
     </div>
     <script src="admin.js"></script>
     <script src="history.js"></script>
+    <script src="autosave.js"></script>
     <style id="hs-dropdown-dismiss-fix">
       @media (min-width: 769px) {
         .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {

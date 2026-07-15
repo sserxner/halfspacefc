@@ -1892,3 +1892,168 @@
     });
   });
 })();
+// Close navigation dropdowns after selecting a submenu destination.
+(() => {
+  "use strict";
+
+  const dropdownSelectors = [
+    "#centuryRankingsDropdown",
+    "#miscDropdown",
+  ];
+
+  function closeDropdown(dropdown) {
+    if (!dropdown) return;
+
+    dropdown.classList.remove("open", "active");
+    dropdown.classList.add("hs-force-closed");
+
+    dropdown
+      .querySelectorAll('[aria-expanded="true"]')
+      .forEach((element) => {
+        element.setAttribute("aria-expanded", "false");
+      });
+  }
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const submenuItem = event.target.closest(
+        [
+          "#centuryRankingsDropdown a",
+          "#centuryRankingsDropdown [role='menuitem']",
+          "#miscDropdown a",
+          "#miscDropdown [role='menuitem']",
+        ].join(","),
+      );
+
+      if (!submenuItem) return;
+
+      const dropdown = submenuItem.closest(
+        dropdownSelectors.join(","),
+      );
+
+      closeDropdown(dropdown);
+    },
+    true,
+  );
+
+  dropdownSelectors.forEach((selector) => {
+    const dropdown = document.querySelector(selector);
+    if (!dropdown) return;
+
+    const toggle = dropdown.querySelector(
+      "button, [aria-haspopup='true'], .nav-tab",
+    );
+
+    toggle?.addEventListener("click", () => {
+      dropdown.classList.remove("hs-force-closed");
+    });
+  });
+})();
+// Final dropdown dismissal: close after a specific submenu is selected.
+(() => {
+  "use strict";
+
+  const configs = [
+    {
+      wrap: "#centuryRankingsDropdown",
+      toggle: "#centuryRankingsToggle",
+      item: "#centuryRankingsMenu [data-century-page]",
+    },
+    {
+      wrap: "#miscDropdown",
+      toggle: "#miscToggle",
+      item: "#miscMenu [data-misc-page]",
+    },
+  ];
+
+  configs.forEach(({ wrap, toggle, item }) => {
+    document.addEventListener(
+      "click",
+      (event) => {
+        const parentToggle = event.target.closest(toggle);
+
+        if (parentToggle) {
+          document.querySelector(wrap)?.classList.remove(
+            "hs-selection-closed",
+          );
+          return;
+        }
+
+        const selected = event.target.closest(item);
+        if (!selected) return;
+
+        const dropdown = document.querySelector(wrap);
+        const toggleButton = document.querySelector(toggle);
+
+        // Let the existing navigation handler run first, then force closure.
+        requestAnimationFrame(() => {
+          dropdown?.classList.remove("open", "active");
+          dropdown?.classList.add("hs-selection-closed");
+          toggleButton?.setAttribute("aria-expanded", "false");
+        });
+      },
+      true,
+    );
+
+    document.querySelector(wrap)?.addEventListener("pointerleave", () => {
+      document
+        .querySelector(wrap)
+        ?.classList.remove("hs-selection-closed");
+    });
+  });
+})();
+
+// Final dropdown dismissal: close after a specific submenu is selected.
+(() => {
+  "use strict";
+
+  const configs = [
+    {
+      wrap: "#centuryRankingsDropdown",
+      toggle: "#centuryRankingsToggle",
+      item: "#centuryRankingsMenu [data-century-page]",
+    },
+    {
+      wrap: "#miscDropdown",
+      toggle: "#miscToggle",
+      item: "#miscMenu [data-misc-page]",
+    },
+  ];
+
+  configs.forEach(({ wrap, toggle, item }) => {
+    document.addEventListener(
+      "click",
+      (event) => {
+        const parentToggle = event.target.closest(toggle);
+
+        if (parentToggle) {
+          document.querySelector(wrap)?.classList.remove(
+            "hs-selection-closed",
+          );
+          return;
+        }
+
+        const selected = event.target.closest(item);
+        if (!selected) return;
+
+        const dropdown = document.querySelector(wrap);
+        const toggleButton = document.querySelector(toggle);
+
+        // Let the existing navigation handler run first, then force closure.
+        requestAnimationFrame(() => {
+          dropdown?.classList.remove("open", "active");
+          dropdown?.classList.add("hs-selection-closed");
+          toggleButton?.setAttribute("aria-expanded", "false");
+        });
+      },
+      true,
+    );
+
+    document.querySelector(wrap)?.addEventListener("pointerleave", () => {
+      document
+        .querySelector(wrap)
+        ?.classList.remove("hs-selection-closed");
+    });
+  });
+})();

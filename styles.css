@@ -686,3 +686,36 @@
   opacity: 0 !important;
   pointer-events: none !important;
 }
+/* Force dropdown menus closed after a submenu selection. */
+#centuryRankingsDropdown.hs-force-closed .dropdown-menu,
+#centuryRankingsDropdown.hs-force-closed [role="menu"],
+#centuryRankingsDropdown.hs-force-closed [class*="dropdown-content"],
+#miscDropdown.hs-force-closed .dropdown-menu,
+#miscDropdown.hs-force-closed [role="menu"],
+#miscDropdown.hs-force-closed [class*="dropdown-content"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+/* Keep a clicked dropdown closed even while the pointer still hovers over it. */
+#centuryRankingsDropdown.hs-selection-closed #centuryRankingsMenu,
+#centuryRankingsDropdown.hs-selection-closed:hover #centuryRankingsMenu,
+#miscDropdown.hs-selection-closed #miscMenu,
+#miscDropdown.hs-selection-closed:hover #miscMenu {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Keep a clicked dropdown closed even while the pointer still hovers over it. */
+#centuryRankingsDropdown.hs-selection-closed #centuryRankingsMenu,
+#centuryRankingsDropdown.hs-selection-closed:hover #centuryRankingsMenu,
+#miscDropdown.hs-selection-closed #miscMenu,
+#miscDropdown.hs-selection-closed:hover #miscMenu {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
