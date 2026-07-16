@@ -8231,9 +8231,10 @@
       .reverse()
       .map(
         (row, ri) => `<div class="pitch-row">
-      ${row
+      ${[...row]
+        .reverse()
         .map((p, ci) => {
-          const posIdx = reversedRowIndices[ri][ci];
+          const posIdx = [...reversedRowIndices[ri]].reverse()[ci];
           const editOnclick = `onclick="pitchDotClick('${name.replace(/'/g, "\\'")}',${posIdx},this)"`;
           return `<div class="pitch-player" data-pos-index="${posIdx}">
           <div class="pitch-dot empty" data-pos-index="${posIdx}" ${editOnclick}>+</div>
@@ -13489,7 +13490,7 @@
     </div>
     <script src="error-log.js?v=1"></script>
     <script src="permissions.js?v=2"></script>
-    <script src="settings.js?v=3"></script>
+    <script src="settings.js?v=5"></script>
     <script src="admin.js?v=20"></script>
     <script src="history.js?v=16.2"></script>
     <script src="autosave.js?v=16.2"></script>
