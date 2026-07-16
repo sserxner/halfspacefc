@@ -1,8 +1,11 @@
 (() => {
   "use strict";
 
-  const MAX_RESULTS = 12;
-  let isOpen = false;
+  const MAX_RESULTS = 18;
+  const RECENT_KEY = "hs_command_recent_v1";
+  const MAX_RECENTS = 7;
+
+  let openState = false;
   let selectedIndex = 0;
   let currentResults = [];
   let cachedItems = [];
@@ -15,6 +18,7 @@
       title: "Go to Home",
       subtitle: "Open the Half Space homepage",
       keywords: "home homepage start",
+      priority: 80,
       action() {
         window.showPage?.("home");
       },
@@ -25,6 +29,7 @@
       title: "Enter Preview",
       subtitle: "View the site exactly as readers see it",
       keywords: "preview reader mode",
+      priority: 60,
       adminOnly: true,
       action() {
         window.HSPreview?.enter?.();
@@ -36,6 +41,7 @@
       title: "Return to Edit",
       subtitle: "Leave Preview Mode",
       keywords: "edit admin return",
+      priority: 58,
       adminOnly: true,
       action() {
         window.HSPreview?.exit?.();
@@ -47,6 +53,7 @@
       title: "Open Editorial Panel",
       subtitle: "Edit title, slug, status, and publishing details",
       keywords: "editorial slug publish metadata",
+      priority: 55,
       adminOnly: true,
       action() {
         window.HSEditorial?.open?.();
@@ -56,8 +63,9 @@
       id: "action-publish",
       type: "Action",
       title: "Publish Changes",
-      subtitle: "Publish the current site to GitHub",
+      subtitle: "Publish the current site",
       keywords: "publish save github deploy changes",
+      priority: 54,
       adminOnly: true,
       action() {
         const button = document.getElementById("githubSaveBtn");
@@ -71,6 +79,7 @@
       title: "Undo",
       subtitle: "Undo the last edit",
       keywords: "undo reverse",
+      priority: 45,
       adminOnly: true,
       action() {
         window.HSHistory?.undo?.();
@@ -82,6 +91,7 @@
       title: "Redo",
       subtitle: "Redo the last undone edit",
       keywords: "redo repeat",
+      priority: 44,
       adminOnly: true,
       action() {
         window.HSHistory?.redo?.();
@@ -119,6 +129,8 @@
     mgr: "Managers",
   };
 
+  const GROUP_ORDER = ["Recent", "Players", "Rankings", "XIs", "Pages", "Articles", "Actions"];
+
   function isAdmin() {
     return document.body.classList.contains("admin-active");
   }
@@ -137,39 +149,83 @@
       .filter(Boolean);
   }
 
+  function escapeHTML(value) {
+    return String(value || "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[character]);
+  }
+
+  function readRecents() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      return Array.isArray(raw) ? raw.slice(0, MAX_RECENTS) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveRecent(item) {
+    if (!item?.id) return;
+
+    const next = [
+      {
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        subtitle: item.subtitle || "",
+      },
+      ...readRecents().filter((entry) => entry.id !== item.id),
+    ].slice(0, MAX_RECENTS);
+
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  }
+
   function scoreItem(item, query) {
     if (!query) return item.priority || 0;
 
-    const text = normalize(
-      `${item.title} ${item.subtitle || ""} ${item.type || ""} ${item.keywords || ""}`,
-    );
+    const q = normalize(query);
+    const title = normalize(item.title);
+    const subtitle = normalize(item.subtitle);
+    const keywords = normalize(item.keywords);
+    const type = normalize(item.type);
+    const haystack = `${title} ${subtitle} ${keywords} ${type}`;
+    const tokens = tokenize(q);
 
-    const queryText = normalize(query);
-    const queryTokens = tokenize(query);
-    let score = 0;
+    let score = item.priority || 0;
 
-    if (normalize(item.title) === queryText) score += 120;
-    if (normalize(item.title).startsWith(queryText)) score += 80;
-    if (text.includes(queryText)) score += 45;
+    if (title === q) score += 1000;
+    else if (title.startsWith(q)) score += 650;
+    else if (title.includes(q)) score += 420;
+    else if (subtitle.includes(q)) score += 180;
+    else if (keywords.includes(q)) score += 140;
+    else if (type.includes(q)) score += 80;
 
-    for (const token of queryTokens) {
-      if (normalize(item.title).startsWith(token)) score += 25;
-      else if (normalize(item.title).includes(token)) score += 18;
-      else if (text.includes(token)) score += 8;
+    for (const token of tokens) {
+      if (title === token) score += 220;
+      else if (title.startsWith(token)) score += 150;
+      else if (title.includes(token)) score += 95;
+      else if (subtitle.includes(token)) score += 45;
+      else if (keywords.includes(token)) score += 30;
+      else if (haystack.includes(token)) score += 15;
       else return -1;
     }
 
-    return score + (item.priority || 0);
+    return score;
   }
 
   function pageItems() {
     return PAGE_ACTIONS.map(([pageId, title], index) => ({
       id: `page-${pageId}`,
       type: "Page",
+      group: "Pages",
       title,
       subtitle: "Open section",
       keywords: pageId.replace(/-/g, " "),
-      priority: 25 - index,
+      priority: 35 - index,
       action() {
         window.showPage?.(pageId);
       },
@@ -180,10 +236,11 @@
     return Object.entries(RANKING_SECTIONS).map(([section, title]) => ({
       id: `ranking-${section}`,
       type: "Ranking",
+      group: "Rankings",
       title,
       subtitle: "Open ranking",
       keywords: `ranking football soccer ${section}`,
-      priority: 35,
+      priority: 60,
       action() {
         if (window.HSRouter?.openRanking) {
           window.HSRouter.openRanking(section);
@@ -225,10 +282,11 @@
           items.push({
             id: `player-${identity}`,
             type: "Player",
+            group: "Players",
             title: name,
             subtitle: `${RANKING_SECTIONS[section]}${entry.detail ? ` · ${entry.detail}` : ""}`,
             keywords: `${entry.detail || ""} ${entry.note || ""} player profile`,
-            priority: 20,
+            priority: 70,
             action() {
               window.HSRouter?.openPlayer?.(section, name);
             },
@@ -251,10 +309,11 @@
         items.push({
           id: `${kind}-${normalize(name)}`,
           type: kind === "club" ? "Club XI" : "Country XI",
+          group: "XIs",
           title: name,
           subtitle: `Open ${kind} XI`,
           keywords: `${kind} xi football soccer`,
-          priority: 18,
+          priority: 55,
           action() {
             window.showPage?.(`${kind}-xi`);
             setTimeout(() => {
@@ -277,7 +336,7 @@
     return items;
   }
 
-  function DOMContentItems() {
+  function articleItems() {
     const items = [];
     const selectors = [
       ["Diary", "#page-diary h1, #page-diary h2, #page-diary .post-title"],
@@ -293,22 +352,32 @@
         if (!title || title.length < 3) return;
 
         items.push({
-          id: `dom-${type}-${index}-${normalize(title)}`,
+          id: `article-${type}-${index}-${normalize(title)}`,
           type,
+          group: "Articles",
           title,
           subtitle: `Open ${type.toLowerCase()}`,
           keywords: `${type} article notebook content`,
-          priority: 8,
+          priority: 20,
           action() {
             const page = element.closest(".page[id^='page-']");
             if (page) window.showPage?.(page.id.replace(/^page-/, ""));
-            setTimeout(() => element.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+            setTimeout(
+              () => element.scrollIntoView({ behavior: "smooth", block: "center" }),
+              100,
+            );
           },
         });
       });
     });
 
     return items;
+  }
+
+  function actionItems() {
+    return STATIC_ACTIONS
+      .filter((item) => !item.adminOnly || isAdmin())
+      .map((item) => ({ ...item, group: "Actions" }));
   }
 
   function buildItems(force = false) {
@@ -318,16 +387,29 @@
     }
 
     cachedItems = [
-      ...STATIC_ACTIONS.filter((item) => !item.adminOnly || isAdmin()),
-      ...pageItems(),
-      ...rankingItems(),
       ...playerItems(),
+      ...rankingItems(),
       ...xiItems(),
-      ...DOMContentItems(),
+      ...pageItems(),
+      ...articleItems(),
+      ...actionItems(),
     ];
 
     cacheStamp = now;
     return cachedItems;
+  }
+
+  function recentItems(allItems) {
+    const map = new Map(allItems.map((item) => [item.id, item]));
+
+    return readRecents()
+      .map((recent) => map.get(recent.id))
+      .filter(Boolean)
+      .map((item) => ({
+        ...item,
+        group: "Recent",
+        priority: 100,
+      }));
   }
 
   function ensureUI() {
@@ -339,7 +421,7 @@
     overlay.setAttribute("aria-hidden", "true");
 
     overlay.innerHTML = `
-      <section class="hs-command-panel" role="dialog" aria-modal="true" aria-label="Half Space command palette">
+      <section class="hs-command-panel" role="dialog" aria-modal="true" aria-label="Search Half Space">
         <div class="hs-command-search">
           <span class="hs-command-mark">HS</span>
           <input
@@ -347,7 +429,7 @@
             type="search"
             autocomplete="off"
             spellcheck="false"
-            placeholder="Search players, rankings, XIs, pages, and actions…"
+            placeholder="Search players, clubs, rankings, articles…"
             aria-label="Search Half Space"
           />
           <kbd>esc</kbd>
@@ -374,81 +456,276 @@
     installStyles();
   }
 
+  function groupLabel(type, count) {
+    return `${escapeHTML(type)} <span>${count}</span>`;
+  }
+
+  function render(query = "") {
+    const allItems = buildItems();
+    const source = query.trim()
+      ? allItems
+      : [...recentItems(allItems), ...allItems];
+
+    const seen = new Set();
+    currentResults = source
+      .map((item) => ({ item, score: scoreItem(item, query) }))
+      .filter((entry) => entry.score >= 0)
+      .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+      .map((entry) => entry.item)
+      .filter((item) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      })
+      .slice(0, MAX_RESULTS);
+
+    selectedIndex = Math.min(selectedIndex, Math.max(0, currentResults.length - 1));
+
+    const results = document.getElementById("hsCommandResults");
+
+    if (!currentResults.length) {
+      results.innerHTML = `
+        <div class="hs-command-empty">
+          <strong>No Half Space results found.</strong>
+          <span>Try a player surname, club, ranking, or section name.</span>
+        </div>
+      `;
+      return;
+    }
+
+    const grouped = new Map();
+    currentResults.forEach((item, index) => {
+      const group = item.group || "Pages";
+      if (!grouped.has(group)) grouped.set(group, []);
+      grouped.get(group).push({ item, index });
+    });
+
+    results.innerHTML = GROUP_ORDER
+      .filter((group) => grouped.has(group))
+      .map((group) => {
+        const entries = grouped.get(group);
+        return `
+          <section class="hs-command-group">
+            <div class="hs-command-group-title">${groupLabel(group, entries.length)}</div>
+            ${entries
+              .map(
+                ({ item, index }) => `
+                  <button
+                    type="button"
+                    class="hs-command-item${index === selectedIndex ? " selected" : ""}"
+                    data-index="${index}"
+                    role="option"
+                    aria-selected="${index === selectedIndex}"
+                  >
+                    <span class="hs-command-type">${escapeHTML(item.type)}</span>
+                    <span>
+                      <span class="hs-command-title">${escapeHTML(item.title)}</span>
+                      <span class="hs-command-subtitle">${escapeHTML(item.subtitle || "")}</span>
+                    </span>
+                    <span class="hs-command-arrow">↗</span>
+                  </button>
+                `,
+              )
+              .join("")}
+          </section>
+        `;
+      })
+      .join("");
+
+    results.querySelectorAll(".hs-command-item").forEach((button) => {
+      button.addEventListener("mouseenter", () => {
+        selectedIndex = Number(button.dataset.index);
+        updateSelection();
+      });
+      button.addEventListener("click", () => execute(Number(button.dataset.index)));
+    });
+  }
+
+  function updateSelection() {
+    document.querySelectorAll(".hs-command-item").forEach((button) => {
+      const selected = Number(button.dataset.index) === selectedIndex;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-selected", String(selected));
+      if (selected) button.scrollIntoView({ block: "nearest" });
+    });
+  }
+
+  function execute(index = selectedIndex) {
+    const item = currentResults[index];
+    if (!item) return;
+
+    saveRecent(item);
+    close();
+
+    setTimeout(() => {
+      try {
+        item.action();
+      } catch (error) {
+        console.error("Command failed:", error);
+      }
+    }, 20);
+  }
+
+  function handleInputKeydown(event) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+      updateSelection();
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      updateSelection();
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      execute();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+    }
+  }
+
+  function open() {
+    ensureUI();
+    openState = true;
+    selectedIndex = 0;
+    cachedItems = [];
+
+    const overlay = document.getElementById("hsCommandPalette");
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+
+    const input = document.getElementById("hsCommandInput");
+    input.value = "";
+    render("");
+    requestAnimationFrame(() => input.focus());
+  }
+
+  function close() {
+    openState = false;
+    const overlay = document.getElementById("hsCommandPalette");
+    if (!overlay) return;
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+  }
+
+  function toggle() {
+    openState ? close() : open();
+  }
+
+  function ensureHeaderSearch() {
+    if (document.getElementById("hsHeaderSearch")) return;
+
+    const logoBar =
+      document.querySelector(".nav-logo-bar") ||
+      document.querySelector("header") ||
+      document.body;
+
+    const button = document.createElement("button");
+    button.id = "hsHeaderSearch";
+    button.className = "hs-header-search";
+    button.type = "button";
+    button.setAttribute("aria-label", "Search Half Space");
+    button.innerHTML = `
+      <span class="hs-header-search-icon">⌕</span>
+      <span class="hs-header-search-copy">
+        <span class="hs-header-search-title">Search Half Space</span>
+        <span class="hs-header-search-subtitle">Players, clubs, rankings, articles…</span>
+      </span>
+      <span class="hs-header-search-shortcut">⌘K</span>
+    `;
+    button.addEventListener("click", open);
+
+    logoBar.appendChild(button);
+  }
+
+  function ensureToolbarButton() {
+    const toolbar = document.getElementById("adminToolbar");
+    if (!toolbar || document.getElementById("hsCommandButton")) return;
+
+    const actions =
+      toolbar.querySelector("div[style*='display: flex']") ||
+      toolbar.lastElementChild;
+    if (!actions) return;
+
+    const button = document.createElement("button");
+    button.id = "hsCommandButton";
+    button.className = "tb-btn";
+    button.type = "button";
+    button.textContent = "⌘K Search";
+    button.title = "Open command palette";
+    button.addEventListener("click", open);
+    actions.insertBefore(button, actions.firstChild);
+  }
+
   function installStyles() {
     if (document.getElementById("hsCommandStyles")) return;
 
     const style = document.createElement("style");
     style.id = "hsCommandStyles";
     style.textContent = `
-
-      .nav-logo-bar {
-        position: relative;
-        padding-bottom: 4.4rem !important;
-      }
+      .nav-logo-bar { position: relative; }
 
       .hs-header-search {
         position: absolute;
-        left: 50%;
-        bottom: .75rem;
-        transform: translateX(-50%);
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
         z-index: 1200;
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
-        gap: .7rem;
-        width: min(520px, calc(100vw - 2rem));
-        min-height: 46px;
-        padding: .55rem .75rem;
+        gap: .58rem;
+        width: min(340px, 31vw);
+        min-height: 42px;
+        padding: .48rem .62rem;
         border: 1px solid rgba(16,36,24,.14);
         border-radius: 999px;
         background: rgba(255,255,255,.97);
         color: #102418;
-        box-shadow: 0 8px 22px rgba(0,0,0,.1);
+        box-shadow: 0 6px 18px rgba(0,0,0,.08);
         cursor: pointer;
         text-align: left;
-        backdrop-filter: blur(12px);
       }
 
       .hs-header-search:hover {
         border-color: rgba(16,36,24,.3);
-        box-shadow: 0 10px 28px rgba(0,0,0,.14);
+        box-shadow: 0 8px 22px rgba(0,0,0,.12);
       }
 
       .hs-header-search-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 27px;
+        height: 27px;
         border-radius: 50%;
         background: #102418;
         color: #fff;
-        font: 700 .9rem var(--sans);
+        font: 700 .88rem var(--sans);
       }
 
       .hs-header-search-copy {
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: .05rem;
+        gap: .02rem;
       }
 
       .hs-header-search-title {
-        font: 700 .72rem var(--sans);
-        letter-spacing: .01em;
+        font: 700 .7rem var(--sans);
       }
 
       .hs-header-search-subtitle {
         overflow: hidden;
         color: rgba(16,36,24,.58);
-        font: .62rem var(--sans);
+        font: .6rem var(--sans);
         white-space: nowrap;
         text-overflow: ellipsis;
       }
 
       .hs-header-search-shortcut {
-        color: rgba(16,36,24,.5);
-        font: 700 .62rem var(--sans);
+        color: rgba(16,36,24,.46);
+        font: 700 .6rem var(--sans);
       }
 
       .hs-command-overlay {
@@ -466,8 +743,8 @@
       .hs-command-overlay.open { display: flex; }
 
       .hs-command-panel {
-        width: min(680px, 100%);
-        max-height: min(72vh, 680px);
+        width: min(720px, 100%);
+        max-height: min(76vh, 720px);
         overflow: hidden;
         border: 1px solid rgba(255,255,255,.12);
         border-radius: 12px;
@@ -507,9 +784,7 @@
         font: 600 1rem var(--sans);
       }
 
-      #hsCommandInput::placeholder {
-        color: rgba(255,255,255,.4);
-      }
+      #hsCommandInput::placeholder { color: rgba(255,255,255,.4); }
 
       .hs-command-search kbd,
       .hs-command-footer kbd {
@@ -522,16 +797,42 @@
       }
 
       .hs-command-results {
-        max-height: min(56vh, 520px);
+        max-height: min(60vh, 560px);
         overflow-y: auto;
         padding: .45rem;
       }
 
+      .hs-command-group + .hs-command-group { margin-top: .45rem; }
+
+      .hs-command-group-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .42rem .72rem .3rem;
+        color: rgba(255,255,255,.46);
+        font: 800 .56rem var(--sans);
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+
+      .hs-command-group-title span {
+        color: rgba(255,255,255,.25);
+        font-size: .52rem;
+      }
+
       .hs-command-empty {
-        padding: 2rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+        padding: 2.4rem 1.2rem;
         color: rgba(255,255,255,.5);
         text-align: center;
-        font: .82rem var(--sans);
+        font: .8rem var(--sans);
+      }
+
+      .hs-command-empty strong {
+        color: rgba(255,255,255,.8);
+        font: 700 .95rem var(--serif);
       }
 
       .hs-command-item {
@@ -596,31 +897,39 @@
         gap: .3rem;
       }
 
-
-      @media (max-width: 768px) {
-        .nav-logo-bar {
-          padding-bottom: 4.1rem !important;
-        }
-
+      @media (max-width: 980px) {
         .hs-header-search {
-          position: absolute;
-          left: 50%;
-          bottom: .55rem;
-          transform: translateX(-50%);
-          width: calc(100vw - 1rem);
-          max-width: 520px;
-          min-height: 44px;
-          border-radius: 11px;
-          grid-template-columns: auto 1fr;
-          z-index: 1200;
+          width: 44px;
+          min-width: 44px;
+          padding: .4rem;
+          grid-template-columns: 1fr;
+          justify-items: center;
         }
 
+        .hs-header-search-copy,
         .hs-header-search-shortcut {
           display: none;
         }
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 768px) {
+        .hs-header-search {
+          position: absolute;
+          left: 3.9rem;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 40px;
+          min-width: 40px;
+          min-height: 40px;
+          border-radius: 50%;
+          z-index: 1201;
+        }
+
+        .hs-header-search-icon {
+          width: 25px;
+          height: 25px;
+        }
+
         .hs-command-overlay {
           padding: 4.5rem .55rem .55rem;
         }
@@ -638,177 +947,8 @@
         .hs-command-footer span:last-child { display: none; }
       }
     `;
+
     document.head.appendChild(style);
-  }
-
-  function render(query = "") {
-    const items = buildItems();
-    currentResults = items
-      .map((item) => ({ item, score: scoreItem(item, query) }))
-      .filter((entry) => entry.score >= 0)
-      .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
-      .slice(0, MAX_RESULTS)
-      .map((entry) => entry.item);
-
-    selectedIndex = Math.min(selectedIndex, Math.max(0, currentResults.length - 1));
-
-    const results = document.getElementById("hsCommandResults");
-    if (!currentResults.length) {
-      results.innerHTML = `<div class="hs-command-empty">No Half Space results found.</div>`;
-      return;
-    }
-
-    results.innerHTML = currentResults
-      .map(
-        (item, index) => `
-          <button
-            type="button"
-            class="hs-command-item${index === selectedIndex ? " selected" : ""}"
-            data-index="${index}"
-            role="option"
-            aria-selected="${index === selectedIndex}"
-          >
-            <span class="hs-command-type">${escapeHTML(item.type)}</span>
-            <span>
-              <span class="hs-command-title">${escapeHTML(item.title)}</span>
-              <span class="hs-command-subtitle">${escapeHTML(item.subtitle || "")}</span>
-            </span>
-            <span class="hs-command-arrow">↗</span>
-          </button>
-        `,
-      )
-      .join("");
-
-    results.querySelectorAll(".hs-command-item").forEach((button) => {
-      button.addEventListener("mouseenter", () => {
-        selectedIndex = Number(button.dataset.index);
-        updateSelection();
-      });
-      button.addEventListener("click", () => execute(Number(button.dataset.index)));
-    });
-  }
-
-  function escapeHTML(value) {
-    return String(value || "").replace(/[&<>"']/g, (character) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    })[character]);
-  }
-
-  function updateSelection() {
-    document.querySelectorAll(".hs-command-item").forEach((button, index) => {
-      const selected = index === selectedIndex;
-      button.classList.toggle("selected", selected);
-      button.setAttribute("aria-selected", String(selected));
-      if (selected) button.scrollIntoView({ block: "nearest" });
-    });
-  }
-
-  function execute(index = selectedIndex) {
-    const item = currentResults[index];
-    if (!item) return;
-
-    close();
-    setTimeout(() => {
-      try {
-        item.action();
-      } catch (error) {
-        console.error("Command failed:", error);
-      }
-    }, 20);
-  }
-
-  function handleInputKeydown(event) {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
-      updateSelection();
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      selectedIndex = Math.max(selectedIndex - 1, 0);
-      updateSelection();
-    } else if (event.key === "Enter") {
-      event.preventDefault();
-      execute();
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      close();
-    }
-  }
-
-  function open() {
-    ensureUI();
-    isOpen = true;
-    selectedIndex = 0;
-    cachedItems = [];
-    const overlay = document.getElementById("hsCommandPalette");
-    overlay.classList.add("open");
-    overlay.setAttribute("aria-hidden", "false");
-    const input = document.getElementById("hsCommandInput");
-    input.value = "";
-    render("");
-    requestAnimationFrame(() => input.focus());
-  }
-
-  function close() {
-    isOpen = false;
-    const overlay = document.getElementById("hsCommandPalette");
-    if (!overlay) return;
-    overlay.classList.remove("open");
-    overlay.setAttribute("aria-hidden", "true");
-  }
-
-  function toggle() {
-    isOpen ? close() : open();
-  }
-
-  function ensureToolbarButton() {
-    const toolbar = document.getElementById("adminToolbar");
-    if (!toolbar || document.getElementById("hsCommandButton")) return;
-
-    const actions =
-      toolbar.querySelector("div[style*='display: flex']") ||
-      toolbar.lastElementChild;
-    if (!actions) return;
-
-    const button = document.createElement("button");
-    button.id = "hsCommandButton";
-    button.className = "tb-btn";
-    button.type = "button";
-    button.textContent = "⌘K Search";
-    button.title = "Open command palette";
-    button.addEventListener("click", open);
-    actions.insertBefore(button, actions.firstChild);
-  }
-
-
-  function ensureHeaderSearch() {
-    if (document.getElementById("hsHeaderSearch")) return;
-
-    const logoBar =
-      document.querySelector(".nav-logo-bar") ||
-      document.querySelector("header") ||
-      document.body;
-
-    const button = document.createElement("button");
-    button.id = "hsHeaderSearch";
-    button.className = "hs-header-search";
-    button.type = "button";
-    button.setAttribute("aria-label", "Search Half Space");
-    button.innerHTML = `
-      <span class="hs-header-search-icon">⌕</span>
-      <span class="hs-header-search-copy">
-        <span class="hs-header-search-title">Search Half Space</span>
-        <span class="hs-header-search-subtitle">Players, clubs, rankings, articles…</span>
-      </span>
-      <span class="hs-header-search-shortcut">⌘K</span>
-    `;
-    button.addEventListener("click", open);
-
-    logoBar.appendChild(button);
   }
 
   function initialize() {
@@ -820,7 +960,7 @@
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         toggle();
-      } else if (event.key === "Escape" && isOpen) {
+      } else if (event.key === "Escape" && openState) {
         event.preventDefault();
         close();
       }
