@@ -28,6 +28,7 @@
       comparison: () => window.HSDraftComparison?.open?.(),
       validation: () => window.HSContentValidation?.open?.(),
       linkchecker: () => window.HSLinkChecker?.open?.(),
+      a11y: () => window.HSAccessibilityAudit?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),
