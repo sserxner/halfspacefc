@@ -27,6 +27,7 @@
     const actions = {
       comparison: () => window.HSDraftComparison?.open?.(),
       validation: () => window.HSContentValidation?.open?.(),
+      linkchecker: () => window.HSLinkChecker?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),
