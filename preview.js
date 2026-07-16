@@ -1,94 +1,57 @@
 (() => {
   "use strict";
 
-  const PREVIEW_CLASS = "hs-preview-mode";
-  const STORAGE_KEY = "halfspace_preview_mode";
+  let previewing = false;
   let savedScrollY = 0;
-  const editableStates = new Map();
 
-  function isAdminActive() {
-    return document.body.classList.contains("admin-active");
+  function toolbar() {
+    return document.getElementById("adminToolbar");
   }
 
-  function isPreviewActive() {
-    return document.body.classList.contains(PREVIEW_CLASS);
+  function ensureControls() {
+    const bar = toolbar();
+    if (!bar || document.getElementById("hsPreviewButton")) return;
+
+    const actions = bar.querySelector("div[style*='display: flex']") || bar.lastElementChild;
+    if (!actions) return;
+
+    const button = document.createElement("button");
+    button.id = "hsPreviewButton";
+    button.className = "tb-btn";
+    button.type = "button";
+    button.textContent = "◉ Preview";
+    button.addEventListener("click", toggle);
+
+    actions.insertBefore(button, actions.firstChild);
   }
 
-  function getButton() {
-    return document.getElementById("hsPreviewButton");
-  }
+  function setPreview(on) {
+    previewing = Boolean(on);
+    const body = document.body;
+    const bar = toolbar();
+    const button = document.getElementById("hsPreviewButton");
 
-  function rememberEditableStates() {
-    editableStates.clear();
-
-    document.querySelectorAll('[contenteditable]').forEach((element) => {
-      editableStates.set(element, element.getAttribute("contenteditable"));
-      element.setAttribute("contenteditable", "false");
-      element.blur();
-    });
-  }
-
-  function restoreEditableStates() {
-    editableStates.forEach((value, element) => {
-      if (!element.isConnected) return;
-
-      if (value === null) {
-        element.removeAttribute("contenteditable");
-      } else {
-        element.setAttribute("contenteditable", value);
-      }
-    });
-
-    editableStates.clear();
-  }
-
-  function updateButton() {
-    const button = getButton();
-    if (!button) return;
-
-    const previewing = isPreviewActive();
-    button.textContent = previewing ? "✎ Return to Edit" : "◉ Preview";
-    button.setAttribute("aria-pressed", String(previewing));
-    button.title = previewing
-      ? "Return to edit mode (P)"
-      : "Preview the public site (P)";
-  }
-
-  function enterPreview(options = {}) {
-    if (!isAdminActive() || isPreviewActive()) return;
-
-    savedScrollY = window.scrollY;
-    rememberEditableStates();
-    document.body.classList.add(PREVIEW_CLASS);
-    sessionStorage.setItem(STORAGE_KEY, "1");
-    updateButton();
-
-    if (!options.silent) {
-      window.dispatchEvent(new CustomEvent("halfspace:preview-enter"));
+    if (previewing) {
+      savedScrollY = window.scrollY;
+      body.classList.add("hs-preview-mode");
+      if (bar) bar.classList.add("hs-preview-toolbar");
+      if (button) button.textContent = "✎ Return to Edit";
+    } else {
+      body.classList.remove("hs-preview-mode");
+      if (bar) bar.classList.remove("hs-preview-toolbar");
+      if (button) button.textContent = "◉ Preview";
+      requestAnimationFrame(() => window.scrollTo(0, savedScrollY));
     }
 
-    requestAnimationFrame(() => window.scrollTo(0, savedScrollY));
+    window.dispatchEvent(
+      new CustomEvent("halfspace:preview-change", {
+        detail: { previewing },
+      }),
+    );
   }
 
-  function exitPreview(options = {}) {
-    if (!isPreviewActive()) return;
-
-    const currentScrollY = window.scrollY;
-    document.body.classList.remove(PREVIEW_CLASS);
-    restoreEditableStates();
-    sessionStorage.removeItem(STORAGE_KEY);
-    updateButton();
-
-    if (!options.silent) {
-      window.dispatchEvent(new CustomEvent("halfspace:preview-exit"));
-    }
-
-    requestAnimationFrame(() => window.scrollTo(0, currentScrollY));
-  }
-
-  function togglePreview() {
-    if (!isAdminActive()) return;
-    isPreviewActive() ? exitPreview() : enterPreview();
+  function toggle() {
+    setPreview(!previewing);
   }
 
   function installStyles() {
@@ -97,143 +60,82 @@
     const style = document.createElement("style");
     style.id = "hsPreviewStyles";
     style.textContent = `
-      body.${PREVIEW_CLASS} {
-        padding-bottom: 0 !important;
-      }
-
-      body.${PREVIEW_CLASS} #adminBanner,
-      body.${PREVIEW_CLASS} .admin-edit-btn,
-      body.${PREVIEW_CLASS} .admin-add-btn,
-      body.${PREVIEW_CLASS} .ranking-controls,
-      body.${PREVIEW_CLASS} .tier-controls,
-      body.${PREVIEW_CLASS} .xi-tier-header-controls,
-      body.${PREVIEW_CLASS} .transfer-actions,
-      body.${PREVIEW_CLASS} .cms-home-admin,
-      body.${PREVIEW_CLASS} #cmsToolbarButton,
-      body.${PREVIEW_CLASS} [data-admin-only],
-      body.${PREVIEW_CLASS} .admin-only {
+      body.hs-preview-mode .admin-edit-btn,
+      body.hs-preview-mode .admin-add-btn,
+      body.hs-preview-mode .ranking-controls,
+      body.hs-preview-mode .xi-tier-controls,
+      body.hs-preview-mode [data-admin-only],
+      body.hs-preview-mode #adminBanner,
+      body.hs-preview-mode #cmsToolbarButton,
+      body.hs-preview-mode .cms-home-admin {
         display: none !important;
       }
 
-      body.${PREVIEW_CLASS} [data-editable],
-      body.${PREVIEW_CLASS} [contenteditable] {
+      body.hs-preview-mode [data-editable],
+      body.hs-preview-mode [contenteditable="true"] {
         outline: none !important;
         border-color: transparent !important;
-        cursor: inherit !important;
-        background: transparent !important;
+        cursor: default !important;
+        pointer-events: auto !important;
       }
 
-      body.${PREVIEW_CLASS} #adminToolbar {
-        position: fixed !important;
+      #adminToolbar.hs-preview-toolbar {
         left: 50% !important;
         right: auto !important;
-        bottom: max(0.8rem, env(safe-area-inset-bottom)) !important;
+        bottom: 1rem !important;
         width: auto !important;
         min-width: 0 !important;
         transform: translateX(-50%) !important;
-        padding: 0.35rem !important;
+        padding: .45rem !important;
         border-radius: 999px !important;
-        background: rgba(15, 37, 24, 0.94) !important;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28) !important;
-        overflow: visible !important;
-        z-index: 100000 !important;
       }
 
-      body.${PREVIEW_CLASS} #adminToolbar > * {
+      #adminToolbar.hs-preview-toolbar > * {
         display: none !important;
       }
 
-      body.${PREVIEW_CLASS} #adminToolbar .tb-actions,
-      body.${PREVIEW_CLASS} #adminToolbar .hs-preview-actions {
+      #adminToolbar.hs-preview-toolbar > div:last-child {
         display: flex !important;
       }
 
-      body.${PREVIEW_CLASS} #adminToolbar .tb-actions > *,
-      body.${PREVIEW_CLASS} #adminToolbar .hs-preview-actions > * {
+      #adminToolbar.hs-preview-toolbar .tb-btn {
         display: none !important;
       }
 
-      body.${PREVIEW_CLASS} #adminToolbar #hsPreviewButton {
+      #adminToolbar.hs-preview-toolbar #hsPreviewButton {
         display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        min-height: 38px !important;
-        padding: 0.5rem 0.9rem !important;
-        border-radius: 999px !important;
-      }
-
-      body.${PREVIEW_CLASS} .page,
-      body.${PREVIEW_CLASS} nav,
-      body.${PREVIEW_CLASS} footer {
-        transition: opacity 0.16s ease;
-      }
-
-      @media (max-width: 768px) {
-        body.${PREVIEW_CLASS} #adminToolbar {
-          max-width: calc(100vw - 1.25rem) !important;
-        }
       }
     `;
-
     document.head.appendChild(style);
   }
 
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key.toLowerCase() === "p" &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.target.closest("input, textarea, select, [contenteditable='true']")
+    ) {
+      event.preventDefault();
+      toggle();
+    }
+  });
+
   function initialize() {
     installStyles();
-    updateButton();
+    ensureControls();
 
-    const button = getButton();
-    if (button) {
-      button.addEventListener("click", togglePreview);
-    }
-
-    document.addEventListener("keydown", (event) => {
-      if (!isAdminActive()) return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key.toLowerCase() !== "p") return;
-
-      const target = event.target;
-      const typing =
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement ||
-        target?.isContentEditable;
-
-      if (typing) return;
-
-      event.preventDefault();
-      togglePreview();
+    new MutationObserver(ensureControls).observe(document.body, {
+      childList: true,
+      subtree: true,
     });
-
-    window.addEventListener("hashchange", () => {
-      if (!isAdminActive() && isPreviewActive()) {
-        exitPreview({ silent: true });
-      }
-    });
-
-    const observer = new MutationObserver(() => {
-      if (!isAdminActive() && isPreviewActive()) {
-        exitPreview({ silent: true });
-      }
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    if (
-      isAdminActive() &&
-      sessionStorage.getItem(STORAGE_KEY) === "1"
-    ) {
-      enterPreview({ silent: true });
-    }
 
     window.HSPreview = {
-      enter: enterPreview,
-      exit: exitPreview,
-      toggle: togglePreview,
-      isActive: isPreviewActive,
+      toggle,
+      enter: () => setPreview(true),
+      exit: () => setPreview(false),
+      isActive: () => previewing,
     };
   }
 
