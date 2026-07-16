@@ -44,6 +44,49 @@
       reader.readAsDataURL(file);
     });
   }
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not prepare the optimized image."));
+      reader.readAsDataURL(blob);
+    });
+  }
+  function loadBitmap(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not decode " + file.name)); };
+      img.src = url;
+    });
+  }
+  async function optimizeFile(file) {
+    const originalSize = file.size;
+    if (file.type === "image/gif" || file.type === "image/svg+xml") {
+      const src = await readFile(file);
+      const dimensions = await imageSize(src);
+      return { src, width: dimensions.width, height: dimensions.height, size: file.size, type: file.type,
+        optimization: { originalSize, saved: 0, reason: file.type === "image/gif" ? "Animation preserved" : "Vector preserved" } };
+    }
+    const img = await loadBitmap(file);
+    const maxDimension = 1920;
+    const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+    const width = Math.max(1, Math.round(img.naturalWidth * scale));
+    const height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const context = canvas.getContext("2d", { alpha: true });
+    context.imageSmoothingEnabled = true; context.imageSmoothingQuality = "high";
+    context.drawImage(img, 0, 0, width, height);
+    let blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.82));
+    if (!blob) blob = file;
+    // Never make a small source heavier just to change its format.
+    if (scale === 1 && blob.size >= file.size) blob = file;
+    const src = await blobToDataURL(blob);
+    return { src, width, height, size: blob.size, type: blob.type || file.type,
+      optimization: { originalSize, saved: Math.max(0, originalSize - blob.size), reason: scale < 1 ? "Resized and compressed" : blob === file ? "Already efficient" : "Compressed" } };
+  }
   function imageSize(src) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -127,22 +170,25 @@
     const valid = files.filter((file) => ACCEPTED.has(file.type));
     if (!valid.length) { if (files.length) alert("Choose a JPG, PNG, GIF, WebP, AVIF, or SVG image."); return; }
     const items = library();
+    const added = [];
     try {
       for (const file of valid) {
-        const src = await readFile(file);
-        const dimensions = await imageSize(src);
-        items.unshift({
+        const prepared = await optimizeFile(file);
+        const asset = {
           id: id(), title: titleFromFile(file.name), alt: "", collection: "Unfiled", tags: [],
-          src, originalName: file.name, type: file.type, size: file.size,
-          width: dimensions.width, height: dimensions.height,
+          src: prepared.src, originalName: file.name, type: prepared.type, size: prepared.size,
+          width: prepared.width, height: prepared.height, optimization: prepared.optimization,
           createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
-        });
+        };
+        items.unshift(asset); added.push(asset);
       }
       persist(items);
       state.selected = items[0]?.id || null;
       render();
+      return added;
     } catch (error) {
       alert(/quota/i.test(String(error)) ? "Browser storage is full. Remove unused media or upload smaller images." : error.message);
+      return [];
     }
   }
 
@@ -181,9 +227,11 @@
     const asset = library().find((x) => x.id === state.selected);
     if (!asset) { detail.innerHTML = `<div class="hs-media-detail-empty">Select an image to view and edit its details.</div>`; return; }
     const uses = usageCount(asset);
+    const optimization = asset.optimization || {};
+    const savedPercent = optimization.originalSize ? Math.round(((optimization.originalSize - asset.size) / optimization.originalSize) * 100) : 0;
     detail.innerHTML = `
       <img class="hs-media-detail-image" src="${esc(asset.src)}" alt="${esc(asset.alt || asset.title)}">
-      <div class="hs-media-facts">${esc(asset.originalName || "Uploaded image")}<br>${asset.width || "?"} × ${asset.height || "?"} · ${bytes(asset.size)}<br>Added ${date(asset.createdAt)}</div>
+      <div class="hs-media-facts">${esc(asset.originalName || "Uploaded image")}<br>${asset.width || "?"} × ${asset.height || "?"} · ${bytes(asset.size)}<br>${esc(optimization.reason || "Stored image")}${savedPercent > 0 ? ` · ${savedPercent}% smaller` : ""}<br>Added ${date(asset.createdAt)}</div>
       <label>Display title<input data-media-field="title" value="${esc(asset.title)}"></label>
       <label>Alt text<textarea data-media-field="alt" placeholder="Describe the image for readers using screen readers">${esc(asset.alt)}</textarea></label>
       <label>Collection<input data-media-field="collection" value="${esc(asset.collection || "Unfiled")}" list="hsMediaCollections"><datalist id="hsMediaCollections">${[...new Set(library().map((x) => x.collection || "Unfiled"))].map((x) => `<option value="${esc(x)}">`).join("")}</datalist></label>
@@ -210,10 +258,10 @@
     if (!ACCEPTED.has(file.type)) { alert("Choose a JPG, PNG, GIF, WebP, AVIF, or SVG image."); return; }
     const items = library(); const asset = items.find((x) => x.id === assetId); if (!asset) return;
     try {
-      const oldSrc = asset.src; const src = await readFile(file); const dimensions = await imageSize(src);
-      asset.src = src; asset.originalName = file.name; asset.type = file.type; asset.size = file.size;
-      asset.width = dimensions.width; asset.height = dimensions.height; asset.updatedAt = new Date().toISOString();
-      const updated = replaceReferences(oldSrc, src); persist(items);
+      const oldSrc = asset.src; const prepared = await optimizeFile(file);
+      asset.src = prepared.src; asset.originalName = file.name; asset.type = prepared.type; asset.size = prepared.size;
+      asset.width = prepared.width; asset.height = prepared.height; asset.optimization = prepared.optimization; asset.updatedAt = new Date().toISOString();
+      const updated = replaceReferences(oldSrc, prepared.src); persist(items);
       if (typeof saveData === "function") saveData();
       render();
       if (updated) alert(`Image replaced in ${updated} saved field${updated === 1 ? "" : "s"}.`);
@@ -260,11 +308,23 @@
       input.insertAdjacentElement("afterend", button);
     });
   }
+  function enhanceImageLoading(root) {
+    (root || document).querySelectorAll("img").forEach((img) => {
+      img.decoding = "async";
+      if (!img.closest(".rank-profile-hero,.hero,header") && !img.hasAttribute("loading")) img.loading = "lazy";
+      const asset = library().find((item) => item.src === img.getAttribute("src"));
+      if (asset?.width && asset?.height) { img.width = asset.width; img.height = asset.height; }
+    });
+  }
   function initialize() {
-    ensureUI(); ensureToolbarButton(); enhanceImageFields(document);
-    new MutationObserver(() => { ensureToolbarButton(); enhanceImageFields(document); }).observe(document.body, { childList: true, subtree: true });
+    ensureUI(); ensureToolbarButton(); enhanceImageFields(document); enhanceImageLoading(document);
+    new MutationObserver(() => { ensureToolbarButton(); enhanceImageFields(document); enhanceImageLoading(document); }).observe(document.body, { childList: true, subtree: true });
     document.addEventListener("keydown", (event) => { if (event.key === "Escape" && state.open) close(); });
-    window.HSMediaManager = { open, close, refresh: render, chooseFor(input, callback) { open({ onChoose: callback || ((asset) => { input.value = asset.src; }) }); } };
+    window.HSMediaManager = {
+      open, close, refresh: render,
+      async importFiles(files) { return await uploadFiles(Array.from(files || [])); },
+      chooseFor(input, callback) { open({ onChoose: callback || ((asset) => { input.value = asset.src; }) }); }
+    };
   }
   document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initialize) : initialize();
 })();

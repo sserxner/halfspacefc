@@ -581,6 +581,10 @@
           let b = document.createElement("div");
           b.id = "rankProfileBackdrop";
           b.className = "rank-profile-backdrop";
+          b.dataset.mediaCardType = "football";
+          b.dataset.rankKey = k;
+          b.dataset.tierIndex = t;
+          b.dataset.entryIndex = e;
           b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([c.position, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${c.teams || x.detail ? `<section class="rank-profile-section"><div class="rank-profile-label">Clubs / Teams</div><div class="rank-profile-copy">${esc(c.teams || x.detail)}</div></section>` : ""}${hon.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Major Honors</div><div class="rank-profile-honors">${hon.map((h) => `<span class="rank-profile-honor">${esc(h)}</span>`).join("")}</div></section>` : ""}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Key Numbers</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy">${esc(c.assessment || x.note || "No extended assessment yet.")}</div></section>${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit card</button>` : ""}</div></aside>`;
           b.onclick = (ev) => {
             if (ev.target === b) closeRankProfile();
@@ -1226,6 +1230,10 @@
           const b = document.createElement("div");
           b.id = "rankProfileBackdrop";
           b.className = "rank-profile-backdrop";
+          b.dataset.mediaCardType = "nba";
+          b.dataset.nbaPosition = pos;
+          b.dataset.tierIndex = ti;
+          b.dataset.entryIndex = ei;
           b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${nbaGlobalRank(pos, ti, ei)} · ${esc(pos)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([c.position || pos, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${c.teams || x.detail ? `<section class="rank-profile-section"><div class="rank-profile-label">Teams</div><div class="rank-profile-copy">${esc(c.teams || x.detail)}</div></section>` : ""}${hon.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Major Honors</div><div class="rank-profile-honors">${hon.map((h) => `<span class="rank-profile-honor">${esc(h)}</span>`).join("")}</div></section>` : ""}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Key Numbers</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy">${esc(c.assessment || x.note || "No extended assessment yet.")}</div></section>${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();editNBACard('${esc(pos)}',${ti},${ei})">Edit card</button>` : ""}</div></aside>`;
           b.onclick = (e) => {
             if (e.target === b) window.closeRankProfile?.();
@@ -1282,6 +1290,56 @@
               +r.dataset.tierIndex,
               +r.dataset.entryIndex,
             );
+          }
+        });
+
+        // Step 15: drop an image file directly on a player row or the open
+        // profile hero. The file is optimized, added to Media, and assigned.
+        function mediaDropTarget(node) {
+          return node.closest?.(".rank-card-trigger, #rankProfileBackdrop .rank-profile-hero");
+        }
+        function mediaDropIdentity(target) {
+          const backdrop = target.closest?.("#rankProfileBackdrop");
+          if (backdrop) return backdrop.dataset;
+          return target.dataset || {};
+        }
+        document.addEventListener("dragover", (event) => {
+          if (!adminMode || !event.dataTransfer?.types?.includes("Files")) return;
+          const target = mediaDropTarget(event.target);
+          if (!target) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+          target.classList.add("is-media-dragover");
+        });
+        document.addEventListener("dragleave", (event) => {
+          const target = mediaDropTarget(event.target);
+          if (target && !target.contains(event.relatedTarget)) target.classList.remove("is-media-dragover");
+        });
+        document.addEventListener("drop", async (event) => {
+          if (!adminMode) return;
+          const target = mediaDropTarget(event.target);
+          const files = Array.from(event.dataTransfer?.files || []).filter((file) => file.type.startsWith("image/"));
+          if (!target || !files.length || !window.HSMediaManager) return;
+          event.preventDefault(); target.classList.remove("is-media-dragover");
+          const [asset] = await window.HSMediaManager.importFiles([files[0]]);
+          if (!asset) return;
+          const info = mediaDropIdentity(target);
+          if (info.mediaCardType === "nba" || info.cardType === "nba") {
+            const position = info.nbaPosition;
+            const ti = +info.tierIndex, ei = +info.entryIndex;
+            const d = data(), entry = d[position]?.tiers?.[ti]?.entries?.[ei];
+            if (!entry) return;
+            entry.card = { ...(entry.card || {}), image: asset.src };
+            save(d);
+            if (target.closest("#rankProfileBackdrop")) window.openNBAProfile(position, ti, ei);
+          } else {
+            const key = info.rankKey;
+            const ti = +info.tierIndex, ei = +info.entryIndex;
+            const d = rankGet(key), entry = d?.tiers?.[ti]?.entries?.[ei];
+            if (!entry) return;
+            entry.card = { ...(entry.card || {}), image: asset.src };
+            rankSet(key, d); rankRender(key.split("_")[0]);
+            if (target.closest("#rankProfileBackdrop")) window.openRankProfile(key, ti, ei);
           }
         });
         window.renderNBARankings = render;

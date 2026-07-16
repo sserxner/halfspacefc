@@ -762,6 +762,10 @@
 .hs-media-detail-actions .primary { border-color: var(--accent); background: var(--accent); color: #fff; }
 .hs-media-detail-actions .danger { color: #a3312d; }
 .hs-media-field-button { width: auto !important; margin: .35rem 0 0 !important; padding: .42rem .65rem !important; border: 1px solid var(--accent) !important; border-radius: 3px; background: var(--green-light) !important; color: var(--accent) !important; cursor: pointer; font: 600 .64rem var(--sans) !important; }
+.admin-active .rank-card-trigger.is-media-dragover,
+.admin-active .rank-profile-hero.is-media-dragover { position: relative; outline: 3px solid #e3b700; outline-offset: -3px; }
+.admin-active .rank-card-trigger.is-media-dragover:after,
+.admin-active .rank-profile-hero.is-media-dragover:after { content: "Drop to set player image"; position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 1rem; background: rgba(15,37,24,.88); color: #fff; text-align: center; font: 700 .72rem var(--sans); letter-spacing: .05em; text-transform: uppercase; pointer-events: none; }
 @media (max-width: 760px) {
   .hs-media-panel { width: 100vw; }
   .hs-media-tools { grid-template-columns: 1fr 1fr; }
