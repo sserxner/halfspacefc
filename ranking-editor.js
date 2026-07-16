@@ -269,9 +269,9 @@
     });
     Object.entries(ranking?.honorable || {}).forEach(([type, values]) => {
       const label = {
-        stillPlaying: "Still Playing",
-        lastCuts: "Last Cuts",
-        lightConsiderations: "Light Considerations",
+        stillPlaying: window.HSSettings?.label?.("stillPlaying") || "Still Playing",
+        lastCuts: window.HSSettings?.label?.("lastCuts") || "Last Cuts",
+        lightConsiderations: window.HSSettings?.label?.("lightConsiderations") || "Light Considerations",
       }[type] || "Honorable Mentions";
       (Array.isArray(values) ? values : []).forEach((name, honorableIndex) => {
         names.push({

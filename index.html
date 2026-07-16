@@ -8276,7 +8276,7 @@
           ? `<div class="formation-picker" style="margin-bottom:1rem;">
     <span style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-right:0.5rem;">Formation:</span>
     <select style="font-size:0.82rem;padding:0.3rem 0.6rem;border:1.5px solid var(--gray-200);border-radius:3px;font-family:var(--sans);outline:none;" onchange="changeFormation('${name}',${meta ? "true" : "null"},this.value,this)">
-      ${Object.keys(FORMATIONS)
+      ${(window.HSSettings?.getFormations?.() || Object.keys(FORMATIONS)).filter((f) => FORMATIONS[f])
         .map(
           (f) =>
             `<option value="${f}" ${f === fKey ? "selected" : ""}>${f}</option>`,
@@ -10522,6 +10522,7 @@
             <button type="button" role="menuitem" data-admin-tool="performance"><span><strong>Performance Report</strong><small>Page weight, load timing, heaviest images</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="errorlog"><span><strong>Error Log</strong><small>Admin, publishing, media, and site failures</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="permissions"><span><strong>Permissions</strong><small>Roles and what each can do</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="settings"><span><strong>Settings</strong><small>Labels, formations, and publishing defaults</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="schedule"><span><strong>Scheduled Publishing</strong><small>Drafts and timed releases</small></span><b id="hsScheduleToolCount" hidden=""></b></button>
             <button type="button" role="menuitem" data-admin-tool="editorial"><span><strong>Editorial</strong><small>Page status and canonical URL</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="notification"><span><strong>Post Notification</strong><small>Register a post and notify readers</small></span></button>
@@ -13470,8 +13471,9 @@
       </div>
     </div>
     <script src="error-log.js?v=1"></script>
-    <script src="permissions.js?v=1"></script>
-    <script src="admin.js?v=19"></script>
+    <script src="permissions.js?v=2"></script>
+    <script src="settings.js?v=1"></script>
+    <script src="admin.js?v=20"></script>
     <script src="history.js?v=16.2"></script>
     <script src="autosave.js?v=16.2"></script>
     <script src="preview.js?v=20"></script>
@@ -13479,7 +13481,7 @@
     <script src="redirect-manager.js?v=19"></script>
     <script src="editorial.js?v=20"></script>
     <script src="router.js?v=17"></script>
-    <script src="ranking-editor.js?v=18"></script>
+    <script src="ranking-editor.js?v=19"></script>
     <script src="command-palette.js?v=22"></script>
     <script src="content-manager.js"></script>
     <script src="media-manager.js?v=20"></script>
@@ -13490,7 +13492,7 @@
     <script src="link-checker.js?v=1"></script>
     <script src="accessibility-audit.js?v=1"></script>
     <script src="performance-report.js?v=1"></script>
-    <script src="admin-toolbar.js?v=20"></script>
+    <script src="admin-toolbar.js?v=21"></script>
     <style id="hs-dropdown-dismiss-fix">
       @media (min-width: 769px) {
         .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {

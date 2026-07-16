@@ -21,6 +21,7 @@
     manageRedirects: "Manage slugs and redirects",
     manageSEO: "Manage SEO, titles, and previews",
     manageSchedule: "Manage scheduled and draft publishing",
+    manageSettings: "Change site settings and defaults",
     moderateComments: "Approve, hide, and delete comments",
     viewDiagnostics: "View Content Validation, Link Checker, Accessibility, Performance, and Error Log reports",
     manageUsers: "Grant or change other people's roles",

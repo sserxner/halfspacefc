@@ -29,6 +29,7 @@
           const modal = $("hsPublishingModal");
           if (!modal) return;
           $("hsPublishUrl").value = location.href.split("#")[0];
+          $("hsPublishNotify").checked = window.HSSettings?.get?.().notifySubscribers !== false;
           status("");
           modal.classList.add("open");
           modal.setAttribute("aria-hidden", "false");
@@ -84,7 +85,7 @@
             );
             setTimeout(() => {
               $("hsPublishingForm").reset();
-              $("hsPublishNotify").checked = true;
+              $("hsPublishNotify").checked = window.HSSettings?.get?.().notifySubscribers !== false;
               slugWasEdited = false;
               close();
             }, 1800);
