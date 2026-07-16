@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const MAX_HISTORY = 50;
-  const WATCH_INTERVAL = 500;
+  const MAX_HISTORY = 25;
+  const WATCH_INTERVAL = 1000;
 
   const undoStack = [];
   const redoStack = [];
@@ -11,27 +11,43 @@
   let restoring = false;
   let initialized = false;
 
-  const CONTENT_KEY_PATTERN =
-    /^(halfspace_|hs_|ranking_|scouting_|xi_|nba_|tv_|music_|club_|country_)/i;
-
   function clone(value) {
     return value == null
       ? value
       : JSON.parse(JSON.stringify(value));
   }
 
-  function readStorage() {
-    const storage = {};
+  function mediaMaps(data) {
+    const media = Array.isArray(data?.media_library_v1) ? data.media_library_v1 : [];
+    return {
+      sourceToId: new Map(media.filter((asset) => asset?.id && asset?.src).map((asset) => [asset.src, asset.id])),
+      idToSource: new Map(media.filter((asset) => asset?.id && asset?.src).map((asset) => [asset.id, asset.src])),
+    };
+  }
 
-    for (let index = 0; index < localStorage.length; index += 1) {
-      const key = localStorage.key(index);
-
-      if (key && CONTENT_KEY_PATTERN.test(key)) {
-        storage[key] = localStorage.getItem(key);
-      }
+  function transform(value, map, hydrate = false) {
+    if (typeof value === "string") {
+      if (hydrate && value.startsWith("hs-media://")) return map.get(value.slice(11)) || "";
+      if (!hydrate && map.has(value)) return `hs-media://${map.get(value)}`;
+      return value;
     }
+    if (Array.isArray(value)) return value.map((item) => transform(item, map, hydrate));
+    if (value && typeof value === "object") {
+      const output = {};
+      Object.entries(value).forEach(([key, child]) => { output[key] = transform(child, map, hydrate); });
+      return output;
+    }
+    return value;
+  }
 
-    return storage;
+  function readStorage() {
+    try {
+      const data = JSON.parse(localStorage.getItem("halfspace_data") || "{}");
+      const { sourceToId } = mediaMaps(data);
+      return { halfspace_data: JSON.stringify(transform(data, sourceToId)) };
+    } catch {
+      return { halfspace_data: localStorage.getItem("halfspace_data") || "{}" };
+    }
   }
 
   function readEditableDOM() {
@@ -79,7 +95,6 @@
   function snapshot() {
     return {
       storage: readStorage(),
-      data: clone(window.__HALFSPACE_DATA__ || null),
       editableDOM: readEditableDOM(),
     };
   }
@@ -125,25 +140,15 @@
   }
 
   function restoreStorage(savedStorage) {
-    const removals = [];
-
-    for (let index = 0; index < localStorage.length; index += 1) {
-      const key = localStorage.key(index);
-
-      if (
-        key &&
-        CONTENT_KEY_PATTERN.test(key) &&
-        !Object.prototype.hasOwnProperty.call(savedStorage, key)
-      ) {
-        removals.push(key);
-      }
+    if (!savedStorage?.halfspace_data) return;
+    try {
+      const current = JSON.parse(localStorage.getItem("halfspace_data") || "{}");
+      const compact = JSON.parse(savedStorage.halfspace_data);
+      const { idToSource } = mediaMaps(current);
+      localStorage.setItem("halfspace_data", JSON.stringify(transform(compact, idToSource, true)));
+    } catch (error) {
+      console.error("Could not restore Half Space history:", error);
     }
-
-    removals.forEach((key) => localStorage.removeItem(key));
-
-    Object.entries(savedStorage).forEach(([key, value]) => {
-      localStorage.setItem(key, value);
-    });
   }
 
   function restoreEditableDOM(values) {
@@ -215,10 +220,6 @@
       }
     } catch (error) {
       console.error("Could not restore Half Space editor data:", error);
-    }
-
-    if (saved.data) {
-      window.__HALFSPACE_DATA__ = clone(saved.data);
     }
 
     restoreEditableDOM(saved.editableDOM || {});

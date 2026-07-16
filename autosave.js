@@ -10,6 +10,7 @@
   let lastSavedSnapshot = "";
   let lastObservedSnapshot = "";
   let restoring = false;
+  let paused = false;
 
   function isAdminActive() {
     return document.body.classList.contains("admin-active");
@@ -40,9 +41,49 @@
     }
   }
 
+  // Keep binary image payloads in halfspace_data only. Autosave stores stable
+  // media references so draft recovery does not duplicate every image.
+  function compactData(value) {
+    const data = value && typeof value === "object" ? value : {};
+    const media = Array.isArray(data.media_library_v1) ? data.media_library_v1 : [];
+    const sourceToId = new Map(media.filter((asset) => asset?.id && asset?.src).map((asset) => [asset.src, asset.id]));
+    const walk = (item) => {
+      if (typeof item === "string") {
+        const mediaId = sourceToId.get(item);
+        return mediaId ? `hs-media://${mediaId}` : item;
+      }
+      if (Array.isArray(item)) return item.map(walk);
+      if (item && typeof item === "object") {
+        const output = {};
+        Object.entries(item).forEach(([key, child]) => { output[key] = walk(child); });
+        return output;
+      }
+      return item;
+    };
+    return walk(data);
+  }
+
+  function hydrateData(value, current) {
+    const media = Array.isArray(current?.media_library_v1) ? current.media_library_v1 : [];
+    const idToSource = new Map(media.filter((asset) => asset?.id && asset?.src).map((asset) => [asset.id, asset.src]));
+    const walk = (item) => {
+      if (typeof item === "string" && item.startsWith("hs-media://")) {
+        return idToSource.get(item.slice("hs-media://".length)) || "";
+      }
+      if (Array.isArray(item)) return item.map(walk);
+      if (item && typeof item === "object") {
+        const output = {};
+        Object.entries(item).forEach(([key, child]) => { output[key] = walk(child); });
+        return output;
+      }
+      return item;
+    };
+    return walk(value);
+  }
+
   function createSnapshot() {
     try {
-      return JSON.stringify(readSiteData());
+      return JSON.stringify(compactData(readSiteData()));
     } catch (error) {
       console.error("Could not create Autosave snapshot:", error);
       return "";
@@ -50,7 +91,7 @@
   }
 
   function saveDraft() {
-    if (restoring || !isAdminActive()) return;
+    if (restoring || paused || !isAdminActive()) return;
 
     try {
       const snapshot = createSnapshot();
@@ -80,7 +121,7 @@
   }
 
   function scheduleSave() {
-    if (restoring || !isAdminActive()) return;
+    if (restoring || paused || !isAdminActive()) return;
 
     clearTimeout(saveTimer);
     setStatus("Saving…");
@@ -153,10 +194,12 @@
 
       restoring = true;
 
-      localStorage.setItem(DATA_KEY, draftSnapshot);
+      const currentData = JSON.parse(localStorage.getItem(DATA_KEY) || "{}");
+      const hydrated = hydrateData(saved.siteData, currentData);
+      localStorage.setItem(DATA_KEY, JSON.stringify(hydrated));
 
       if (typeof siteData !== "undefined") {
-        siteData = saved.siteData;
+        siteData = hydrated;
       }
 
       localStorage.removeItem(AUTOSAVE_KEY);
@@ -203,7 +246,7 @@
   });
 
   setInterval(() => {
-    if (restoring || !isAdminActive()) return;
+    if (restoring || paused || !isAdminActive()) return;
 
     const snapshot = createSnapshot();
 
@@ -222,6 +265,17 @@
     saveNow: saveDraft,
     schedule: scheduleSave,
     clearDraft,
+    pause(label = "Publishing…") {
+      paused = true;
+      clearTimeout(saveTimer);
+      setStatus(label);
+    },
+    resume() {
+      paused = false;
+      lastSavedSnapshot = createSnapshot();
+      lastObservedSnapshot = lastSavedSnapshot;
+      setStatus("Ready", "#3cb371");
+    },
   };
 
   if (document.readyState === "loading") {
