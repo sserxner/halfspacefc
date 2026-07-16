@@ -34,6 +34,9 @@
     setData(STORE_KEY, value); window.HSAutosave?.schedule?.();
   }
   function canonical(path = "/") { return new URL(path, ORIGIN).href; }
+  function managedCanonical(id, fallback) {
+    return window.HSSlugs?.urlFor?.(id, fallback) || canonical("/");
+  }
   function rankData(section) {
     try { return (typeof rankGet === "function" ? rankGet(`${section}_century`) : null) || null; }
     catch { return null; }
@@ -44,24 +47,24 @@
     Object.entries(PAGE_LABELS).forEach(([id, title]) => result.push({
       id: `page:${id}`, type: "page", label: "Section", title,
       defaults: { title: id === "home" ? "Half Space | Rankings and Ramblings" : `${title} | Half Space`,
-        description: id === "home" ? "Independent football rankings, XIs, analysis, scouting, and sporting arguments from Half Space." : `${title} from Half Space.`, canonical: canonical("/") }
+        description: id === "home" ? "Independent football rankings, XIs, analysis, scouting, and sporting arguments from Half Space." : `${title} from Half Space.`, canonical: id === "home" ? canonical("/") : managedCanonical(`page:${id}`, slug(title)) }
     }));
     Object.entries(RANKINGS).forEach(([section, [title, route]]) => {
       const data = rankData(section);
       result.push({ id: `ranking:${section}`, type: "ranking", label: "Ranking", title,
         defaults: { title: `${title} | Half Space`, description: excerpt(data?.blurb) || `${title}, ranked and explained by Half Space.`,
-          canonical: canonical(`/?view=rankings&ranking=${route}`) } });
+          canonical: managedCanonical(`ranking:${section}`, route) } });
       (data?.tiers || []).forEach((tier) => (tier.entries || []).forEach((entry) => {
         const playerSlug = slug(entry.name); if (!playerSlug) return;
         result.push({ id: `player:${section}:${playerSlug}`, type: "player", label: "Player Profile", title: entry.name,
           defaults: { title: `${entry.name} | Half Space`, description: excerpt([entry.detail, entry.note].filter(Boolean).join(" — ")) || `${entry.name}: the Half Space view.`,
-            socialImage: entry.card?.image || "", canonical: canonical(`/?view=rankings&ranking=${route}&player=${playerSlug}`) } });
+            socialImage: window.HSPlayerCards?.get?.(entry)?.image || entry.card?.image || "", canonical: managedCanonical(`player:${section}:${playerSlug}`, playerSlug) } });
       }));
     });
     function addXIs(kind, list) {
       (list || []).forEach((entity) => { const name = String(entity?.name || "").trim(); if (!name) return;
         result.push({ id: `${kind}:${slug(name)}`, type: "xi", label: kind === "country" ? "Country XI" : "Club XI", title: name,
-          defaults: { title: `${name} XI | Half Space`, description: `The Half Space ${name} XI, formation, manager, and bench.`, canonical: canonical("/") } });
+          defaults: { title: `${name} XI | Half Space`, description: `The Half Space ${name} XI, formation, manager, and bench.`, canonical: managedCanonical(`${kind}:${slug(name)}`, slug(name)) } });
       });
     }
     try {
@@ -70,9 +73,9 @@
     } catch {}
     [["story", "Story", "blog_posts"], ["diary", "Diary", "diary_entries"], ["transfer", "Transfer", "transfer_recommendations_v1"]]
       .forEach(([type, label, key]) => (typeof getData === "function" ? getData(key, []) || [] : []).forEach((item, index) => {
-        const title = item.title || item.name || `Untitled ${label}`; const itemId = item.id || `${index}-${slug(title)}`;
+        const title = item.title || item.name || `Untitled ${label}`; const itemId = item._cmsId || item.id || `${index}-${slug(title)}`;
         result.push({ id: `${type}:${itemId}`, type: "article", label, title,
-          defaults: { title: `${title} | Half Space`, description: excerpt(item.summary || item.excerpt || item.body), canonical: canonical("/") } });
+          defaults: { title: `${title} | Half Space`, description: excerpt(item.summary || item.excerpt || item.body), canonical: managedCanonical(`article:${type}:${itemId}`, slug(title)) } });
       }));
     return result;
   }
@@ -118,9 +121,13 @@
   function activeTarget() {
     const url = new URL(location.href);
     if (url.searchParams.get("view") === "rankings") {
-      const section = Object.entries(RANKINGS).find(([, value]) => value[1] === url.searchParams.get("ranking"))?.[0] || "overall";
+      const section = Object.entries(RANKINGS).find(([key, value]) => (window.HSSlugs?.slugFor?.(`ranking:${key}`, value[1]) || value[1]) === url.searchParams.get("ranking"))?.[0] || "overall";
       const player = slug(url.searchParams.get("player") || "");
-      return target(player ? `player:${section}:${player}` : `ranking:${section}`);
+      if (player) {
+        const match = window.HSSlugs?.targets?.().find((item) => item.type === "player" && item.section === section && window.HSSlugs.slugFor(item.id, item.defaultSlug) === player);
+        return target(match?.id || `player:${section}:${player}`);
+      }
+      return target(`ranking:${section}`);
     }
     const page = document.querySelector('.page.active[id^="page-"]')?.id.replace("page-", "") || "home";
     if (page === "country-xi") { const name = document.getElementById("country-detail-content")?.dataset.countryName; if (name) return target(`country:${slug(name)}`); }

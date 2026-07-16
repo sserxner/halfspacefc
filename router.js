@@ -13,10 +13,6 @@
     mgr: { slug: "managers", title: "Managers" },
   };
 
-  const SLUG_TO_SECTION = Object.fromEntries(
-    Object.entries(SECTION_META).map(([section, meta]) => [meta.slug, section]),
-  );
-
   let routing = false;
   let activeSection = "overall";
   let profileWasOpen = false;
@@ -37,12 +33,35 @@
     return String(key || "").split("_")[0] || "overall";
   }
 
+  function rankingSlug(section) {
+    const fallback = (SECTION_META[section] || SECTION_META.overall).slug;
+    return window.HSSlugs?.slugFor?.(`ranking:${section}`, fallback) || fallback;
+  }
+
+  function sectionFromSlug(value) {
+    const wanted = slugify(value);
+    return (
+      Object.keys(SECTION_META).find(
+        (section) => rankingSlug(section) === wanted,
+      ) || "overall"
+    );
+  }
+
+  function playerSlug(section, name) {
+    const fallback = slugify(name);
+    return (
+      window.HSSlugs?.slugFor?.(
+        `player:${section}:${fallback}`,
+        fallback,
+      ) || fallback
+    );
+  }
+
   function routeURL(section, playerSlug = "") {
-    const meta = SECTION_META[section] || SECTION_META.overall;
     const url = new URL(window.location.href);
     url.hash = "";
     url.searchParams.set("view", "rankings");
-    url.searchParams.set("ranking", meta.slug);
+    url.searchParams.set("ranking", rankingSlug(section));
     playerSlug
       ? url.searchParams.set("player", playerSlug)
       : url.searchParams.delete("player");
@@ -104,7 +123,12 @@
     const key = `${section}_century`;
     return [...document.querySelectorAll(
       `.rank-card-trigger[data-rank-key="${CSS.escape(key)}"]`,
-    )].find((row) => slugify(getEntry(row).name) === playerSlug);
+    )].find((row) => playerSlugForRow(row) === playerSlug);
+  }
+
+  function playerSlugForRow(row) {
+    const info = getEntry(row);
+    return playerSlug(info.section, info.name);
   }
 
   function openDeepLinkedPlayer(section, playerSlug) {
@@ -126,8 +150,7 @@
     const url = new URL(location.href);
     if (url.searchParams.get("view") !== "rankings") return false;
 
-    const section =
-      SLUG_TO_SECTION[url.searchParams.get("ranking")] || "overall";
+    const section = sectionFromSlug(url.searchParams.get("ranking"));
     const playerSlug = slugify(url.searchParams.get("player") || "");
 
     routing = true;
@@ -189,7 +212,7 @@
 
         activeSection = info.section;
         setTimeout(() => {
-          setURL(info.section, slugify(info.name), "push");
+          setURL(info.section, playerSlug(info.section, info.name), "push");
           injectCopyButton();
         }, 0);
       },
@@ -237,18 +260,27 @@
     const url = new URL(location.href);
     if (url.searchParams.get("view") !== "rankings") return null;
 
-    const section =
-      SLUG_TO_SECTION[url.searchParams.get("ranking")] || activeSection;
+    const section = sectionFromSlug(url.searchParams.get("ranking")) || activeSection;
     const playerSlug = slugify(url.searchParams.get("player") || "");
     const meta = SECTION_META[section] || SECTION_META.overall;
+    const playerTarget = playerSlug
+      ? window.HSSlugs?.targets?.().find(
+          (target) =>
+            target.type === "player" &&
+            target.section === section &&
+            window.HSSlugs.slugFor(target.id, target.defaultSlug) === playerSlug,
+        )
+      : null;
 
     return {
       kind: playerSlug ? "player" : "ranking",
       pageId: "rankings",
       section,
-      slug: meta.slug,
+      slug: rankingSlug(section),
       title: meta.title,
       playerSlug: playerSlug || null,
+      playerId: playerTarget?.id || null,
+      defaultPlayerSlug: playerTarget?.defaultSlug || playerSlug || null,
       url: routeURL(section, playerSlug),
     };
   }
@@ -271,10 +303,10 @@
         setURL(section, "", "push");
       },
       openPlayer(section, name) {
-        const playerSlug = slugify(name);
+        const playerRouteSlug = playerSlug(section, name);
         showSection(section);
-        setURL(section, playerSlug, "push");
-        setTimeout(() => openDeepLinkedPlayer(section, playerSlug), 100);
+        setURL(section, playerRouteSlug, "push");
+        setTimeout(() => openDeepLinkedPlayer(section, playerRouteSlug), 100);
       },
     };
   }

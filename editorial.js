@@ -109,7 +109,9 @@
 
     if (routed?.kind === "player") {
       return {
-        id: `player:${routed.section}:${routed.playerSlug}`,
+        id:
+          routed.playerId ||
+          `player:${routed.section}:${routed.defaultPlayerSlug || routed.playerSlug}`,
         pageId: "rankings",
         type: "Player Profile",
         defaultTitle: routed.playerSlug
@@ -140,6 +142,7 @@
   }
 
   function uniqueSlug(wanted, currentId) {
+    if (window.HSSlugs?.unique) return window.HSSlugs.unique(wanted, currentId);
     const base = slugify(wanted) || "untitled";
     const store = readStore();
     const used = new Set(
@@ -160,7 +163,11 @@
     const store = readStore();
     const existing = store[context.id] || {};
     const title = existing.title || context.defaultTitle;
-    const slug = existing.slug || uniqueSlug(title, context.id);
+    const managed = window.HSSlugs?.get?.(
+      context.id,
+      existing.slug || uniqueSlug(title, context.id),
+    );
+    const slug = managed?.slug || existing.slug || uniqueSlug(title, context.id);
 
     return {
       id: context.id,
@@ -168,7 +175,7 @@
       type: context.type,
       title,
       slug,
-      locked: Boolean(existing.locked),
+      locked: managed?.locked ?? Boolean(existing.locked),
       status: existing.status || "draft",
       createdAt: existing.createdAt || Date.now(),
       updatedAt: existing.updatedAt || Date.now(),
@@ -189,6 +196,9 @@
 
   function canonicalURL(record) {
     const context = currentContext || contextForPage();
+    if (window.HSSlugs?.urlFor) {
+      return window.HSSlugs.urlFor(context.id, record.slug);
+    }
     if (context.routed?.url) {
       return new URL(context.routed.url, SITE_ORIGIN).toString();
     }
@@ -500,6 +510,7 @@
     document.getElementById("hsEditorialClose").addEventListener("click", close);
     document.getElementById("hsEditorialTitle").addEventListener("input", onTitle);
     document.getElementById("hsEditorialSlug").addEventListener("input", onSlug);
+    document.getElementById("hsEditorialSlug").addEventListener("click", onSlug);
     document.getElementById("hsEditorialLock").addEventListener("change", saveForm);
     document.getElementById("hsEditorialStatus").addEventListener("change", saveForm);
     document.getElementById("hsEditorialPreview").addEventListener("click", preview);
@@ -541,7 +552,13 @@
       record.status === "published" ? "Published" : "Editorial";
     document.getElementById("hsEditorialTitle").value = record.title;
     document.getElementById("hsEditorialSlug").value = record.slug;
+    document.getElementById("hsEditorialSlug").readOnly = true;
+    document.getElementById("hsEditorialSlug").title =
+      "Use Slug Management to change permanent URLs.";
     document.getElementById("hsEditorialLock").checked = record.locked;
+    document.getElementById("hsEditorialLock").disabled = true;
+    document.getElementById("hsEditorialLock").title =
+      "Use Slug Management to lock or unlock permanent URLs.";
     document.getElementById("hsEditorialStatus").value = record.status;
     document.getElementById("hsEditorialURL").textContent = canonicalURL(record);
     document.getElementById("hsEditorialSaved").textContent = formatTime(
@@ -574,12 +591,11 @@
   function formRecord() {
     const original = recordFor(currentContext || contextForPage());
     const title = document.getElementById("hsEditorialTitle").value.trim() || "Untitled";
-    const requestedSlug = document.getElementById("hsEditorialSlug").value;
 
     return {
       ...original,
       title,
-      slug: uniqueSlug(requestedSlug || title, original.id),
+      slug: original.slug,
       locked: document.getElementById("hsEditorialLock").checked,
       status: document.getElementById("hsEditorialStatus").value,
     };
@@ -594,22 +610,11 @@
   }
 
   function onTitle() {
-    const lock = document.getElementById("hsEditorialLock").checked;
-    if (!lock) {
-      const title = document.getElementById("hsEditorialTitle").value;
-      document.getElementById("hsEditorialSlug").value = uniqueSlug(
-        title,
-        currentContext.id,
-      );
-    }
     saveForm();
   }
 
   function onSlug() {
-    const field = document.getElementById("hsEditorialSlug");
-    const cleaned = slugify(field.value);
-    if (field.value !== cleaned) field.value = cleaned;
-    saveForm();
+    window.HSSlugs?.open?.();
   }
 
   async function copyURL() {

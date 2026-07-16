@@ -541,6 +541,8 @@
 
 // ranking-player-card-system
 (function () {
+        const CARD_LIBRARY_KEY = "player_card_library_v1";
+        const FOOTBALL_SECTIONS = ["overall", "gk", "cb", "fb", "cm", "am", "w", "f", "mgr"];
         const esc = (v) =>
           String(v ?? "").replace(
             /[&<>"']/g,
@@ -554,6 +556,66 @@
               })[c],
           );
         const entryAt = (k, t, e) => rankGet(k)?.tiers?.[t]?.entries?.[e];
+        const playerKey = (name) => String(name || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, " and ").replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        const cardLibrary = () => {
+          const value = getData(CARD_LIBRARY_KEY, {});
+          return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+        };
+        const sharedCard = (entry) => {
+          const saved = cardLibrary()[playerKey(entry?.name)];
+          return saved && typeof saved === "object" ? saved : entry?.card || {};
+        };
+        function saveSharedCard(name, card) {
+          const id = playerKey(name);
+          if (!id) return;
+          const clean = JSON.parse(JSON.stringify(card || {}));
+          const library = cardLibrary();
+          library[id] = clean;
+          setData(CARD_LIBRARY_KEY, library);
+          FOOTBALL_SECTIONS.forEach((section) => {
+            ["century", "now", "current"].forEach((era) => {
+              const key = `${section}_${era}`;
+              const ranking = getData("ranking_" + key, null);
+              if (!ranking?.tiers) return;
+              let changed = false;
+              ranking.tiers.forEach((tier) => (tier.entries || []).forEach((entry) => {
+                if (playerKey(entry.name) !== id) return;
+                if (entry.card) {
+                  delete entry.card;
+                  changed = true;
+                }
+              }));
+              if (changed) rankSet(key, ranking);
+            });
+          });
+          window.HSAutosave?.schedule?.();
+        }
+        function seedCardLibrary() {
+          if (!document.body.classList.contains("admin-active")) return;
+          const library = cardLibrary();
+          let changed = false;
+          const rankingsToSave = [];
+          FOOTBALL_SECTIONS.forEach((section) => {
+            ["century", "now", "current"].forEach((era) => {
+              const ranking = getData("ranking_" + section + "_" + era, null);
+              let rankingChanged = false;
+              (ranking?.tiers || []).forEach((tier) => (tier.entries || []).forEach((entry) => {
+                const id = playerKey(entry.name);
+                if (id && entry.card && Object.keys(entry.card).length && !library[id]) {
+                  library[id] = JSON.parse(JSON.stringify(entry.card));
+                  changed = true;
+                }
+                if (id && library[id] && entry.card) {
+                  delete entry.card;
+                  rankingChanged = true;
+                }
+              }));
+              if (rankingChanged) rankingsToSave.push([section + "_" + era, ranking]);
+            });
+          });
+          if (changed) setData(CARD_LIBRARY_KEY, library);
+          rankingsToSave.forEach(([key, ranking]) => rankSet(key, ranking));
+        }
         const globalRank = (k, t, e) => {
           let n = 1,
             d = rankGet(k);
@@ -572,12 +634,20 @@
         window.openRankProfile = (k, t, e) => {
           const x = entryAt(k, t, e);
           if (!x) return;
-          const c = x.card || {},
-            hon = parts(c.honors),
+          const c = sharedCard(x),
+            teamTitles = parts(c.teamTitles || c.honors),
+            individualTitles = parts(c.individualTitles),
             stats = parts(c.stats).map((s) => {
               let i = s.indexOf(":");
               return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 1)];
-            });
+            }),
+            specificPosition = c.specificPosition || c.position || "",
+            positionMeaningURL = /^(https?:\/\/|\/)/i.test(c.positionMeaningUrl || "")
+              ? c.positionMeaningUrl
+              : "",
+            timeline = c.teamsTimeline || c.teams || "",
+            blurb = c.blurb || c.assessment || "",
+            comparisons = c.comparisons || c.comps || "";
           let b = document.createElement("div");
           b.id = "rankProfileBackdrop";
           b.className = "rank-profile-backdrop";
@@ -585,7 +655,7 @@
           b.dataset.rankKey = k;
           b.dataset.tierIndex = t;
           b.dataset.entryIndex = e;
-          b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([c.position, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${c.teams || x.detail ? `<section class="rank-profile-section"><div class="rank-profile-label">Clubs / Teams</div><div class="rank-profile-copy">${esc(c.teams || x.detail)}</div></section>` : ""}${hon.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Major Honors</div><div class="rank-profile-honors">${hon.map((h) => `<span class="rank-profile-honor">${esc(h)}</span>`).join("")}</div></section>` : ""}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Key Numbers</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy">${esc(c.assessment || x.note || "No extended assessment yet.")}</div></section>${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit card</button>` : ""}</div></aside>`;
+          b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([specificPosition, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${specificPosition ? `<section class="rank-profile-section"><div class="rank-profile-label">Specific Position</div><div class="rank-profile-copy">${positionMeaningURL ? `<a class="rank-profile-position-link" href="${esc(positionMeaningURL)}">${esc(specificPosition)}</a>` : esc(specificPosition)}</div></section>` : ""}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}${teamTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Team Titles</div><div class="rank-profile-honors">${teamTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Individual Titles</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Teams &amp; Country</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}${comparisons ? `<section class="rank-profile-section"><div class="rank-profile-label">Comps</div><div class="rank-profile-copy rank-profile-preline">${esc(comparisons)}</div></section>` : ""}${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit card</button>` : ""}</div></aside>`;
           b.onclick = (ev) => {
             if (ev.target === b) closeRankProfile();
           };
@@ -595,12 +665,12 @@
         window.rankEditCard = (k, t, e) => {
           const x = entryAt(k, t, e);
           if (!x) return;
-          const c = x.card || {},
+          const c = sharedCard(x),
             m = document.createElement("div");
           m.id = "rankCardEditor";
           m.style.cssText =
             "position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100001;display:flex;padding:1rem;overflow:auto";
-          m.innerHTML = `<div style="background:#fff;border-radius:8px;padding:1.5rem;width:min(720px,100%);margin:auto"><h3 style="font-family:var(--serif);color:var(--accent);margin-bottom:1rem">Player Card — ${esc(x.name || "")}</h3><div class="rank-card-editor-grid"><div class="full"><label>Image URL or repository path</label><input id="rpcImage" value="${esc(c.image || "")}"></div><div><label>Position / Role</label><input id="rpcPosition" value="${esc(c.position || "")}"></div><div><label>Nationality</label><input id="rpcNationality" value="${esc(c.nationality || "")}"></div><div><label>Years active / peak</label><input id="rpcYears" value="${esc(c.years || "")}"></div><div class="full"><label>Clubs / Teams</label><textarea id="rpcTeams">${esc(c.teams || x.detail || "")}</textarea></div><div class="full"><label>Honors — line or comma separated</label><textarea id="rpcHonors">${esc(c.honors || "")}</textarea></div><div class="full"><label>Stats — Label: Value, one per line</label><textarea id="rpcStats">${esc(c.stats || "")}</textarea></div><div class="full"><label>Long assessment</label><textarea id="rpcAssessment">${esc(c.assessment || x.note || "")}</textarea></div></div><div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem"><button id="rpcCancel" class="rk-btn">Cancel</button><button id="rpcSave" class="rk-btn">Save</button></div></div>`;
+          m.innerHTML = `<div style="background:#fff;border-radius:8px;padding:1.5rem;width:min(760px,100%);margin:auto"><h3 style="font-family:var(--serif);color:var(--accent);margin-bottom:.35rem">Player Card — ${esc(x.name || "")}</h3><p style="font: .74rem/1.45 var(--sans);color:var(--gray-500);margin:0 0 1rem">Saved once and reused anywhere this player appears, including Present Rankings. Blank optional fields stay hidden.</p><div class="rank-card-editor-grid"><div class="full"><label>Image URL or repository path</label><input id="rpcImage" value="${esc(c.image || "")}"></div><div><label>Specific Position</label><input id="rpcSpecificPosition" value="${esc(c.specificPosition || c.position || "")}" placeholder="e.g. Left-sided No. 8"></div><div><label>Position meaning link</label><input id="rpcPositionMeaningUrl" value="${esc(c.positionMeaningUrl || "")}" placeholder="/positions or https://…"></div><div><label>Country / National Team</label><input id="rpcNationality" value="${esc(c.nationality || "")}"></div><div><label>Career years</label><input id="rpcYears" value="${esc(c.years || "")}" placeholder="2006–present"></div><div class="full"><label>Teams &amp; Country timeline — one stop per line</label><textarea id="rpcTeamsTimeline" placeholder="Barcelona — 2008–2021 — appearances / goals\nArgentina — 2005–2023">${esc(c.teamsTimeline || c.teams || x.detail || "")}</textarea></div><div class="full"><label>Stats — Label: Value, one per line</label><textarea id="rpcStats">${esc(c.stats || "")}</textarea></div><div class="full"><label>Team titles — line or comma separated</label><textarea id="rpcTeamTitles">${esc(c.teamTitles || c.honors || "")}</textarea></div><div class="full"><label>Individual titles — line or comma separated</label><textarea id="rpcIndividualTitles">${esc(c.individualTitles || "")}</textarea></div><div class="full"><label>Blurb — optional</label><textarea id="rpcBlurb" placeholder="Hidden from the card when blank">${esc(c.blurb || c.assessment || "")}</textarea></div><div class="full"><label>Comps — optional</label><textarea id="rpcComparisons" placeholder="Potential comparisons; hidden when blank">${esc(c.comparisons || c.comps || "")}</textarea></div></div><div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem"><button id="rpcCancel" class="rk-btn">Cancel</button><button id="rpcSave" class="rk-btn">Save reusable card</button></div></div>`;
           document.body.appendChild(m);
           rpcCancel.onclick = () => m.remove();
           rpcSave.onclick = () => {
@@ -608,19 +678,40 @@
               z = d.tiers[t].entries[e];
             z.card = {
               image: rpcImage.value.trim(),
-              position: rpcPosition.value.trim(),
+              specificPosition: rpcSpecificPosition.value.trim(),
+              position: rpcSpecificPosition.value.trim(),
+              positionMeaningUrl: rpcPositionMeaningUrl.value.trim(),
               nationality: rpcNationality.value.trim(),
               years: rpcYears.value.trim(),
-              teams: rpcTeams.value.trim(),
-              honors: rpcHonors.value.trim(),
+              teamsTimeline: rpcTeamsTimeline.value.trim(),
+              teams: rpcTeamsTimeline.value.trim(),
               stats: rpcStats.value.trim(),
-              assessment: rpcAssessment.value.trim(),
+              teamTitles: rpcTeamTitles.value.trim(),
+              honors: rpcTeamTitles.value.trim(),
+              individualTitles: rpcIndividualTitles.value.trim(),
+              blurb: rpcBlurb.value.trim(),
+              assessment: rpcBlurb.value.trim(),
+              comparisons: rpcComparisons.value.trim(),
+              comps: rpcComparisons.value.trim(),
             };
             rankSet(k, d);
+            saveSharedCard(z.name, z.card);
             m.remove();
             rankRender(k.split("_")[0]);
           };
         };
+        window.HSPlayerCards = {
+          key: playerKey,
+          get(entry) { return sharedCard(entry); },
+          save(name, card) { saveSharedCard(name, card); },
+          seed: seedCardLibrary,
+        };
+        document.addEventListener("DOMContentLoaded", () => {
+          setTimeout(seedCardLibrary, 350);
+        });
+        new MutationObserver(() => {
+          if (document.body.classList.contains("admin-active")) seedCardLibrary();
+        }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
         document.addEventListener("click", (ev) => {
           let r = ev.target.closest(".rank-card-trigger");
           if (!r || ev.target.closest("button,select,a,.xi-badge")) return;
@@ -809,6 +900,8 @@
               });
               html += "</div>";
             });
+          if (typeof renderHonorableMentions === "function")
+            html += renderHonorableMentions(key, data);
           if (adminMode)
             html +=
               '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem"><button class="admin-add-btn" style="margin-top:0" onclick="rankAddEntry(\'' +
@@ -1337,8 +1430,10 @@
             const ti = +info.tierIndex, ei = +info.entryIndex;
             const d = rankGet(key), entry = d?.tiers?.[ti]?.entries?.[ei];
             if (!entry) return;
-            entry.card = { ...(entry.card || {}), image: asset.src };
-            rankSet(key, d); rankRender(key.split("_")[0]);
+            entry.card = { ...(window.HSPlayerCards?.get?.(entry) || entry.card || {}), image: asset.src };
+            rankSet(key, d);
+            window.HSPlayerCards?.save?.(entry.name, entry.card);
+            rankRender(key.split("_")[0]);
             if (target.closest("#rankProfileBackdrop")) window.openRankProfile(key, ti, ei);
           }
         });
