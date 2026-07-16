@@ -1304,7 +1304,7 @@
           return target.dataset || {};
         }
         document.addEventListener("dragover", (event) => {
-          if (!adminMode || !event.dataTransfer?.types?.includes("Files")) return;
+          if (!adminMode || !Array.from(event.dataTransfer?.types || []).includes("Files")) return;
           const target = mediaDropTarget(event.target);
           if (!target) return;
           event.preventDefault();
