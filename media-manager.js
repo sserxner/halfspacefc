@@ -188,6 +188,7 @@
       return added;
     } catch (error) {
       alert(/quota/i.test(String(error)) ? "Browser storage is full. Remove unused media or upload smaller images." : error.message);
+      window.HSErrorLog?.record?.("Media", "Media upload failed", error?.stack || String(error));
       return [];
     }
   }
@@ -265,7 +266,7 @@
       if (typeof saveData === "function") saveData();
       render();
       if (updated) alert(`Image replaced in ${updated} saved field${updated === 1 ? "" : "s"}.`);
-    } catch (error) { alert(/quota/i.test(String(error)) ? "Browser storage is full. Try a smaller image." : error.message); }
+    } catch (error) { alert(/quota/i.test(String(error)) ? "Browser storage is full. Try a smaller image." : error.message); window.HSErrorLog?.record?.("Media", "Image replace failed", error?.stack || String(error)); }
   }
   function deleteAsset(asset) {
     const uses = usageCount(asset);

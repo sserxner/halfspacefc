@@ -30,6 +30,7 @@
       linkchecker: () => window.HSLinkChecker?.open?.(),
       a11y: () => window.HSAccessibilityAudit?.open?.(),
       performance: () => window.HSPerformance?.open?.(),
+      errorlog: () => window.HSErrorLog?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),

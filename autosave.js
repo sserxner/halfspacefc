@@ -116,6 +116,7 @@
       setStatus(`Saved ${time}`, "#3cb371");
     } catch (error) {
       console.error("Autosave failed:", error);
+      window.HSErrorLog?.record?.("Publishing", "Autosave failed", error?.stack || String(error));
       setStatus("Save failed", "#cc4444");
     }
   }
@@ -207,6 +208,7 @@
       window.location.reload();
     } catch (error) {
       console.error("Draft recovery failed:", error);
+      window.HSErrorLog?.record?.("Publishing", "Draft recovery failed", error?.stack || String(error));
       restoring = false;
     }
   }

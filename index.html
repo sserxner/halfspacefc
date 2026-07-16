@@ -7695,6 +7695,7 @@
         const country = resolveCountry(identifier);
         if (!country) {
           console.error("Unknown country XI requested:", identifier);
+          window.HSErrorLog?.record?.("Routing", "Unknown country XI requested", String(identifier));
           return;
         }
         const name = country.name;
@@ -7914,6 +7915,7 @@
         const club = resolveClub(identifier);
         if (!club) {
           console.error("Unknown club XI requested:", identifier);
+          window.HSErrorLog?.record?.("Routing", "Unknown club XI requested", String(identifier));
           return;
         }
         const name = club.name,
@@ -8414,6 +8416,7 @@
           status.textContent = "Message sent.";
         } catch (error) {
           console.error("Contact form error:", error);
+          window.HSErrorLog?.record?.("Public Site", "Contact form failed", error?.stack || String(error));
           status.style.display = "block";
           status.style.color = "var(--red)";
           status.textContent =
@@ -10093,6 +10096,7 @@
           session = result.data.session;
         } catch (error) {
           console.error("Could not read admin session:", error);
+          window.HSErrorLog?.record?.("Admin", "Could not read admin session", error?.stack || String(error));
         }
 
         if (session?.user) {
@@ -10105,6 +10109,7 @@
             }
           } catch (error) {
             console.error("Admin verification failed:", error);
+            window.HSErrorLog?.record?.("Admin", "Admin verification failed", error?.stack || String(error));
           }
         }
 
@@ -10211,6 +10216,7 @@
           "#hsLinkCheckerModal", "#hsLinkCheckerStyles",
           "#hsA11yModal", "#hsA11yStyles",
           "#hsPerfModal", "#hsPerfStyles",
+          "#hsErrorLogModal", "#hsErrorLogStyles",
         ].forEach((selector) =>
           exportRoot.querySelectorAll(selector).forEach((node) => node.remove()),
         );
@@ -10473,6 +10479,7 @@
           showPage("home", "replace");
         } catch (err) {
           console.error("Half Space initialization error:", err);
+          window.HSErrorLog?.record?.("Public Site", "Site initialization failed", err?.stack || String(err));
         } finally {
           // Admin access must remain available even when an unrelated page renderer
           // encounters bad or legacy saved data.
@@ -10512,6 +10519,7 @@
             <button type="button" role="menuitem" data-admin-tool="linkchecker"><span><strong>Link Checker</strong><small>Redirect loops and dead destinations</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="a11y"><span><strong>Accessibility Audit</strong><small>Alt text, labels, contrast, keyboard, motion</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="performance"><span><strong>Performance Report</strong><small>Page weight, load timing, heaviest images</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="errorlog"><span><strong>Error Log</strong><small>Admin, publishing, media, and site failures</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="schedule"><span><strong>Scheduled Publishing</strong><small>Drafts and timed releases</small></span><b id="hsScheduleToolCount" hidden=""></b></button>
             <button type="button" role="menuitem" data-admin-tool="editorial"><span><strong>Editorial</strong><small>Page status and canonical URL</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="notification"><span><strong>Post Notification</strong><small>Register a post and notify readers</small></span></button>
@@ -13459,9 +13467,10 @@
         </form>
       </div>
     </div>
+    <script src="error-log.js?v=1"></script>
     <script src="admin.js?v=19"></script>
     <script src="history.js?v=16.1"></script>
-    <script src="autosave.js?v=16.1"></script>
+    <script src="autosave.js?v=16.2"></script>
     <script src="preview.js?v=19"></script>
     <script src="slug-manager.js?v=19"></script>
     <script src="redirect-manager.js?v=19"></script>
@@ -13470,7 +13479,7 @@
     <script src="ranking-editor.js?v=18"></script>
     <script src="command-palette.js?v=21"></script>
     <script src="content-manager.js"></script>
-    <script src="media-manager.js?v=19"></script>
+    <script src="media-manager.js?v=20"></script>
     <script src="seo-manager.js?v=19"></script>
     <script src="scheduled-publishing.js?v=19"></script>
     <script src="draft-comparison.js?v=20"></script>
