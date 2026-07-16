@@ -141,7 +141,7 @@
     mgr: "Managers",
   };
 
-  const GROUP_ORDER = ["Recent", "Players", "Rankings", "XIs", "Pages", "Articles", "Actions"];
+  const GROUP_ORDER = ["Recent", "Players", "Rankings", "XIs", "Pages", "Articles", "TV / NBA / Music", "Actions"];
 
   function isAdmin() {
     return document.body.classList.contains("admin-active");
@@ -349,38 +349,171 @@
     return items;
   }
 
-  function articleItems() {
+  function readData(key, fallback) {
+    if (typeof window.getData === "function") {
+      try {
+        return window.getData(key, fallback);
+      } catch {}
+    }
+    if (typeof getData === "function") {
+      try {
+        return getData(key, fallback);
+      } catch {}
+    }
+    return fallback;
+  }
+
+  function contentItems() {
     const items = [];
-    const selectors = [
-      ["Diary", "#page-diary h1, #page-diary h2, #page-diary .post-title"],
-      ["Scouting", "#page-scouting h1, #page-scouting h2, #page-scouting .section-title"],
-      ["TV", "#page-tv h1, #page-tv h2, #page-tv .section-title"],
-      ["NBA", "#page-nba h1, #page-nba h2, #page-nba .section-title"],
-      ["Music", "#page-music h1, #page-music h2, #page-music .section-title"],
-    ];
 
-    selectors.forEach(([type, selector]) => {
-      document.querySelectorAll(selector).forEach((element, index) => {
-        const title = element.textContent?.trim();
-        if (!title || title.length < 3) return;
+    (readData("blog_posts", []) || []).forEach((post, index) => {
+      const title = String(post?.title || "").trim();
+      if (!title) return;
+      items.push({
+        id: `story-${index}-${normalize(title)}`,
+        type: "Story",
+        group: "Articles",
+        title,
+        subtitle: [post.category, post.date].filter(Boolean).join(" · ") || "Story",
+        keywords: `${post.body || ""} ${post.category || ""} story article`,
+        priority: 32,
+        action() {
+          window.showPage?.("home");
+          setTimeout(() => {
+            document
+              .getElementById("cms-card-" + post._cmsId)
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 150);
+        },
+      });
+    });
 
+    (readData("diary_entries", []) || []).forEach((entry, index) => {
+      const title = String(entry?.title || entry?.fixture || "").trim();
+      if (!title) return;
+      items.push({
+        id: `diary-${index}-${normalize(title)}`,
+        type: "Diary",
+        group: "Articles",
+        title,
+        subtitle:
+          [entry.fixture, entry.competition, entry.date].filter(Boolean).join(" · ") ||
+          "Matchday Diary",
+        keywords: `${entry.body || ""} matchday diary`,
+        priority: 30,
+        action() {
+          window.showPage?.("diary");
+        },
+      });
+    });
+
+    const transfers =
+      typeof window.transferData === "function"
+        ? window.transferData() || []
+        : readData("transfer_recommendations_v1", []) || [];
+    transfers.forEach((entry, index) => {
+      const title =
+        [entry?.club, entry?.title].filter(Boolean).join(" — ") ||
+        "Transfer recommendation";
+      items.push({
+        id: `transfer-${index}-${normalize(title)}`,
+        type: "Transfer Rec",
+        group: "Articles",
+        title,
+        subtitle: entry?.date || "Transfer Recommendations",
+        keywords: `${entry?.body || ""} ${entry?.club || ""} transfer recommendation`,
+        priority: 30,
+        action() {
+          window.showPage?.("transfers");
+        },
+      });
+    });
+
+    const scoutPositions =
+      window.SCOUT_POSITIONS ||
+      (typeof SCOUT_POSITIONS !== "undefined" ? SCOUT_POSITIONS : []);
+    (scoutPositions || []).forEach((pos) => {
+      (readData("scout_" + pos, []) || []).forEach((player) => {
+        const name = String(player?.name || "").trim();
+        if (!name) return;
         items.push({
-          id: `article-${type}-${index}-${normalize(title)}`,
-          type,
+          id: `scout-${pos}-${normalize(name)}`,
+          type: "Scouting",
           group: "Articles",
-          title,
-          subtitle: `Open ${type.toLowerCase()}`,
-          keywords: `${type} article notebook content`,
-          priority: 20,
+          title: name,
+          subtitle: `Scouting · ${pos}`,
+          keywords: `${player.club || ""} ${player.nationality || ""} ${player.note || ""} scouting`,
+          priority: 26,
           action() {
-            const page = element.closest(".page[id^='page-']");
-            if (page) window.showPage?.(page.id.replace(/^page-/, ""));
-            setTimeout(
-              () => element.scrollIntoView({ behavior: "smooth", block: "center" }),
-              100,
-            );
+            window.showPage?.("scouting");
           },
         });
+      });
+    });
+
+    const tvCategories = readData("tv_category_defs_v1", null);
+    (Array.isArray(tvCategories) && tvCategories.length
+      ? tvCategories
+      : [{ id: "overall", label: "Overall" }]
+    ).forEach((category) => {
+      const board = readData("tv_ranking_" + category.id, null);
+      (board?.tiers || []).forEach((tier) => {
+        (tier.entries || []).forEach((entry) => {
+          const name = String(entry?.name || "").trim();
+          if (!name) return;
+          items.push({
+            id: `tv-${category.id}-${normalize(name)}`,
+            type: "TV",
+            group: "TV / NBA / Music",
+            title: name,
+            subtitle: `TV · ${category.label}`,
+            keywords: `${entry.detail || ""} ${entry.note || ""} tv show`,
+            priority: 24,
+            action() {
+              window.showPage?.("tv");
+            },
+          });
+        });
+      });
+    });
+
+    const nbaData = readData("nba_rankings_v1", null) || {};
+    Object.keys(nbaData).forEach((position) => {
+      const board = nbaData[position];
+      (board?.tiers || []).forEach((tier) => {
+        (tier.entries || []).forEach((entry) => {
+          const name = String(entry?.name || "").trim();
+          if (!name) return;
+          items.push({
+            id: `nba-${position}-${normalize(name)}`,
+            type: "NBA",
+            group: "TV / NBA / Music",
+            title: name,
+            subtitle: `NBA · ${position}`,
+            keywords: `${entry.detail || ""} ${entry.note || ""} nba basketball`,
+            priority: 24,
+            action() {
+              window.showPage?.("nba");
+            },
+          });
+        });
+      });
+    });
+
+    (readData("music_playlists_v1", []) || []).forEach((playlist, index) => {
+      const title = String(playlist?.title || "").trim();
+      if (!title) return;
+      items.push({
+        id: `music-${index}-${normalize(title)}`,
+        type: "Music",
+        group: "TV / NBA / Music",
+        title,
+        subtitle: playlist.mood || "Playlist",
+        keywords: `${playlist.description || ""} music playlist`,
+        priority: 22,
+        action() {
+          window.showPage?.("music");
+        },
       });
     });
 
@@ -404,7 +537,7 @@
       ...rankingItems(),
       ...xiItems(),
       ...pageItems(),
-      ...articleItems(),
+      ...contentItems(),
       ...actionItems(),
     ];
 

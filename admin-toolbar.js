@@ -29,6 +29,7 @@
       validation: () => window.HSContentValidation?.open?.(),
       linkchecker: () => window.HSLinkChecker?.open?.(),
       a11y: () => window.HSAccessibilityAudit?.open?.(),
+      performance: () => window.HSPerformance?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),

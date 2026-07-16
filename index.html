@@ -10210,6 +10210,7 @@
           "#hsValidationModal", "#hsValidationStyles",
           "#hsLinkCheckerModal", "#hsLinkCheckerStyles",
           "#hsA11yModal", "#hsA11yStyles",
+          "#hsPerfModal", "#hsPerfStyles",
         ].forEach((selector) =>
           exportRoot.querySelectorAll(selector).forEach((node) => node.remove()),
         );
@@ -10460,15 +10461,13 @@
           removeAdminUI(); // strip any admin buttons baked into exported HTML
           disableInlineEditing(); // exported files must never remain editable in public mode
           initInlineEditing(); // restore edited text
-          renderCountryDisplay();
-          buildClubGrid();
-          buildContinentalXIs();
-          renderAllRankings();
-          renderTierLegend();
-          renderHomePostFeed();
-          renderDiary();
-          renderScouting();
-          renderPositions();
+          // Every page below (rankings, club-xi, country-xi, diary, scouting,
+          // positions, continental-xi, home) is already rendered on demand by
+          // showPage() itself the moment that page becomes active — see the
+          // id-based dispatch inside showPage(). Rendering all of them again
+          // here, before the visitor has even seen the homepage, was pure
+          // duplicate work on every single page load. showPage("home") below
+          // renders the one page anyone actually sees first.
           showClubList("none"); // normalize any baked-open detail views
           showCountryList("none");
           showPage("home", "replace");
@@ -10512,6 +10511,7 @@
             <button type="button" role="menuitem" data-admin-tool="validation"><span><strong>Content Validation</strong><small>Missing fields, duplicates, broken images</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="linkchecker"><span><strong>Link Checker</strong><small>Redirect loops and dead destinations</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="a11y"><span><strong>Accessibility Audit</strong><small>Alt text, labels, contrast, keyboard, motion</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="performance"><span><strong>Performance Report</strong><small>Page weight, load timing, heaviest images</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="schedule"><span><strong>Scheduled Publishing</strong><small>Drafts and timed releases</small></span><b id="hsScheduleToolCount" hidden=""></b></button>
             <button type="button" role="menuitem" data-admin-tool="editorial"><span><strong>Editorial</strong><small>Page status and canonical URL</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="notification"><span><strong>Post Notification</strong><small>Register a post and notify readers</small></span></button>
@@ -13477,6 +13477,7 @@
     <script src="content-validation.js?v=1"></script>
     <script src="link-checker.js?v=1"></script>
     <script src="accessibility-audit.js?v=1"></script>
+    <script src="performance-report.js?v=1"></script>
     <script src="admin-toolbar.js?v=20"></script>
     <style id="hs-dropdown-dismiss-fix">
       @media (min-width: 769px) {
