@@ -494,7 +494,7 @@
           <div class="hs-editorial-actions">
             <button class="hs-editorial-button" id="hsEditorialPreview" type="button">Preview</button>
             <button class="hs-editorial-button" id="hsEditorialCopy" type="button">Copy URL</button>
-            <button class="hs-editorial-button primary" id="hsEditorialPublish" type="button">Publish to GitHub</button>
+            <button class="hs-editorial-button primary" id="hsEditorialPublish" type="button">Publish Changes</button>
           </div>
           <div class="hs-editorial-status-note" id="hsEditorialNote"></div>
         </div>
@@ -516,26 +516,6 @@
     document.getElementById("hsEditorialPreview").addEventListener("click", preview);
     document.getElementById("hsEditorialCopy").addEventListener("click", copyURL);
     document.getElementById("hsEditorialPublish").addEventListener("click", publish);
-  }
-
-  function ensureToolbarButton() {
-    const toolbar = document.getElementById("adminToolbar");
-    if (!toolbar || document.getElementById("hsEditorialButton")) return;
-
-    const actions =
-      toolbar.querySelector("div[style*='display: flex']") ||
-      toolbar.lastElementChild;
-    if (!actions) return;
-
-    const button = document.createElement("button");
-    button.id = "hsEditorialButton";
-    button.className = "tb-btn hs-editorial-trigger";
-    button.type = "button";
-    button.textContent = "✦ Editorial";
-    button.addEventListener("click", open);
-
-    const github = document.getElementById("githubSaveBtn");
-    actions.insertBefore(button, github || actions.firstChild);
   }
 
   function setNote(message) {
@@ -637,7 +617,7 @@
 
   function publish() {
     const record = saveForm();
-    setNote("Opening GitHub publishing…");
+    setNote("Publishing changes…");
     close();
 
     if (typeof window.saveToGitHub === "function") {
@@ -704,14 +684,8 @@
   function initialize() {
     installStyles();
     ensureMarkup();
-    ensureToolbarButton();
     routeFromURL();
     watchPublishStatus();
-
-    new MutationObserver(() => {
-      ensureToolbarButton();
-      if (drawerOpen) render();
-    }).observe(document.body, { childList: true, subtree: true });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && drawerOpen) close();

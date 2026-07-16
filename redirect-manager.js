@@ -395,32 +395,6 @@
     };
   }
 
-  function ensureButton() {
-    const toolbar = document.getElementById("adminToolbar");
-    if (
-      !toolbar ||
-      !document.body.classList.contains("admin-active") ||
-      document.getElementById("hsRedirectButton")
-    )
-      return;
-    const actions =
-      toolbar.querySelector("div[style*='display: flex']") || toolbar.lastElementChild;
-    if (!actions) return;
-    const button = document.createElement("button");
-    button.id = "hsRedirectButton";
-    button.className = "tb-btn";
-    button.type = "button";
-    button.textContent = "Redirects";
-    button.onclick = open;
-    actions.insertBefore(
-      button,
-      document.getElementById("hsSlugButton") ||
-        document.getElementById("hsSeoButton") ||
-        document.getElementById("openPublishingBtn") ||
-        actions.firstChild,
-    );
-  }
-
   function filteredRedirects() {
     const query = state.query.trim().toLowerCase();
     return allRedirects().filter(
@@ -633,14 +607,7 @@
 
   function initialize() {
     ensureUI();
-    ensureButton();
     applyCurrentRedirect();
-    new MutationObserver(ensureButton).observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"],
-    });
     document.addEventListener("hs:slugs-changed", () => {
       if (state.open) render();
     });

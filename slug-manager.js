@@ -498,32 +498,6 @@
     };
   }
 
-  function ensureButton() {
-    const toolbar = document.getElementById("adminToolbar");
-    if (
-      !toolbar ||
-      !document.body.classList.contains("admin-active") ||
-      document.getElementById("hsSlugButton")
-    )
-      return;
-    const actions =
-      toolbar.querySelector("div[style*='display: flex']") ||
-      toolbar.lastElementChild;
-    if (!actions) return;
-    const button = document.createElement("button");
-    button.id = "hsSlugButton";
-    button.className = "tb-btn";
-    button.type = "button";
-    button.textContent = "Slugs";
-    button.onclick = open;
-    actions.insertBefore(
-      button,
-      document.getElementById("hsSeoButton") ||
-        document.getElementById("openPublishingBtn") ||
-        actions.firstChild,
-    );
-  }
-
   function filteredTargets() {
     const query = state.query.trim().toLowerCase();
     return allTargets().filter(
@@ -720,15 +694,8 @@
 
   function initialize() {
     ensureUI();
-    ensureButton();
     setTimeout(routeFromLocation, 180);
     addEventListener("popstate", () => setTimeout(routeFromLocation, 0));
-    new MutationObserver(ensureButton).observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"],
-    });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && state.open) close();
     });

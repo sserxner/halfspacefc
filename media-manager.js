@@ -287,21 +287,17 @@
     const root = document.getElementById("hsMediaManager"); if (!root) return;
     root.classList.remove("open"); root.setAttribute("aria-hidden", "true"); state.open = false; state.onChoose = null;
   }
-  function ensureToolbarButton() {
-    const toolbar = document.getElementById("adminToolbar");
-    if (!toolbar || !adminActive() || document.getElementById("hsMediaButton")) return;
-    const actions = toolbar.querySelector("div[style*='display: flex']") || toolbar.lastElementChild; if (!actions) return;
-    const button = document.createElement("button"); button.id = "hsMediaButton"; button.className = "tb-btn";
-    button.type = "button"; button.textContent = "Media"; button.title = "Open Media Manager"; button.addEventListener("click", () => open());
-    const publishing = document.getElementById("openPublishingBtn"); actions.insertBefore(button, publishing || actions.firstChild);
-  }
   function imageField(input) {
     if (!(input instanceof HTMLInputElement) || input.type === "file" || input.dataset.mediaEnhanced) return false;
     const label = input.closest("label")?.textContent || "";
     return /image|poster|cover/i.test([input.id, input.name, input.dataset.f, label].filter(Boolean).join(" "));
   }
   function enhanceImageFields(root) {
-    (root || document).querySelectorAll("input").forEach((input) => {
+    const scope = root || document;
+    const inputs = [];
+    if (scope instanceof HTMLInputElement) inputs.push(scope);
+    scope.querySelectorAll?.("input").forEach((input) => inputs.push(input));
+    inputs.forEach((input) => {
       if (!imageField(input)) return; input.dataset.mediaEnhanced = "true";
       const button = document.createElement("button"); button.type = "button"; button.className = "hs-media-field-button"; button.textContent = "Choose from Media";
       button.addEventListener("click", () => open({ onChoose(asset) { input.value = asset.src; input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); } }));
@@ -309,7 +305,11 @@
     });
   }
   function enhanceImageLoading(root) {
-    (root || document).querySelectorAll("img").forEach((img) => {
+    const scope = root || document;
+    const images = [];
+    if (scope instanceof HTMLImageElement) images.push(scope);
+    scope.querySelectorAll?.("img").forEach((img) => images.push(img));
+    images.forEach((img) => {
       img.decoding = "async";
       if (!img.closest(".rank-profile-hero,.hero,header") && !img.hasAttribute("loading")) img.loading = "lazy";
       const asset = library().find((item) => item.src === img.getAttribute("src"));
@@ -317,8 +317,14 @@
     });
   }
   function initialize() {
-    ensureUI(); ensureToolbarButton(); enhanceImageFields(document); enhanceImageLoading(document);
-    new MutationObserver(() => { ensureToolbarButton(); enhanceImageFields(document); enhanceImageLoading(document); }).observe(document.body, { childList: true, subtree: true });
+    ensureUI(); enhanceImageFields(document); enhanceImageLoading(document);
+    new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        enhanceImageFields(node);
+        enhanceImageLoading(node);
+      }));
+    }).observe(document.body, { childList: true, subtree: true });
     document.addEventListener("keydown", (event) => { if (event.key === "Escape" && state.open) close(); });
     window.HSMediaManager = {
       open, close, refresh: render,

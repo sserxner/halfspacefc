@@ -126,11 +126,6 @@
     installStyles();
     ensureControls();
 
-    new MutationObserver(ensureControls).observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
     window.HSPreview = {
       toggle,
       enter: () => setPreview(true),

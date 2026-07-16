@@ -67,7 +67,9 @@
               title: x.title || "Untitled story",
               meta: [x.category, x.date].filter(Boolean).join(" · "),
               body: x.body || "",
-              published: x.published !== false,
+              published: window.hsContentIsLive
+                ? window.hsContentIsLive(x)
+                : x.published !== false,
               raw: x,
             }),
           );
@@ -81,7 +83,9 @@
                 .filter(Boolean)
                 .join(" · "),
               body: x.body || "",
-              published: x.published !== false,
+              published: window.hsContentIsLive
+                ? window.hsContentIsLive(x)
+                : x.published !== false,
               raw: x,
             }),
           );
@@ -95,7 +99,9 @@
                 "Transfer recommendation",
               meta: x.date || "",
               body: x.body || "",
-              published: x.published !== false,
+              published: window.hsContentIsLive
+                ? window.hsContentIsLive(x)
+                : x.published !== false,
               raw: x,
             }),
           );
@@ -239,6 +245,10 @@
           const item = allItems().find((x) => x.type === type && x.id === id);
           if (!item) return;
           item.raw[key] = !item.raw[key];
+          if (key === "published") {
+            delete item.raw.publishAt;
+            delete item.raw.publishTimezone;
+          }
           saveItem(item);
           renderCMS();
           renderHomePostFeed();
@@ -397,8 +407,11 @@
           const feed = document.getElementById("homePostFeed");
           if (!feed) return;
           let items = allItems().filter((x) => adminMode || x.published);
+          const selectedFeature = findItem(featureRef());
           const f =
-            findItem(featureRef()) ||
+            (selectedFeature && (adminMode || selectedFeature.published)
+              ? selectedFeature
+              : null) ||
             items.find((x) => x.raw.homeVisible) ||
             items[0];
           const hs = headlines()
@@ -1547,6 +1560,10 @@
             x.spotify = get("spotify").value.trim();
             x.description = get("description").value.trim();
             x.published = get("published").checked;
+            if (x.published) {
+              delete x.publishAt;
+              delete x.publishTimezone;
+            }
             x.homeVisible = get("homeVisible").checked;
             x.searchHidden = !get("searchVisible").checked;
             if (!x.title) return alert("Add a playlist title.");
@@ -1577,7 +1594,12 @@
           const a = data(),
             visible = a
               .map((x, i) => ({ x, i }))
-              .filter(({ x }) => adminMode || x.published !== false);
+              .filter(({ x }) =>
+                adminMode ||
+                (window.hsContentIsLive
+                  ? window.hsContentIsLive(x)
+                  : x.published !== false),
+              );
           grid.innerHTML =
             `<div class="music-admin-top" style="grid-column:1/-1"><button class="admin-add-btn" style="margin:0" data-add>+ Add playlist</button></div>` +
             (visible.length
@@ -1644,7 +1666,13 @@
               x = z[+c.dataset.i],
               k = c.dataset.cmsToggle;
             if (k === "searchVisible") x.searchHidden = !c.checked;
-            else x[k] = c.checked;
+            else {
+              x[k] = c.checked;
+              if (k === "published") {
+                delete x.publishAt;
+                delete x.publishTimezone;
+              }
+            }
             save(z);
           };
           return true;
@@ -1679,7 +1707,14 @@
           feed.querySelector("#homeMusicSection")?.remove();
           const x = [...data()]
             .reverse()
-            .find((p) => p.homeVisible && (adminMode || p.published !== false));
+            .find(
+              (p) =>
+                p.homeVisible &&
+                (adminMode ||
+                  (window.hsContentIsLive
+                    ? window.hsContentIsLive(p)
+                    : p.published !== false)),
+            );
           if (!x) return;
           const sec = document.createElement("section");
           sec.id = "homeMusicSection";
@@ -1712,7 +1747,10 @@
             .filter(
               ({ x }) =>
                 !x.searchHidden &&
-                (adminMode || x.published !== false) &&
+                (adminMode ||
+                  (window.hsContentIsLive
+                    ? window.hsContentIsLive(x)
+                    : x.published !== false)) &&
                 [x.title, x.mood, x.description, x.date]
                   .join(" ")
                   .toLowerCase()

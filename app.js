@@ -426,7 +426,13 @@
           const feed = document.getElementById("homePostFeed");
           if (!feed) return;
           const a = posts();
-          const visible = adminMode ? a : a.filter((p) => p.published);
+          const visible = adminMode
+            ? a
+            : a.filter((p) =>
+                window.hsContentIsLive
+                  ? window.hsContentIsLive(p)
+                  : p.published,
+              );
           if (!visible.length) {
             feed.innerHTML =
               '<div class="empty-state"><p>Nothing published yet.</p></div>';
@@ -1171,6 +1177,7 @@
             date,
             body,
             formation: "4-3-3",
+            published: false,
           });
           saveTransfers(a);
         };
@@ -1195,11 +1202,20 @@
           const root = document.getElementById("transferRecommendations");
           if (!root) return;
           const a = transferData();
+          const visible = a
+            .map((x, i) => ({ x, i }))
+            .filter(
+              ({ x }) =>
+                adminMode ||
+                (window.hsContentIsLive
+                  ? window.hsContentIsLive(x)
+                  : x.published !== false),
+            );
           root.innerHTML =
-            (a.length
-              ? a
+            (visible.length
+              ? visible
                   .map(
-                    (x, i) =>
+                    ({ x, i }) =>
                       '<article class="transfer-entry"><div class="transfer-entry-head"><div><div class="transfer-entry-title">' +
                       esc(x.club) +
                       " — " +
@@ -1225,7 +1241,7 @@
             (adminMode
               ? '<button class="admin-add-btn" onclick="addTransferRecommendation()">+ Add transfer recommendation</button>'
               : "");
-          a.forEach((x, i) => {
+          visible.forEach(({ x, i }) => {
             const c = document.getElementById("transfer-depth-" + i);
             if (!c) return;
             const fk = getData(
@@ -1531,7 +1547,13 @@
           const feed = document.getElementById("homePostFeed");
           if (!feed) return;
           const a = hsPosts(),
-            visible = adminMode ? a : a.filter((p) => p.published);
+            visible = adminMode
+              ? a
+              : a.filter((p) =>
+                  window.hsContentIsLive
+                    ? window.hsContentIsLive(p)
+                    : p.published,
+                );
           if (!visible.length) {
             feed.innerHTML =
               '<div class="empty-state"><p>Nothing published yet.</p></div>';

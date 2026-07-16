@@ -60,6 +60,18 @@
       },
     },
     {
+      id: "action-schedule",
+      type: "Action",
+      title: "Open Scheduled Publishing",
+      subtitle: "Schedule drafts and review timed releases",
+      keywords: "schedule publishing timed release queue draft",
+      priority: 56,
+      adminOnly: true,
+      action() {
+        window.HSScheduledPublishing?.open?.();
+      },
+    },
+    {
       id: "action-publish",
       type: "Action",
       title: "Publish Changes",
@@ -975,14 +987,6 @@
         event.preventDefault();
         close();
       }
-    });
-
-    new MutationObserver(() => {
-      ensureToolbarButton();
-      ensureHeaderSearch();
-    }).observe(document.body, {
-      childList: true,
-      subtree: true,
     });
 
     window.HSCommandPalette = {

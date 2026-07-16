@@ -98,7 +98,7 @@
             );
           } finally {
             button.disabled = false;
-            button.textContent = "Publish notification";
+            button.textContent = "Send notification";
           }
         }
         document.addEventListener("DOMContentLoaded", () => {

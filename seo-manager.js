@@ -207,17 +207,10 @@
     const record = readFields(host); const store = getStore(); store[item.id] = record; setStore(store); renderEditor(); applyCurrent();
     if (!previewOnly) { const button = document.querySelector("[data-save]"); if (button) { button.textContent = "Saved"; setTimeout(() => { if (button) button.textContent = "Save metadata"; }, 1200); } }
   }
-  function ensureButton() {
-    const toolbar = document.getElementById("adminToolbar"); if (!toolbar || !document.body.classList.contains("admin-active") || document.getElementById("hsSeoButton")) return;
-    const actions = toolbar.querySelector("div[style*='display: flex']") || toolbar.lastElementChild; if (!actions) return;
-    const button = document.createElement("button"); button.id = "hsSeoButton"; button.className = "tb-btn"; button.type = "button"; button.textContent = "SEO"; button.onclick = open;
-    actions.insertBefore(button, document.getElementById("openPublishingBtn") || actions.firstChild);
-  }
   function open() { if (!document.body.classList.contains("admin-active")) return; ensureUI(); state.open = true; state.selected = activeTarget()?.id || state.selected; document.getElementById("hsSeoManager").classList.add("open"); document.getElementById("hsSeoManager").setAttribute("aria-hidden", "false"); renderTargets(); renderEditor(); }
   function close() { const root = document.getElementById("hsSeoManager"); if (!root) return; state.open = false; root.classList.remove("open"); root.setAttribute("aria-hidden", "true"); }
   function initialize() {
-    ensureUI(); ensureButton(); applyCurrent();
-    new MutationObserver(() => { ensureButton(); applyCurrent(); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-country-name", "data-club-name"] });
+    ensureUI(); applyCurrent();
     addEventListener("popstate", applyCurrent); addEventListener("hashchange", applyCurrent);
     document.addEventListener("click", () => setTimeout(applyCurrent, 80), true);
     document.addEventListener("keydown", (event) => { if (event.key === "Escape" && state.open) close(); });
