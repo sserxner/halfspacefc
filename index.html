@@ -13486,15 +13486,22 @@
       };
 
       // ================================================================
-      // DATA LOADING — merges baked data with localStorage
-      // (localStorage wins per-key; baked fills gaps on fresh devices)
+      // DATA LOADING — public visitors always receive published baked data.
+      // The admin route merges local browser data for draft recovery.
       // ================================================================
       function loadData() {
         const baked = window.__HALFSPACE_DATA__ || {};
         try {
           const raw = localStorage.getItem(DATA_KEY);
           const local = raw ? JSON.parse(raw) : {};
-          siteData = Object.assign({}, baked, local);
+          const isAdminEntry = window.location.hash === "#admin";
+          siteData = isAdminEntry
+            ? Object.assign({}, baked, local)
+            : Object.assign({}, baked);
+
+          // Never let stale browser data override published content for readers.
+          // Local drafts remain untouched and are restored when #admin opens.
+          if (!isAdminEntry) return;
 
           const isBlank = (value) =>
             value === "" ||
@@ -14348,7 +14355,10 @@
       }
 
       window.addEventListener("hashchange", function () {
-        if (window.location.hash === "#admin") showAdminLogin();
+        if (window.location.hash === "#admin") {
+          loadData();
+          showAdminLogin();
+        }
       });
 
       // ================================================================
