@@ -435,6 +435,7 @@
 
     overlay.innerHTML = `
       <section class="hs-command-panel" role="dialog" aria-modal="true" aria-label="Search Half Space">
+        <button type="button" id="hsCommandClose" class="hs-command-close" aria-label="Close search window">✕</button>
         <div class="hs-command-search">
           <span class="hs-command-mark">HS</span>
           <input
@@ -445,7 +446,6 @@
             placeholder="Search players, clubs, rankings, articles…"
             aria-label="Search Half Space"
           />
-          <kbd>esc</kbd>
         </div>
         <div id="hsCommandResults" class="hs-command-results" role="listbox"></div>
         <footer class="hs-command-footer">
@@ -466,6 +466,9 @@
     input.addEventListener("input", () => render(input.value));
     input.addEventListener("keydown", handleInputKeydown);
 
+    const closeButton = document.getElementById("hsCommandClose");
+    closeButton.addEventListener("click", close);
+
     installStyles();
   }
 
@@ -474,13 +477,24 @@
   }
 
   function render(query = "") {
+    const results = document.getElementById("hsCommandResults");
+
+    if (!query.trim()) {
+      currentResults = [];
+      selectedIndex = 0;
+      results.innerHTML = `
+        <div class="hs-command-empty">
+          <strong>Start typing to search.</strong>
+          <span>Players, clubs, rankings, articles, and pages.</span>
+        </div>
+      `;
+      return;
+    }
+
     const allItems = buildItems();
-    const source = query.trim()
-      ? allItems
-      : [...recentItems(allItems), ...allItems];
 
     const seen = new Set();
-    currentResults = source
+    currentResults = allItems
       .map((item) => ({ item, score: scoreItem(item, query) }))
       .filter((entry) => entry.score >= 0)
       .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
@@ -493,8 +507,6 @@
       .slice(0, MAX_RESULTS);
 
     selectedIndex = Math.min(selectedIndex, Math.max(0, currentResults.length - 1));
-
-    const results = document.getElementById("hsCommandResults");
 
     if (!currentResults.length) {
       results.innerHTML = `
@@ -808,6 +820,33 @@
       }
 
       #hsCommandInput::placeholder { color: rgba(255,255,255,.4); }
+
+      .hs-command-panel { position: relative; }
+
+      .hs-command-close {
+        position: absolute;
+        top: .7rem;
+        right: .7rem;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,.15);
+        background: rgba(255,255,255,.06);
+        color: rgba(255,255,255,.75);
+        font-size: .85rem;
+        cursor: pointer;
+      }
+
+      .hs-command-close:hover {
+        background: rgba(255,255,255,.16);
+        color: #fff;
+      }
+
+      .hs-command-search { padding-right: 2.6rem; }
 
       .hs-command-search kbd,
       .hs-command-footer kbd {

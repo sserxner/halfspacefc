@@ -26,6 +26,7 @@
     setMenu(false);
     const actions = {
       comparison: () => window.HSDraftComparison?.open?.(),
+      validation: () => window.HSContentValidation?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),
