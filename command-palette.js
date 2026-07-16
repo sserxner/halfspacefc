@@ -197,7 +197,7 @@
 
     let score = item.priority || 0;
 
-    if (title === q) score += 1000;
+    if (title === q) score += 1000 + (item.exactBoost || 0);
     else if (title.startsWith(q)) score += 650;
     else if (title.includes(q)) score += 420;
     else if (subtitle.includes(q)) score += 180;
@@ -313,7 +313,8 @@
           title: name,
           subtitle: `Open ${kind} XI`,
           keywords: `${kind} xi football soccer`,
-          priority: 55,
+          priority: kind === "country" ? 120 : 55,
+          exactBoost: kind === "country" ? 900 : 0,
           action() {
             window.showPage?.(`${kind}-xi`);
             setTimeout(() => {
@@ -500,7 +501,17 @@
       grouped.get(group).push({ item, index });
     });
 
-    results.innerHTML = GROUP_ORDER
+    const exactCountryXI = currentResults.find(
+      (item) =>
+        item.type === "Country XI" &&
+        normalize(item.title) === normalize(query),
+    );
+
+    const displayGroupOrder = exactCountryXI
+      ? ["XIs", ...GROUP_ORDER.filter((group) => group !== "XIs")]
+      : GROUP_ORDER;
+
+    results.innerHTML = displayGroupOrder
       .filter((group) => grouped.has(group))
       .map((group) => {
         const entries = grouped.get(group);
