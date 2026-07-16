@@ -253,6 +253,14 @@
     });
   }
 
+  function previousSlugOwner(slug, currentId) {
+    const family = familyForId(currentId);
+    return allTargets().find((target) => {
+      if (target.id === currentId || target.family !== family) return false;
+      return recordFor(target.id, target.defaultSlug).previousSlugs.includes(slug);
+    });
+  }
+
   function validate(value, currentId) {
     const raw = String(value || "").trim();
     const cleaned = slugify(raw);
@@ -278,14 +286,26 @@
         message: `Already used by ${duplicate.title}.`,
       };
     }
+    const previousOwner = previousSlugOwner(cleaned, currentId);
+    if (previousOwner) {
+      return {
+        valid: false,
+        slug: cleaned,
+        message: `Reserved as a previous URL for ${previousOwner.title}.`,
+      };
+    }
     return { valid: true, slug: cleaned, message: "Available" };
   }
 
   function unique(value, currentId) {
     const base = slugify(value) || "untitled";
-    if (!duplicateFor(base, currentId)) return base;
+    if (!duplicateFor(base, currentId) && !previousSlugOwner(base, currentId)) return base;
     let number = 2;
-    while (duplicateFor(`${base}-${number}`, currentId)) number += 1;
+    while (
+      duplicateFor(`${base}-${number}`, currentId) ||
+      previousSlugOwner(`${base}-${number}`, currentId)
+    )
+      number += 1;
     return `${base}-${number}`;
   }
 
@@ -563,9 +583,9 @@
       </div>
       <label class="hs-slug-lock"><input id="hsSlugLocked" type="checkbox" ${record.locked ? "checked" : ""} /> Lock this permanent URL</label>
       <div class="hs-slug-url-card"><span>Public URL</span><a id="hsSlugURL" href="${esc(urlFor(target.id, record.slug))}" target="_blank" rel="noopener">${esc(urlFor(target.id, record.slug))}</a></div>
-      ${record.previousSlugs.length ? `<div class="hs-slug-history"><span>Previous slugs saved for Step 18 redirects</span>${record.previousSlugs.map((slug) => `<code>${esc(slug)}</code>`).join("")}</div>` : ""}
-      <div class="hs-slug-notice">Changing a published slug changes its public URL. Automatic old-link redirects arrive in Step 18.</div>
-      <div class="hs-slug-actions"><button type="button" data-copy>Copy URL</button><button type="button" data-reset>Use default</button><button type="button" class="primary" data-save>Save slug</button></div>`;
+      ${record.previousSlugs.length ? `<div class="hs-slug-history"><span>Automatic redirects from previous slugs</span>${record.previousSlugs.map((slug) => `<code>${esc(slug)}</code>`).join("")}</div>` : ""}
+      <div class="hs-slug-notice">When a published slug changes, its previous URL automatically redirects here.</div>
+      <div class="hs-slug-actions"><button type="button" data-redirects>Manage redirects</button><button type="button" data-copy>Copy URL</button><button type="button" data-reset>Use default</button><button type="button" class="primary" data-save>Save slug</button></div>`;
 
     const field = host.querySelector("#hsSlugValue");
     const lock = host.querySelector("#hsSlugLocked");
@@ -608,6 +628,10 @@
         window.prompt("Copy this URL:", value);
       }
     };
+    host.querySelector("[data-redirects]").onclick = () => {
+      close();
+      window.HSRedirects?.open?.();
+    };
     host.querySelector("[data-reset]").onclick = () => {
       lock.checked = false;
       field.disabled = false;
@@ -619,7 +643,7 @@
       const next = slugify(field.value);
       if (next !== record.slug) {
         const approved = window.confirm(
-          `Change “${record.slug}” to “${next}”?\n\nThe old URL will not redirect automatically until Step 18.`,
+          `Change “${record.slug}” to “${next}”?\n\nThe old URL will remain active as an automatic redirect.`,
         );
         if (!approved) return;
       }
