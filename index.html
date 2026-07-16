@@ -48473,7 +48473,16 @@
       // concatenation so this source can never match its own pattern
       // ================================================================
       function buildExportHTML() {
-        let html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        const exportRoot = document.documentElement.cloneNode(true);
+        // Media Manager is admin chrome. Its image previews would otherwise
+        // duplicate every uploaded image inside the exported HTML.
+        exportRoot.querySelector("#hsMediaManager")?.remove();
+        exportRoot.querySelectorAll(".hs-media-field-button").forEach((node) => node.remove());
+        exportRoot.querySelectorAll("[data-media-enhanced]").forEach((node) => node.removeAttribute("data-media-enhanced"));
+        exportRoot.querySelector("#hsMediaButton")?.remove();
+        exportRoot.querySelector("#hsContentButton")?.remove();
+        exportRoot.querySelector("#cmsToolbarButton")?.remove();
+        let html = "<!DOCTYPE html>\n" + exportRoot.outerHTML;
         const openTag = "<scr" + 'ipt id="baked' + '_data">';
         const closeTag = "</scr" + "ipt>";
         // Replace ONLY the first baked_data script (it lives in <head>, before any code)
@@ -48745,7 +48754,7 @@
           id="openPublishingBtn"
           onclick="HSPublishing.open()"
         >
-          ✦ Publishing
+          ✦ Publish Changes
         </button>
         <button
           class="tb-btn tb-github"
@@ -51825,6 +51834,7 @@
     <script src="ranking-editor.js"></script>
     <script src="command-palette.js"></script>
     <script src="content-manager.js"></script>
+    <script src="media-manager.js"></script>
     <style id="hs-dropdown-dismiss-fix">
       @media (min-width: 769px) {
         .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {

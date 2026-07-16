@@ -254,24 +254,9 @@
   }
 
   function ensureToolbarButton() {
-    const toolbar = document.getElementById("adminToolbar");
-    if (!toolbar || document.getElementById("hsContentButton")) return;
-
-    const actions =
-      toolbar.querySelector("div[style*='display: flex']") ||
-      toolbar.lastElementChild;
-    if (!actions) return;
-
-    const button = document.createElement("button");
-    button.id = "hsContentButton";
-    button.className = "tb-btn";
-    button.type = "button";
-    button.textContent = "Content";
-    button.title = "Open Content Manager";
-    button.addEventListener("click", open);
-
-    const editorial = document.getElementById("hsEditorialButton");
-    actions.insertBefore(button, editorial || actions.firstChild);
+    // Step 14: the unfinished Content button is intentionally retired.
+    // The underlying groundwork remains available for Half Space Studio.
+    document.getElementById("hsContentButton")?.remove();
   }
 
   function renderFilters() {
@@ -588,11 +573,6 @@
   function initialize() {
     ensureUI();
     ensureToolbarButton();
-
-    new MutationObserver(ensureToolbarButton).observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && openState) close();

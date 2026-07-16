@@ -378,15 +378,7 @@
           }
         };
         function injectManagerButton() {
-          if (!adminMode) return;
-          if (!document.getElementById("cmsToolbarButton")) {
-            const b = document.createElement("button");
-            b.id = "cmsToolbarButton";
-            b.className = "cms-floating";
-            b.textContent = "Content Manager";
-            b.onclick = () => openContentManager();
-            document.body.appendChild(b);
-          }
+          document.getElementById("cmsToolbarButton")?.remove();
         }
         const oldActivate = window.activateAdminMode || activateAdminMode;
         window.activateAdminMode = function () {
@@ -418,10 +410,7 @@
             .reverse();
           if (!f && !recent.length) {
             feed.innerHTML =
-              '<div class="empty-state"><p>Nothing published yet.</p></div>' +
-              (adminMode
-                ? '<button class="admin-add-btn" onclick="openContentManager()">Open Content Manager</button>'
-                : "");
+              '<div class="empty-state"><p>Nothing published yet.</p></div>';
             return;
           }
           const feature = f
@@ -441,7 +430,7 @@
               )
               .join("") ||
             '<div class="cms-empty-rail">No headlines selected.</div>';
-          feed.innerHTML = `${adminMode ? '<div class="cms-home-admin"><button class="cms-primary" onclick="openContentManager()">Open Content Manager</button></div>' : ""}<div class="hs-home-dashboard"><main>${feature}<div class="hs-latest-title">Latest From Half Space</div>${cards || '<div class="cms-empty-rail">Choose content for the homepage in Content Manager.</div>'}</main><aside class="hs-headlines"><div class="hs-headlines-title">Latest</div>${rail}</aside></div>`;
+          feed.innerHTML = `<div class="hs-home-dashboard"><main>${feature}<div class="hs-latest-title">Latest From Half Space</div>${cards || '<div class="cms-empty-rail">No additional homepage content selected.</div>'}</main><aside class="hs-headlines"><div class="hs-headlines-title">Latest</div>${rail}</aside></div>`;
         };
         window.cmsOpenPublic = function (type, id) {
           openItem(allItems().find((x) => x.type === type && x.id === id));
