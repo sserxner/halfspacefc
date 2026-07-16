@@ -8442,6 +8442,7 @@
           ],
         },
       };
+      window.HSFormationCatalog = FORMATIONS;
       Object.assign(FORMATIONS, window.HSSettings?.getDefinitions?.() || {});
 
       function buildXIDetail(name, meta, formationKey) {
@@ -8779,7 +8780,6 @@
         if (id === "page-diary") renderDiary();
         if (id === "page-positions") renderPositions();
         if (id === "page-country-xi") {
-          renderCountryDisplay();
           const detail = document.getElementById("country-detail-content");
           if (
             detail &&
@@ -8794,7 +8794,6 @@
           }
         }
         if (id === "page-club-xi") {
-          buildClubGrid();
           const detail = document.getElementById("club-detail-content");
           if (
             detail &&
@@ -11004,7 +11003,7 @@
         }
       }
     </style>
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
     <style id="halfspace-position-subtypes-styles">
       .positions-parent-grid {
         display: grid;
@@ -13760,7 +13759,7 @@
     </div>
     <script src="error-log.js?v=1"></script>
     <script src="permissions.js?v=2"></script>
-    <script src="settings.js?v=5"></script>
+    <script src="settings.js?v=6"></script>
     <script src="admin.js?v=20"></script>
     <script src="history.js?v=16.2"></script>
     <script src="autosave.js?v=16.2"></script>
@@ -13772,7 +13771,7 @@
     <script src="ranking-editor.js?v=19"></script>
     <script src="command-palette.js?v=22"></script>
     <script src="content-manager.js"></script>
-    <script src="media-manager.js?v=20"></script>
+    <script src="media-manager.js?v=21"></script>
     <script src="seo-manager.js?v=19"></script>
     <script src="scheduled-publishing.js?v=19"></script>
     <script src="draft-comparison.js?v=20"></script>

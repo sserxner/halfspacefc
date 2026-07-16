@@ -1474,16 +1474,6 @@
               const page = item.getAttribute("data-century-page");
               closeCenturyMenu();
               if (typeof window.showPage === "function") window.showPage(page);
-              if (
-                page === "club-xi" &&
-                typeof window.buildClubGrid === "function"
-              )
-                window.buildClubGrid();
-              if (
-                page === "country-xi" &&
-                typeof window.renderCountryDisplay === "function"
-              )
-                window.renderCountryDisplay();
               return;
             }
             if (

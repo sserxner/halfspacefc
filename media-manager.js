@@ -308,12 +308,13 @@
   function enhanceImageLoading(root) {
     const scope = root || document;
     const images = [];
+    const assets = library();
     if (scope instanceof HTMLImageElement) images.push(scope);
     scope.querySelectorAll?.("img").forEach((img) => images.push(img));
     images.forEach((img) => {
       img.decoding = "async";
       if (!img.closest(".rank-profile-hero,.hero,header") && !img.hasAttribute("loading")) img.loading = "lazy";
-      const asset = library().find((item) => item.src === img.getAttribute("src"));
+      const asset = assets.find((item) => item.src === img.getAttribute("src"));
       if (asset?.width && asset?.height) { img.width = asset.width; img.height = asset.height; }
     });
   }
