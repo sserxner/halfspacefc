@@ -616,7 +616,8 @@
   }
 
   function publish() {
-    const record = saveForm();
+    saveForm();
+    markCurrentPublished();
     setNote("Publishing changes…");
     close();
 
@@ -626,7 +627,11 @@
       document.getElementById("githubSaveBtn")?.click();
     }
 
-    saveRecord({
+  }
+
+  function markCurrentPublished() {
+    const record = recordFor(contextForPage());
+    return saveRecord({
       ...record,
       status: "published",
       locked: true,
@@ -666,15 +671,10 @@
         }
       }
 
-      if (/Published/i.test(text)) {
-        const context = contextForPage();
-        const record = recordFor(context);
-        saveRecord({
-          ...record,
-          status: "published",
-          locked: true,
-          lastPublishedAt: Date.now(),
-        });
+      // Step 20 records this metadata before the reviewed site snapshot is
+      // uploaded. Keep the status observer only as a legacy fallback.
+      if (/Published/i.test(text) && !window.HSDraftComparison) {
+        markCurrentPublished();
       }
 
       if (drawerOpen) render();
@@ -697,6 +697,7 @@
       slugify,
       current: () => recordFor(contextForPage()),
       records: readStore,
+      markCurrentPublished,
     };
   }
 

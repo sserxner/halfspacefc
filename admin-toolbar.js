@@ -13,6 +13,7 @@
 
   function setMenu(open) {
     menuOpen = Boolean(open);
+    if (menuOpen) window.HSDraftComparison?.updateToolCount?.();
     const toolsMenu = menu();
     const trigger = document.getElementById("hsToolsButton");
     if (!toolsMenu || !trigger) return;
@@ -24,6 +25,7 @@
   function invoke(name) {
     setMenu(false);
     const actions = {
+      comparison: () => window.HSDraftComparison?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),
