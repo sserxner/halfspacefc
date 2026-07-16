@@ -11,9 +11,49 @@
     return document.getElementById("hsToolsMenu");
   }
 
+  const TOOL_CAPABILITY = {
+    comparison: "publish",
+    validation: "viewDiagnostics",
+    linkchecker: "viewDiagnostics",
+    a11y: "viewDiagnostics",
+    performance: "viewDiagnostics",
+    errorlog: "viewDiagnostics",
+    permissions: "viewDiagnostics",
+    schedule: "manageSchedule",
+    editorial: "editContent",
+    media: "manageMedia",
+    seo: "manageSEO",
+    slugs: "manageRedirects",
+    redirects: "manageRedirects",
+    notification: "publish",
+    export: "publish",
+  };
+
+  function canUseTool(name) {
+    const capability = TOOL_CAPABILITY[name];
+    if (!capability) return true; // ungated tools remain open to any admin session
+    return window.HSPermissions?.can?.(capability) !== false;
+  }
+
+  function applyToolPermissions() {
+    const toolsMenu = menu();
+    if (!toolsMenu) return;
+    toolsMenu.querySelectorAll("[data-admin-tool]").forEach((button) => {
+      const allowed = canUseTool(button.dataset.adminTool);
+      button.disabled = !allowed;
+      button.classList.toggle("hs-tool-restricted", !allowed);
+      button.title = allowed
+        ? ""
+        : `Your role (${window.HSPermissions?.roleLabel?.(window.HSPermissions?.getCurrentRole?.()) || "current role"}) doesn't include this.`;
+    });
+  }
+
   function setMenu(open) {
     menuOpen = Boolean(open);
-    if (menuOpen) window.HSDraftComparison?.updateToolCount?.();
+    if (menuOpen) {
+      window.HSDraftComparison?.updateToolCount?.();
+      applyToolPermissions();
+    }
     const toolsMenu = menu();
     const trigger = document.getElementById("hsToolsButton");
     if (!toolsMenu || !trigger) return;
@@ -24,6 +64,7 @@
 
   function invoke(name) {
     setMenu(false);
+    if (!canUseTool(name)) return;
     const actions = {
       comparison: () => window.HSDraftComparison?.open?.(),
       validation: () => window.HSContentValidation?.open?.(),
@@ -31,6 +72,7 @@
       a11y: () => window.HSAccessibilityAudit?.open?.(),
       performance: () => window.HSPerformance?.open?.(),
       errorlog: () => window.HSErrorLog?.open?.(),
+      permissions: () => window.HSPermissions?.open?.(),
       schedule: () => window.HSScheduledPublishing?.open?.(),
       editorial: () => window.HSEditorial?.open?.(),
       media: () => window.HSMediaManager?.open?.(),

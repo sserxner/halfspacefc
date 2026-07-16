@@ -295,6 +295,7 @@
 
     document.addEventListener("keydown", (event) => {
       if (!(event.metaKey || event.ctrlKey)) return;
+      if (typeof event.key !== "string") return;
 
       const key = event.key.toLowerCase();
 

@@ -326,7 +326,12 @@
         };
         window.renderCMS = function () {
           const m = document.getElementById("hsContentManager");
-          if (!m || m.style.display === "none") return;
+          const tabsHost = document.getElementById("cmsTabs");
+          // The newer Content Manager (content-manager.js) reuses the same
+          // #hsContentManager id with entirely different internal markup —
+          // #cmsTabs/#cmsBody only exist in this legacy version. Bail out
+          // quietly instead of writing into elements that no longer exist.
+          if (!m || !tabsHost || m.style.display === "none") return;
           ensureIds();
           const tab = m.dataset.tab || "stories";
           const tabs = [
@@ -336,13 +341,14 @@
             ["headlines", "Headlines"],
             ["featured", "Featured Story"],
           ];
-          document.getElementById("cmsTabs").innerHTML = tabs
+          tabsHost.innerHTML = tabs
             .map(
               ([k, l]) =>
                 `<button class="${tab === k ? "active" : ""}" onclick="cmsSelectTab('${k}')">${l}</button>`,
             )
             .join("");
           const body = document.getElementById("cmsBody");
+          if (!body) return;
           if (["stories", "diaries", "transfers"].includes(tab)) {
             const type =
               tab === "stories"

@@ -10217,6 +10217,7 @@
           "#hsA11yModal", "#hsA11yStyles",
           "#hsPerfModal", "#hsPerfStyles",
           "#hsErrorLogModal", "#hsErrorLogStyles",
+          "#hsPermissionsModal", "#hsPermissionsStyles",
         ].forEach((selector) =>
           exportRoot.querySelectorAll(selector).forEach((node) => node.remove()),
         );
@@ -10520,6 +10521,7 @@
             <button type="button" role="menuitem" data-admin-tool="a11y"><span><strong>Accessibility Audit</strong><small>Alt text, labels, contrast, keyboard, motion</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="performance"><span><strong>Performance Report</strong><small>Page weight, load timing, heaviest images</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="errorlog"><span><strong>Error Log</strong><small>Admin, publishing, media, and site failures</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="permissions"><span><strong>Permissions</strong><small>Roles and what each can do</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="schedule"><span><strong>Scheduled Publishing</strong><small>Drafts and timed releases</small></span><b id="hsScheduleToolCount" hidden=""></b></button>
             <button type="button" role="menuitem" data-admin-tool="editorial"><span><strong>Editorial</strong><small>Page status and canonical URL</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="notification"><span><strong>Post Notification</strong><small>Register a post and notify readers</small></span></button>
@@ -11609,7 +11611,7 @@
         }
       }
     </style>
-    <script src="features.js?v=19"></script>
+    <script src="features.js?v=20"></script>
     <style id="century-dropdown-final-fix">
       nav,
       .nav-tab-band {
@@ -13468,16 +13470,17 @@
       </div>
     </div>
     <script src="error-log.js?v=1"></script>
+    <script src="permissions.js?v=1"></script>
     <script src="admin.js?v=19"></script>
-    <script src="history.js?v=16.1"></script>
+    <script src="history.js?v=16.2"></script>
     <script src="autosave.js?v=16.2"></script>
-    <script src="preview.js?v=19"></script>
+    <script src="preview.js?v=20"></script>
     <script src="slug-manager.js?v=19"></script>
     <script src="redirect-manager.js?v=19"></script>
     <script src="editorial.js?v=20"></script>
     <script src="router.js?v=17"></script>
     <script src="ranking-editor.js?v=18"></script>
-    <script src="command-palette.js?v=21"></script>
+    <script src="command-palette.js?v=22"></script>
     <script src="content-manager.js"></script>
     <script src="media-manager.js?v=20"></script>
     <script src="seo-manager.js?v=19"></script>

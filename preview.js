@@ -111,6 +111,7 @@
 
   document.addEventListener("keydown", (event) => {
     if (
+      typeof event.key === "string" &&
       event.key.toLowerCase() === "p" &&
       !event.metaKey &&
       !event.ctrlKey &&

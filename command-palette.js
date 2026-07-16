@@ -1152,7 +1152,7 @@
     ensureHeaderSearch();
 
     document.addEventListener("keydown", (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if ((event.metaKey || event.ctrlKey) && typeof event.key === "string" && event.key.toLowerCase() === "k") {
         event.preventDefault();
         toggle();
       } else if (event.key === "Escape" && openState) {
