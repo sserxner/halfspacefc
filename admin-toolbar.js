@@ -28,6 +28,7 @@
     slugs: "manageRedirects",
     redirects: "manageRedirects",
     notification: "publish",
+    backups: "publish",
     export: "publish",
   };
 
@@ -84,6 +85,7 @@
       slugs: () => window.HSSlugs?.open?.(),
       redirects: () => window.HSRedirects?.open?.(),
       notification: () => window.HSPublishing?.open?.(),
+      backups: () => window.HSBackups?.open?.(),
       export: () => window.exportSite?.(),
     };
     actions[name]?.();

@@ -1904,6 +1904,22 @@
     });
   });
 })();
+
+// Always let a fresh desktop hover reopen either navigation dropdown.
+(() => {
+  "use strict";
+  ["centuryRankingsDropdown", "miscDropdown"].forEach((id) => {
+    const dropdown = document.getElementById(id);
+    if (!dropdown) return;
+    dropdown.addEventListener("pointerenter", () => {
+      dropdown.classList.remove(
+        "hs-dropdown-dismissed",
+        "hs-force-closed",
+        "hs-selection-closed",
+      );
+    });
+  });
+})();
 // Close navigation dropdowns after selecting a submenu destination.
 (() => {
   "use strict";

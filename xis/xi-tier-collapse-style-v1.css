@@ -1,0 +1,43 @@
+      /* Collapsible Club/Country XI tiers */
+      #clubGrid .achievement-tier > .continent-group-title,
+      #country-display .achievement-tier > .continent-group-title {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        padding-right: 3rem;
+      }
+      #clubGrid .achievement-tier > .continent-group-title::after,
+      #country-display .achievement-tier > .continent-group-title::after {
+        content: "⌄";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-family: var(--sans);
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.75);
+        transition: transform 0.16s ease;
+      }
+      #clubGrid
+        .achievement-tier.xi-tier-collapsed
+        > .continent-group-title::after,
+      #country-display
+        .achievement-tier.xi-tier-collapsed
+        > .continent-group-title::after {
+        transform: translateY(-50%) rotate(-90deg);
+      }
+      #clubGrid .achievement-tier.xi-tier-collapsed > .xi-country-grid,
+      #country-display .achievement-tier.xi-tier-collapsed > .xi-country-grid {
+        display: none !important;
+      }
+      #clubGrid .achievement-tier.xi-tier-collapsed,
+      #country-display .achievement-tier.xi-tier-collapsed {
+        margin-bottom: 0.75rem;
+      }
+      #clubGrid .achievement-tier > .continent-group-title:focus-visible,
+      #country-display
+        .achievement-tier
+        > .continent-group-title:focus-visible {
+        outline: 2px solid #f5d000;
+        outline-offset: 2px;
+      }

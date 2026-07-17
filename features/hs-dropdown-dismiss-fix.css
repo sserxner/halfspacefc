@@ -1,0 +1,5 @@
+      @media (min-width: 769px) {
+        .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {
+          display: none !important;
+        }
+      }

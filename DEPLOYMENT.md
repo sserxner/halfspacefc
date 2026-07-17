@@ -10,7 +10,8 @@ GitHub changes between the read and the upload.
 
 After replacing files from a Codex package, double-click
 `Deploy Half Space.command`. It validates the site, commits the changed files,
-synchronizes with the current `main` branch, and pushes to GitHub. The script
+saves a recoverable Git bundle, synchronizes with the current `main` branch,
+and pushes to GitHub. The script
 retries one remote-update race and stops safely if a genuine same-file conflict
 needs review.
 

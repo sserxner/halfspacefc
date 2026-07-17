@@ -1,0 +1,88 @@
+      .nav-dropdown {
+        position: relative;
+        display: flex;
+      }
+      .nav-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 40px;
+        left: 0;
+        min-width: 210px;
+        background: #0f2518;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+        z-index: 300;
+      }
+      .nav-dropdown:hover .nav-dropdown-menu,
+      .nav-dropdown:focus-within .nav-dropdown-menu {
+        display: block;
+      }
+      .nav-dropdown-menu button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        color: rgba(255, 255, 255, 0.72);
+        padding: 0.7rem 1rem;
+        font: 600 0.72rem var(--sans);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+      }
+      .nav-dropdown-menu button:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      #page-rankings [id$="-now"],
+      #page-rankings .sub-tabs:not(#rankings-primary-tabs) {
+        display: none !important;
+      }
+      .transfer-entry {
+        background: #fff;
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .transfer-entry-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+      .transfer-entry-title {
+        font: 700 1.45rem var(--serif);
+        color: var(--accent);
+      }
+      .transfer-entry-meta {
+        font-size: 0.75rem;
+        color: var(--gray-400);
+      }
+      .transfer-entry-body {
+        font: 1rem/1.7 var(--serif);
+        color: var(--gray-600);
+        white-space: pre-wrap;
+        margin-bottom: 1.5rem;
+      }
+      .transfer-actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .transfer-depth {
+        max-width: 760px;
+        margin-top: 1rem;
+      }
+      .transfer-depth .xi-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .admin-active .transfer-depth .xi-wrapper {
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 768px) {
+        .nav-dropdown {
+          display: none;
+        }
+      }

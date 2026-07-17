@@ -128,9 +128,6 @@
           // Mark it ready instead of rebuilding hundreds of cards on first open.
           if (!renderedView && currentCountryView === "continent" && container.childElementCount) {
             container.dataset.hsRenderedView = currentCountryView;
-            // The published cards are already present for a fast first load,
-            // but they still need their click handlers in this browser session.
-            bindCountryCards(container);
             return;
           }
         }
@@ -144,18 +141,14 @@
         container.dataset.hsRenderedView = currentCountryView;
       }
 
-      function defaultXISlug(name) {
-        return String(name || "")
+      function countrySlug(name) {
+        const fallback = String(name || "")
           .normalize("NFKD")
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase()
           .replace(/&/g, " and ")
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "");
-      }
-
-      function countrySlug(name) {
-        const fallback = defaultXISlug(name);
         return (
           window.HSSlugs?.slugFor?.(`country:${fallback}`, fallback) ||
           fallback
@@ -164,13 +157,12 @@
 
       function resolveCountry(identifier) {
         const value = String(identifier || "").trim();
-        // Normal links use the default slug. Resolve those without asking the
-        // slug manager to rebuild its full player/content catalog per country.
-        const direct = COUNTRIES.find(
-          (country) => country.name === value || defaultXISlug(country.name) === value,
+        return (
+          COUNTRIES.find(
+            (country) =>
+              country.name === value || countrySlug(country.name) === value,
+          ) || null
         );
-        if (direct) return direct;
-        return COUNTRIES.find((country) => countrySlug(country.name) === value) || null;
       }
 
       function countryCard(
@@ -536,10 +528,7 @@
       }
       function returnToCountryList() {
         const st = history.state;
-        if (st && st.halfspace && st.view === "country-detail") {
-          showCountryList("none");
-          history.back();
-        }
+        if (st && st.halfspace && st.view === "country-detail") history.back();
         else {
           showPage("country-xi");
           showCountryList("replace");
@@ -548,7 +537,13 @@
 
       // ---- CLUB XIs ----
       function clubSlug(name) {
-        const fallback = defaultXISlug(name);
+        const fallback = String(name || "")
+          .normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/&/g, " and ")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
         return (
           window.HSSlugs?.slugFor?.(`club:${fallback}`, fallback) || fallback
         );
@@ -556,11 +551,11 @@
 
       function resolveClub(identifier) {
         const value = String(identifier || "").trim();
-        const direct = CLUBS.find(
-          (club) => club.name === value || defaultXISlug(club.name) === value,
+        return (
+          CLUBS.find(
+            (club) => club.name === value || clubSlug(club.name) === value,
+          ) || null
         );
-        if (direct) return direct;
-        return CLUBS.find((club) => clubSlug(club.name) === value) || null;
       }
 
       const CLUB_TIER_ONE_ORDER = [
@@ -757,10 +752,7 @@
       }
       function returnToClubList() {
         const st = history.state;
-        if (st && st.halfspace && st.view === "club-detail") {
-          showClubList("none");
-          history.back();
-        }
+        if (st && st.halfspace && st.view === "club-detail") history.back();
         else {
           showPage("club-xi");
           showClubList("replace");
@@ -1234,3 +1226,5 @@
           submit.textContent = originalLabel;
         }
       }
+
+

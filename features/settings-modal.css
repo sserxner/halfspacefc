@@ -1,0 +1,165 @@
+#hsSettingsModal {
+  position: fixed;
+  inset: 0;
+  z-index: 100400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 15, 9, 0.76);
+  padding: 24px;
+  font-family: var(--sans, sans-serif);
+}
+
+#hsSettingsModal.open { display: flex; }
+
+.hs-set-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid rgba(11, 61, 35, 0.16);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  padding: 28px 30px 24px;
+}
+
+.hs-set-card > #hsSetClose {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f4f2;
+  color: #31513f;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.hs-set-card h2 { margin: 0 48px 4px 0; color: var(--accent); font-size: 24px; }
+.hs-set-card > p { margin: 0 48px 22px 0; color: #66736a; font-size: 13px; }
+
+.hs-set-card h3 {
+  margin: 24px 0 10px;
+  padding-top: 20px;
+  border-top: 1px solid #e6ece8;
+  color: var(--accent);
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.hs-set-card form > label:not(.hs-publishing-default):not(:has(input[type="checkbox"])) {
+  display: grid;
+  grid-template-columns: minmax(165px, 0.7fr) minmax(260px, 1.3fr);
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0;
+  color: #23372b;
+  font-size: 13px;
+}
+
+.hs-set-card input[type="text"],
+.hs-set-card input:not([type]) {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #cbd5ce;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+}
+
+.hs-set-card input:focus-visible,
+.hs-set-card button:focus-visible { outline: 3px solid rgba(21, 115, 71, 0.25); outline-offset: 2px; }
+
+.hs-set-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 8px;
+}
+
+.hs-formation-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #dbe4de;
+  border-radius: 7px;
+  background: #f8faf8;
+}
+
+.hs-formation-item label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.hs-formation-item button { border: 0; padding: 0; background: none; color: #286443; font-size: 11px; text-decoration: underline; cursor: pointer; }
+
+.hs-set-card input[type="checkbox"] {
+  appearance: auto;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent, #0b3d23);
+}
+
+.hs-set-card #hsAddFormation {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #b9c8bf;
+  border-radius: 6px;
+  background: #fff;
+  color: #234b34;
+  cursor: pointer;
+}
+
+.hs-set-card .hs-publishing-default,
+.hs-set-card form > label:has(input[name="notifySubscribers"]) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #dbe4de;
+  border-radius: 7px;
+  background: #f8faf8;
+  color: #23372b;
+  font-size: 13px;
+}
+
+.hs-set-card footer {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #e6ece8;
+}
+
+.hs-set-card footer span { margin-right: auto; color: var(--accent); font-size: 12px; }
+.hs-set-card footer button {
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  #hsSettingsModal { align-items: flex-end; padding: 0; }
+  .hs-set-card { width: 100%; max-height: 100dvh; border-radius: 14px 14px 0 0; padding: 22px 18px max(20px, env(safe-area-inset-bottom)); }
+  .hs-set-card form > label:not(.hs-publishing-default):not(:has(input[type="checkbox"])) { grid-template-columns: 1fr; gap: 6px; }
+  .hs-set-checks { grid-template-columns: 1fr 1fr !important; }
+  .hs-set-card footer { position: sticky; bottom: 0; margin-inline: -18px; padding: 14px 18px max(14px, env(safe-area-inset-bottom)); background: #fff; }
+}
+
+@media (max-width: 380px) {
+  .hs-set-checks { grid-template-columns: 1fr !important; }
+}
