@@ -22,7 +22,7 @@
     button.textContent = "◉ Preview";
     button.addEventListener("click", toggle);
 
-    actions.insertBefore(button, actions.firstChild);
+    actions.insertBefore(button, document.getElementById("hsUndoButton"));
   }
 
   function setPreview(on) {

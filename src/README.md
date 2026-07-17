@@ -39,3 +39,6 @@ Step 35 adds automated regression and content-integrity checks documented in
 
 Step 36 adds the owner, architecture, content, troubleshooting, and roadmap
 documentation linked from the project-level `README.md`.
+
+Step 38 adds Half Space Studio, the unified admin workspace documented in
+`STUDIO.md`, and reorganizes the bottom admin bar around frequent work.

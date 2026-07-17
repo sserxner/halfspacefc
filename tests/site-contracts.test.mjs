@@ -99,3 +99,24 @@ test("public comments retain output escaping and input limits", () => {
   assert.match(comments, /esc\(c\.body\)/);
   assert.match(comments, /now - lastCommentAttempt < 3000/);
 });
+
+test("Half Space Studio is the primary admin workspace", () => {
+  const studio = read("studio.js");
+  const template = read("src/index.template.html");
+  ["Overview", "Content", "Rankings", "XIs", "Media", "Publishing", "Site Health"].forEach((section) => assert.ok(studio.includes(section), `Studio missing ${section}`));
+  assert.match(studio, /window\.HSStudio = \{ open, close \}/);
+  assert.match(template, /id="hsStudioButton"/);
+  assert.match(template, /studio\.js\?v=38/);
+  assert.match(template, /studio\.css\?v=38/);
+  assert.match(read("js/admin/auth-and-publishing.js"), /"#hsStudio"/);
+});
+
+test("the green bar prioritizes daily work and groups specialist tools", () => {
+  const template = read("src/index.template.html");
+  const studioAt = template.indexOf('id="hsStudioButton"');
+  const publishAt = template.indexOf('id="githubSaveBtn"');
+  assert.ok(studioAt > 0 && studioAt < publishAt, "Studio must appear before publishing controls");
+  ["Workflow", "Site setup", "URLs and discovery", "Site health", "Safety and access"].forEach((label) => assert.ok(template.includes(`>${label}</div>`), `More menu missing ${label}`));
+  assert.doesNotMatch(template, /data-admin-tool="content"/);
+  assert.doesNotMatch(template, /data-admin-tool="media"/);
+});

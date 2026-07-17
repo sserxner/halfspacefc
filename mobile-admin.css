@@ -32,9 +32,10 @@
     min-height: 64px; height: auto !important;
     padding: .45rem max(.55rem, env(safe-area-inset-right)) calc(.45rem + env(safe-area-inset-bottom)) max(.55rem, env(safe-area-inset-left)) !important;
   }
-  #adminToolbar .hs-toolbar-actions { display: grid !important; grid-template-columns: minmax(0,1fr) auto auto; gap: .4rem !important; }
-  #adminToolbar .tb-btn { min-height: 46px; padding: .55rem .65rem !important; white-space: nowrap; }
-  #adminToolbar .tb-publish { width: 100%; }
+  #adminToolbar .hs-toolbar-actions { display: flex !important; width:100%; gap: .3rem !important; }
+  #adminToolbar .tb-btn { min-height: 46px; padding: .5rem .58rem !important; white-space: nowrap; font-size:.7rem !important; }
+  #adminToolbar .tb-publish { width:auto; flex:1 1 auto; }
+  #adminToolbar .hs-studio-trigger { flex:0 0 auto; }
   #adminToolbar .hs-tools-menu {
     left: .55rem !important; right: .55rem !important;
     bottom: calc(68px + env(safe-area-inset-bottom)) !important;

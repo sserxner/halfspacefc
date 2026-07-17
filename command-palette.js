@@ -822,7 +822,10 @@
     button.textContent = "⌘K Search";
     button.title = "Open command palette";
     button.addEventListener("click", open);
-    actions.insertBefore(button, actions.firstChild);
+    actions.insertBefore(
+      button,
+      document.getElementById("hsPreviewButton") || document.getElementById("hsUndoButton"),
+    );
   }
 
   function installStyles() {

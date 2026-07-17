@@ -9665,6 +9665,9 @@
         <span id="autosaveStatus" class="tb-status" style="">Ready</span>
       </div>
       <div class="hs-toolbar-actions">
+        <button class="tb-btn hs-studio-trigger" id="hsStudioButton" type="button" onclick="window.HSStudio?.open?.()" title="Open your admin workspace">
+          Studio
+        </button>
         <button class="tb-btn" id="hsUndoButton" type="button" onclick="window.HSHistory?.undo()" title="Undo last change">
           ↶ Undo
         </button>
@@ -9673,29 +9676,29 @@
         </button>
         <button class="tb-btn tb-publish" id="githubSaveBtn" type="button" onclick="saveToGitHub()">✦ Publish Changes</button>
         <div class="hs-toolbar-tools">
-          <button class="tb-btn hs-tools-trigger" id="hsToolsButton" type="button" aria-haspopup="menu" aria-expanded="false">Tools <span aria-hidden="true">▾</span></button>
+          <button class="tb-btn hs-tools-trigger" id="hsToolsButton" type="button" aria-haspopup="menu" aria-expanded="false">More <span aria-hidden="true">▾</span></button>
           <div class="hs-tools-menu" id="hsToolsMenu" role="menu" aria-hidden="true">
-            <div class="hs-tools-label">Publishing</div>
+            <div class="hs-tools-label">Workflow</div>
             <button type="button" role="menuitem" data-admin-tool="comparison" title=""><span><strong>Draft Comparison</strong><small>Review changes before publishing</small></span><b id="hsDraftComparisonCount">1</b></button>
+            <button type="button" role="menuitem" data-admin-tool="schedule" title=""><span><strong>Scheduled Publishing</strong><small>Drafts and timed releases</small></span><b id="hsScheduleToolCount" hidden=""></b></button>
+            <button type="button" role="menuitem" data-admin-tool="notification" title=""><span><strong>Post Notification</strong><small>Register a post and notify readers</small></span></button>
+            <div class="hs-tools-label">Site setup</div>
+            <button type="button" role="menuitem" data-admin-tool="settings" title=""><span><strong>Settings</strong><small>Labels, formations, and publishing defaults</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="editorial" title=""><span><strong>Editorial</strong><small>Page status and canonical URL</small></span></button>
+            <div class="hs-tools-label">URLs and discovery</div>
+            <button type="button" role="menuitem" data-admin-tool="seo" title=""><span><strong>SEO</strong><small>Titles, descriptions, and previews</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="slugs" title=""><span><strong>Slugs</strong><small>Permanent content URLs</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="redirects" title=""><span><strong>Redirects</strong><small>Old URLs and destinations</small></span></button>
+            <div class="hs-tools-label">Site health</div>
             <button type="button" role="menuitem" data-admin-tool="validation" title=""><span><strong>Content Validation</strong><small>Missing fields, duplicates, broken images</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="linkchecker" title=""><span><strong>Link Checker</strong><small>Redirect loops and dead destinations</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="a11y" title=""><span><strong>Accessibility Audit</strong><small>Alt text, labels, contrast, keyboard, motion</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="performance" title=""><span><strong>Performance Report</strong><small>Page weight, load timing, heaviest images</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="errorlog" title=""><span><strong>Error Log</strong><small>Admin, publishing, media, and site failures</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="permissions" title=""><span><strong>Permissions</strong><small>Roles and what each can do</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="settings" title=""><span><strong>Settings</strong><small>Labels, formations, and publishing defaults</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="schedule" title=""><span><strong>Scheduled Publishing</strong><small>Drafts and timed releases</small></span><b id="hsScheduleToolCount" hidden=""></b></button>
-            <button type="button" role="menuitem" data-admin-tool="editorial" title=""><span><strong>Editorial</strong><small>Page status and canonical URL</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="notification" title=""><span><strong>Post Notification</strong><small>Register a post and notify readers</small></span></button>
-            <div class="hs-tools-label">Content tools</div>
-            <button type="button" role="menuitem" data-admin-tool="content" title=""><span><strong>Content Manager</strong><small>Published, homepage, headline, featured, and search placement</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="media" title=""><span><strong>Media</strong><small>Upload, reuse, and replace images</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="seo" title=""><span><strong>SEO</strong><small>Titles, descriptions, and previews</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="slugs" title=""><span><strong>Slugs</strong><small>Permanent content URLs</small></span></button>
-            <button type="button" role="menuitem" data-admin-tool="redirects" title=""><span><strong>Redirects</strong><small>Old URLs and destinations</small></span></button>
-            <div class="hs-tools-label">Backup</div>
+            <div class="hs-tools-label">Safety and access</div>
             <button type="button" role="menuitem" data-admin-tool="backups" title=""><span><strong>Backups</strong><small>Create, download, import, and restore site data</small></span></button>
             <button type="button" role="menuitem" data-admin-tool="export" title=""><span><strong>Export index.html</strong><small>Download a manual backup</small></span></button>
+            <button type="button" role="menuitem" data-admin-tool="permissions" title=""><span><strong>Permissions</strong><small>Roles and what each can do</small></span></button>
           </div>
         </div>
         <button class="tb-btn tb-exit" onclick="exitAdminPanel()">
@@ -9839,14 +9842,14 @@
     <script src="admin.js?v=20"></script>
     <script src="history.js?v=16.2"></script>
     <script src="autosave.js?v=16.2"></script>
-    <script src="preview.js?v=20"></script>
+    <script src="preview.js?v=38"></script>
     <script src="slug-manager.js?v=19"></script>
     <script src="redirect-manager.js?v=19"></script>
     <script src="editorial.js?v=20"></script>
     <script src="router.js?v=17"></script>
     <script src="ranking-editor.js?v=19"></script>
-    <script src="command-palette.js?v=22"></script>
-    <script src="content-manager.js"></script>
+    <script src="command-palette.js?v=38"></script>
+    <script src="content-manager.js?v=38"></script>
     <script src="media-manager.js?v=21"></script>
     <script src="seo-manager.js?v=19"></script>
     <script src="scheduled-publishing.js?v=19"></script>
@@ -9857,7 +9860,9 @@
     <script src="performance-report.js?v=1"></script>
     <link rel="stylesheet" href="css/admin/backups.css?v=34">
     <script src="backup-manager.js?v=34"></script>
-    <script src="admin-toolbar.js?v=21"></script>
+    <link rel="stylesheet" href="css/admin/studio.css?v=38">
+    <script src="studio.js?v=38"></script>
+    <script src="admin-toolbar.js?v=38"></script>
     <link id="hs-dropdown-dismiss-fix" rel="stylesheet" href="css/features/hs-dropdown-dismiss-fix.css?v=30">
   
 <!-- Half Space mobile header placement fix -->

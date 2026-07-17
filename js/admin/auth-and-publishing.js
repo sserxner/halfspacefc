@@ -208,6 +208,7 @@
           "#hsDraftComparison",
           "#hsExistingPlayerModal",
           "#hsContentButton", "#cmsToolbarButton", "#hsContentManager", "#hsContentStyles",
+          "#hsStudio",
           "#hsHeaderSearch",
           "#hsCommandPalette", "#hsCommandButton", "#hsCommandStyles",
           "#hsPreviewButton", "#hsPreviewStyles",

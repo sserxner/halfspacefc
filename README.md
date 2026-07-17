@@ -40,6 +40,7 @@ backup, synchronizes with GitHub, and publishes only if all checks pass.
 - [ROADMAP.md](ROADMAP.md) — preserved future product work
 - [SECURITY.md](SECURITY.md) — credentials, authorization, and incident response
 - [LICENSE.md](LICENSE.md) — proprietary use restrictions
+- [STUDIO.md](STUDIO.md) — unified owner workspace and admin-bar organization
 
 ## Safety rules
 

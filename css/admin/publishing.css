@@ -15,6 +15,8 @@
 
 #adminToolbar .tb-publish:hover { background: #f0c51a; }
 #adminToolbar .tb-publish:disabled { background: #6f6a50; color: #fff; cursor: wait; }
+#adminToolbar .hs-studio-trigger { background:#fff; color:#173d28; border-color:#fff; font-weight:800; }
+#adminToolbar .hs-studio-trigger:hover { background:#eef4f0; }
 
 .hs-toolbar-tools { position: relative; }
 #adminToolbar .hs-tools-trigger {
@@ -294,4 +296,3 @@
   .hs-schedule-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .hs-schedule-actions button.primary { grid-column: 1 / -1; }
 }
-
