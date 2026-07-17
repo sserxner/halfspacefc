@@ -33,10 +33,10 @@
     return `<label class="${wide ? "wide" : ""}"><span>${esc(label)}</span><input data-compose-field="${esc(key)}" value="${esc(value)}"></label>`;
   }
   function assetRows() {
-    const media = state.record.mediaEmbeds.map((item, index) => `<article class="hs-compose-asset"><img src="${esc(item.src)}" alt=""><div><strong>${esc(item.caption || item.alt || "Image")}</strong><label>Size<select data-media-setting="size" data-index="${index}"><option ${item.size === "small" ? "selected" : ""}>small</option><option ${item.size === "medium" ? "selected" : ""}>medium</option><option ${item.size === "wide" || !item.size ? "selected" : ""}>wide</option><option ${item.size === "full" ? "selected" : ""}>full</option></select></label><label>Placement<select data-media-setting="placement" data-index="${index}"><option value="before" ${item.placement === "before" ? "selected" : ""}>Before article</option><option value="after" ${item.placement !== "before" ? "selected" : ""}>After writing</option></select></label><button data-remove-media="${index}">Remove</button></div></article>`).join("");
+    const media = state.record.mediaEmbeds.map((item, index) => `<article class="hs-compose-asset">${item.type === "video" ? `<div class="hs-compose-video-mark">▶</div>` : `<img src="${esc(item.src)}" alt="">`}<div><strong>${esc(item.caption || item.alt || (item.type === "video" ? "Video" : "Image"))}</strong><div class="hs-compose-asset-fields"><label>Caption<input data-media-setting="caption" data-index="${index}" value="${esc(item.caption || "")}"></label><label>${item.type === "video" ? "Accessible title" : "Alt text"}<input data-media-setting="alt" data-index="${index}" value="${esc(item.alt || "")}"></label><label>Credit<input data-media-setting="credit" data-index="${index}" value="${esc(item.credit || "")}"></label><label>Size<select data-media-setting="size" data-index="${index}"><option ${item.size === "small" ? "selected" : ""}>small</option><option ${item.size === "medium" ? "selected" : ""}>medium</option><option ${item.size === "wide" || !item.size ? "selected" : ""}>wide</option><option ${item.size === "full" ? "selected" : ""}>full</option></select></label><label>Alignment<select data-media-setting="align" data-index="${index}"><option ${item.align === "left" ? "selected" : ""}>left</option><option ${!item.align || item.align === "center" ? "selected" : ""}>center</option><option ${item.align === "right" ? "selected" : ""}>right</option></select></label><label>Placement<select data-media-setting="placement" data-index="${index}"><option value="before" ${item.placement === "before" ? "selected" : ""}>Before writing</option><option value="after" ${item.placement !== "before" ? "selected" : ""}>After writing</option></select></label></div><button data-remove-media="${index}">Remove</button></div></article>`).join("");
     const boards = state.record.tacticsBoardEmbeds.map((item, index) => {
       const board = boardLibrary().find((entry) => entry.id === item.id);
-      return `<article class="hs-compose-board"><div><strong>${esc(board?.title || "Tactics board")}</strong><label>Size<select data-board-setting="size" data-index="${index}"><option ${item.size === "small" ? "selected" : ""}>small</option><option ${item.size === "medium" ? "selected" : ""}>medium</option><option ${item.size === "wide" || !item.size ? "selected" : ""}>wide</option><option ${item.size === "full" ? "selected" : ""}>full</option></select></label><label>Placement<select data-board-setting="placement" data-index="${index}"><option value="before" ${item.placement === "before" ? "selected" : ""}>Before article</option><option value="after" ${item.placement !== "before" ? "selected" : ""}>After writing</option></select></label><button data-edit-board="${esc(item.id)}">Edit</button><button data-remove-board="${index}">Remove</button></div></article>`;
+      return `<article class="hs-compose-board"><div><strong>${esc(board?.title || "Tactics board")}</strong><label>Size<select data-board-setting="size" data-index="${index}"><option ${item.size === "small" ? "selected" : ""}>small</option><option ${item.size === "medium" ? "selected" : ""}>medium</option><option ${item.size === "wide" || !item.size ? "selected" : ""}>wide</option><option ${item.size === "full" ? "selected" : ""}>full</option></select></label><label>Alignment<select data-board-setting="align" data-index="${index}"><option ${item.align === "left" ? "selected" : ""}>left</option><option ${!item.align || item.align === "center" ? "selected" : ""}>center</option><option ${item.align === "right" ? "selected" : ""}>right</option></select></label><label>Placement<select data-board-setting="placement" data-index="${index}"><option value="before" ${item.placement === "before" ? "selected" : ""}>Before writing</option><option value="after" ${item.placement !== "before" ? "selected" : ""}>After writing</option></select></label><button data-edit-board="${esc(item.id)}">Reopen board</button><button data-remove-board="${index}">Remove</button></div></article>`;
     }).join("");
     return media + boards || `<p class="hs-compose-empty">No media or tactics boards added yet.</p>`;
   }
@@ -55,11 +55,24 @@
     return `<article class="hs-compose-preview"><h2>${esc(heading || "Untitled")}</h2><p class="meta">${esc([state.record.date,state.record.fixture,state.record.competition].filter(Boolean).join(" · "))}</p>${beforeMedia}${beforeBoards}<div class="body">${esc(state.record.body || "").replace(/\n/g,"<br>")}</div>${afterMedia}${afterBoards}</article>`;
   }
   function mediaFigure(item) {
-    return `<figure class="hs-editorial-media size-${esc(item.size || "wide")}"><img src="${esc(item.src)}" alt="${esc(item.alt || "")}">${item.caption ? `<figcaption>${esc(item.caption)}</figcaption>` : ""}</figure>`;
+    const content = item.type === "video"
+      ? `<div class="hs-editorial-video"><iframe src="${esc(videoEmbedURL(item.src))}" title="${esc(item.alt || item.caption || "Embedded video")}" loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`
+      : `<img src="${esc(item.src)}" alt="${esc(item.alt || "")}">`;
+    const caption = [item.caption,item.credit].filter(Boolean).join(item.caption && item.credit ? " · " : "");
+    return `<figure class="hs-editorial-media size-${esc(item.size || "wide")} align-${esc(item.align || "center")}">${content}${caption ? `<figcaption>${esc(caption)}</figcaption>` : ""}</figure>`;
+  }
+  function videoEmbedURL(value) {
+    try {
+      const url = new URL(value);
+      if (/youtu\.be$/i.test(url.hostname)) return `https://www.youtube.com/embed/${encodeURIComponent(url.pathname.slice(1))}`;
+      if (/youtube\.com$/i.test(url.hostname) && url.searchParams.get("v")) return `https://www.youtube.com/embed/${encodeURIComponent(url.searchParams.get("v"))}`;
+      if (/vimeo\.com$/i.test(url.hostname) && /^\/\d+/.test(url.pathname)) return `https://player.vimeo.com/video/${encodeURIComponent(url.pathname.split("/")[1])}`;
+      return url.protocol === "https:" ? url.href : "";
+    } catch { return ""; }
   }
   function boardFigure(item) {
     const value = boardLibrary().find((entry) => entry.id === item.id);
-    return value ? `<figure class="hs-editorial-board size-${esc(item.size || "wide")}">${window.HSTacticsBoard?.svgMarkup?.(value) || ""}<figcaption>${esc(value.title)}</figcaption></figure>` : "";
+    return value ? `<figure class="hs-editorial-board size-${esc(item.size || "wide")} align-${esc(item.align || "center")}">${window.HSTacticsBoard?.svgMarkup?.(value) || ""}<figcaption>${esc(value.title)}</figcaption></figure>` : "";
   }
   function renderPreview() {
     const node = document.querySelector(".hs-compose-preview-wrap");
@@ -69,7 +82,7 @@
     if (document.getElementById("hsEditorialComposer")) return;
     const root = document.createElement("div");
     root.id = "hsEditorialComposer"; root.className = "hs-compose-overlay";
-    root.innerHTML = `<section class="hs-compose-shell" role="dialog" aria-modal="true" aria-label="Editorial editor"><header><div><span>Half Space Studio</span><h2></h2></div><button data-compose-close aria-label="Close">×</button></header><div class="hs-compose-layout"><main><div class="hs-compose-fields"></div><label class="hs-compose-body"><span>Writing</span><textarea data-compose-field="body" placeholder="Write the full post here…"></textarea></label><div class="hs-compose-add"><button data-compose-media>+ Add media</button><select data-compose-board-select></select><button data-compose-board>+ Embed board</button><button data-compose-new-board>Create new board</button></div><section><h3>Media and tactics placement</h3><div class="hs-compose-assets"></div></section></main><aside><div class="hs-compose-preview-head"><h3>Live preview</h3><span>Updates while you write</span></div><div class="hs-compose-preview-wrap"></div></aside></div><footer><span>Saved as a private draft until you publish changes.</span><button data-compose-close>Cancel</button><button class="primary" data-compose-save>Save draft</button></footer></section>`;
+    root.innerHTML = `<section class="hs-compose-shell" role="dialog" aria-modal="true" aria-label="Editorial editor"><header><div><span>Half Space Studio</span><h2></h2></div><button data-compose-close aria-label="Close">×</button></header><div class="hs-compose-layout"><main><div class="hs-compose-fields"></div><label class="hs-compose-body"><span>Writing</span><textarea data-compose-field="body" placeholder="Write the full post here…"></textarea></label><div class="hs-compose-add"><button data-compose-media>+ Add image or meme</button><button data-compose-video>+ Embed video</button><select data-compose-board-select></select><button data-compose-board>+ Embed board</button><button data-compose-new-board>Create new board</button></div><section><h3>Media and tactics placement</h3><div class="hs-compose-assets"></div></section></main><aside><div class="hs-compose-preview-head"><h3>Live preview</h3><div><button data-preview-size="desktop" class="active">Desktop</button><button data-preview-size="mobile">Phone</button></div></div><div class="hs-compose-preview-wrap"></div></aside></div><footer><span>Saved as a private draft until you publish changes.</span><button data-compose-close>Cancel</button><button class="primary" data-compose-save>Save draft</button></footer></section>`;
     document.body.appendChild(root);
     root.addEventListener("click", click);
     root.addEventListener("input", input);
@@ -103,18 +116,30 @@
     if (button.matches("[data-compose-close]")) return close();
     if (button.matches("[data-compose-save]")) return save();
     if (button.matches("[data-compose-media]")) return window.HSMediaManager?.open?.({onChoose(asset) {
-      state.record.mediaEmbeds.push({src:asset.src, alt:asset.alt || "", caption:asset.title || "", size:"wide", placement:"after"});
+      state.record.mediaEmbeds.push({src:asset.src, alt:asset.alt || "", caption:asset.title || "", credit:"", size:"wide", align:"center", placement:"after"});
       window.HSMediaManager.close(); renderAssets(); renderPreview();
     }});
+    if (button.matches("[data-compose-video]")) {
+      const src = prompt("Paste a YouTube, Vimeo, or HTTPS video URL:");
+      if (!src) return;
+      if (!videoEmbedURL(src)) return alert("Use a valid HTTPS YouTube, Vimeo, or video URL.");
+      state.record.mediaEmbeds.push({type:"video",src,alt:"",caption:"",credit:"",size:"wide",align:"center",placement:"after"});
+      renderAssets(); renderPreview(); return;
+    }
     if (button.matches("[data-compose-board]")) {
       const id = document.querySelector("[data-compose-board-select]")?.value;
-      if (id && !state.record.tacticsBoardEmbeds.some((item) => item.id === id)) state.record.tacticsBoardEmbeds.push({id,size:"wide",placement:"after"});
+      if (id && !state.record.tacticsBoardEmbeds.some((item) => item.id === id)) state.record.tacticsBoardEmbeds.push({id,size:"wide",align:"center",placement:"after"});
       renderAssets(); renderPreview(); return;
     }
     if (button.matches("[data-compose-new-board]")) return window.HSTacticsBoard?.open?.();
     if (button.dataset.removeMedia !== undefined) { state.record.mediaEmbeds.splice(Number(button.dataset.removeMedia),1); renderAssets(); renderPreview(); }
     if (button.dataset.removeBoard !== undefined) { state.record.tacticsBoardEmbeds.splice(Number(button.dataset.removeBoard),1); renderAssets(); renderPreview(); }
     if (button.dataset.editBoard) window.HSTacticsBoard?.open?.({id:button.dataset.editBoard});
+    if (button.dataset.previewSize) {
+      const wrap = document.querySelector(".hs-compose-preview-wrap");
+      wrap?.classList.toggle("phone", button.dataset.previewSize === "mobile");
+      document.querySelectorAll("[data-preview-size]").forEach((node) => node.classList.toggle("active", node === button));
+    }
   }
   function open(type, index = -1, seed = null) {
     if (!isAdmin()) return false;
@@ -157,6 +182,7 @@
     window.addTransferRecommendation = () => open("transfer");
     window.editTransferRecommendation = (index) => open("transfer", Number(index));
     decorateMedia();
+    window.addEventListener("halfspace:tactics-change", () => { if (state) { renderAssets(); renderPreview(); } });
     new MutationObserver((mutations) => {
       if (mutations.some((mutation) => [...mutation.addedNodes].some((node) => node instanceof Element && (node.matches?.(".diary-entry,.transfer-entry") || node.querySelector?.(".diary-entry,.transfer-entry"))))) decorateMedia();
     }).observe(document.body,{subtree:true,childList:true});

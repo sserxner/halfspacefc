@@ -41,6 +41,8 @@
   let selected = "";
   let drag = null;
   let attachContext = null;
+  const sx = (value) => Number(value || 0) * 7;
+  const sy = (value) => Number(value || 0) * 10;
 
   function saveLibrary(next) {
     write(LIBRARY_KEY, next);
@@ -51,18 +53,18 @@
     return Array.isArray(value) ? value : [];
   }
   function pitchViewBox(section) {
-    return "0 0 1000 700";
+    return "0 0 700 1000";
   }
   function pitchLines(section) {
     if (section === "middle")
-      return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="90" x2="975" y2="90"/><line x1="25" y1="610" x2="975" y2="610"/><circle cx="500" cy="350" r="105"/><circle cx="500" cy="350" r="5"/>`;
+      return `<rect x="25" y="25" width="650" height="950"/><line x1="25" y1="170" x2="675" y2="170"/><line x1="25" y1="830" x2="675" y2="830"/><circle cx="350" cy="500" r="95"/><circle cx="350" cy="500" r="5"/>`;
     if (section === "final")
-      return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="610" x2="975" y2="610"/><rect x="260" y="25" width="480" height="235"/><rect x="375" y="25" width="250" height="95"/><line x1="425" y1="25" x2="425" y2="8"/><line x1="575" y1="25" x2="575" y2="8"/><circle cx="500" cy="185" r="5"/><path d="M390 260 A120 120 0 0 0 610 260"/>`;
+      return `<rect x="25" y="25" width="650" height="950"/><line x1="25" y1="850" x2="675" y2="850"/><rect x="160" y="25" width="380" height="300"/><rect x="245" y="25" width="210" height="125"/><line x1="295" y1="25" x2="295" y2="8"/><line x1="405" y1="25" x2="405" y2="8"/><circle cx="350" cy="235" r="5"/><path d="M265 325 A105 105 0 0 0 435 325"/>`;
     if (section === "defensive")
-      return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="90" x2="975" y2="90"/><rect x="260" y="440" width="480" height="235"/><rect x="375" y="580" width="250" height="95"/><line x1="425" y1="675" x2="425" y2="692"/><line x1="575" y1="675" x2="575" y2="692"/><circle cx="500" cy="515" r="5"/><path d="M390 440 A120 120 0 0 1 610 440"/>`;
+      return `<rect x="25" y="25" width="650" height="950"/><line x1="25" y1="150" x2="675" y2="150"/><rect x="160" y="675" width="380" height="300"/><rect x="245" y="850" width="210" height="125"/><line x1="295" y1="975" x2="295" y2="992"/><line x1="405" y1="975" x2="405" y2="992"/><circle cx="350" cy="765" r="5"/><path d="M265 675 A105 105 0 0 1 435 675"/>`;
     if (section === "half")
-      return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="675" x2="975" y2="675"/><rect x="260" y="25" width="480" height="235"/><rect x="375" y="25" width="250" height="95"/><circle cx="500" cy="185" r="5"/><path d="M390 260 A120 120 0 0 0 610 260"/><path d="M395 675 A105 105 0 0 1 605 675"/>`;
-    return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="350" x2="975" y2="350"/><circle cx="500" cy="350" r="85"/><circle cx="500" cy="350" r="5"/><rect x="260" y="25" width="480" height="180"/><rect x="375" y="25" width="250" height="75"/><circle cx="500" cy="155" r="5"/><rect x="260" y="495" width="480" height="180"/><rect x="375" y="600" width="250" height="75"/><circle cx="500" cy="545" r="5"/>`;
+      return `<rect x="25" y="25" width="650" height="950"/><line x1="25" y1="975" x2="675" y2="975"/><rect x="160" y="25" width="380" height="300"/><rect x="245" y="25" width="210" height="125"/><circle cx="350" cy="235" r="5"/><path d="M265 325 A105 105 0 0 0 435 325"/><path d="M255 975 A95 95 0 0 1 445 975"/>`;
+    return `<rect x="25" y="25" width="650" height="950"/><line x1="25" y1="500" x2="675" y2="500"/><circle cx="350" cy="500" r="85"/><circle cx="350" cy="500" r="5"/><rect x="160" y="25" width="380" height="250"/><rect x="245" y="25" width="210" height="105"/><circle cx="350" cy="205" r="5"/><rect x="160" y="725" width="380" height="250"/><rect x="245" y="870" width="210" height="105"/><circle cx="350" cy="795" r="5"/>`;
   }
   function saveBoard() {
     if (!board) return;
@@ -88,16 +90,16 @@
   }
   function itemMarkup(item, editable = false) {
     const common = `data-tactics-item="${esc(item.id)}"`;
-    if (item.type === "player") return `<g ${common} class="hs-tb-player${selected === item.id ? " selected" : ""}" transform="translate(${item.x * 10} ${item.y * 7})"><circle r="24" fill="${esc(item.color || "#f3cf3c")}"/><text y="5">${esc(item.label || "Player")}</text></g>`;
-    if (item.type === "label") return `<text ${common} class="hs-tb-label${selected === item.id ? " selected" : ""}" x="${item.x * 10}" y="${item.y * 7}">${esc(item.label || "Label")}</text>`;
-    if (item.type === "zone") return `<g ${common} class="hs-tb-zone-group${selected === item.id ? " selected" : ""}"><rect class="hs-tb-zone" x="${item.x * 10}" y="${item.y * 7}" width="${(item.w || 20) * 10}" height="${(item.h || 18) * 7}" fill="${esc(item.color || "#f3cf3c")}"/>${editable && selected === item.id ? `<circle data-zone-handle cx="${(item.x + (item.w || 20)) * 10}" cy="${(item.y + (item.h || 18)) * 7}" r="13"/>` : ""}</g>`;
-    if (item.type === "arrow") return `<g ${common} class="hs-tb-arrow-group${selected === item.id ? " selected" : ""}"><line class="hs-tb-arrow" x1="${item.x * 10}" y1="${item.y * 7}" x2="${item.x2 * 10}" y2="${item.y2 * 7}" stroke="${esc(item.color || "#f3cf3c")}" stroke-width="${item.thickness || 9}" ${item.dashed ? 'stroke-dasharray="18 12"' : ""} marker-end="url(#hsTbArrow)"/>${editable && selected === item.id ? `<circle data-arrow-handle="start" cx="${item.x * 10}" cy="${item.y * 7}" r="13"/><circle data-arrow-handle="end" cx="${item.x2 * 10}" cy="${item.y2 * 7}" r="13"/>` : ""}</g>`;
+    if (item.type === "player") return `<g ${common} class="hs-tb-player${selected === item.id ? " selected" : ""}" transform="translate(${sx(item.x)} ${sy(item.y)})"><circle r="24" fill="${esc(item.color || "#f3cf3c")}"/><text y="5">${esc(item.label || "Player")}</text></g>`;
+    if (item.type === "label") return `<text ${common} class="hs-tb-label${selected === item.id ? " selected" : ""}" x="${sx(item.x)}" y="${sy(item.y)}">${esc(item.label || "Label")}</text>`;
+    if (item.type === "zone") return `<g ${common} class="hs-tb-zone-group${selected === item.id ? " selected" : ""}"><rect class="hs-tb-zone" x="${sx(item.x)}" y="${sy(item.y)}" width="${sx(item.w || 20)}" height="${sy(item.h || 18)}" fill="${esc(item.color || "#f3cf3c")}"/>${editable && selected === item.id ? `<circle data-zone-handle cx="${sx(item.x + (item.w || 20))}" cy="${sy(item.y + (item.h || 18))}" r="13"/>` : ""}</g>`;
+    if (item.type === "arrow") return `<g ${common} class="hs-tb-arrow-group${selected === item.id ? " selected" : ""}"><line class="hs-tb-arrow" x1="${sx(item.x)}" y1="${sy(item.y)}" x2="${sx(item.x2)}" y2="${sy(item.y2)}" stroke="${esc(item.color || "#f3cf3c")}" stroke-width="${item.thickness || 9}" ${item.dashed ? 'stroke-dasharray="18 12"' : ""} marker-end="url(#hsTbArrow)"/>${editable && selected === item.id ? `<circle data-arrow-handle="start" cx="${sx(item.x)}" cy="${sy(item.y)}" r="13"/><circle data-arrow-handle="end" cx="${sx(item.x2)}" cy="${sy(item.y2)}" r="13"/>` : ""}</g>`;
     return "";
   }
   function svgMarkup(value, editable = false) {
     return `<svg class="hs-tactics-pitch${editable ? " editable" : ""}" viewBox="${pitchViewBox(value.pitch)}" role="img" aria-label="${esc(value.title || "Tactics board")}">
       <defs><style>.hs-tb-grass{fill:#145a35}.hs-tb-lines{fill:none;stroke:rgba(255,255,255,.68);stroke-width:3}.hs-tb-player circle{stroke:#102f20;stroke-width:4}.hs-tb-player text{font:700 15px Arial;text-anchor:middle;fill:#102419}.hs-tb-label{font:700 26px Georgia;fill:#fff;paint-order:stroke;stroke:#113921;stroke-width:5px}.hs-tb-zone{opacity:.26;stroke:#f6df75;stroke-width:4}.hs-tb-arrow{stroke:#f3cf3c;stroke-width:9;fill:none;stroke-linecap:round}</style><marker id="hsTbArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path fill="#f3cf3c" d="M 0 0 L 10 5 L 0 10 z"/></marker></defs>
-      <rect width="1000" height="700" class="hs-tb-grass"/><g class="hs-tb-lines">${pitchLines(value.pitch)}</g>
+      <rect width="700" height="1000" class="hs-tb-grass"/><g class="hs-tb-lines">${pitchLines(value.pitch)}</g>
       <g class="hs-tb-items">${(value.items || []).map((item) => itemMarkup(item, editable)).join("")}</g>
     </svg>`;
   }
@@ -244,8 +246,8 @@
       const rect = zoneSvg.getBoundingClientRect();
       const box = zoneSvg.viewBox.baseVal;
       const move = (moveEvent) => {
-        const x = (box.x + ((moveEvent.clientX - rect.left) / rect.width) * box.width) / 10;
-        const y = (box.y + ((moveEvent.clientY - rect.top) / rect.height) * box.height) / 7;
+        const x = (box.x + ((moveEvent.clientX - rect.left) / rect.width) * box.width) / 7;
+        const y = (box.y + ((moveEvent.clientY - rect.top) / rect.height) * box.height) / 10;
         item.w = Math.max(5, Math.min(70, x - item.x));
         item.h = Math.max(5, Math.min(80, y - item.y));
         renderEditor();
@@ -266,8 +268,8 @@
         const svgX = box.x + ((moveEvent.clientX - rect.left) / rect.width) * box.width;
         const svgY = box.y + ((moveEvent.clientY - rect.top) / rect.height) * box.height;
         const suffix = handle.dataset.arrowHandle === "end" ? "2" : "";
-        item[`x${suffix}`] = Math.max(0, Math.min(100, svgX / 10));
-        item[`y${suffix}`] = Math.max(0, Math.min(100, svgY / 7));
+        item[`x${suffix}`] = Math.max(0, Math.min(100, svgX / 7));
+        item[`y${suffix}`] = Math.max(0, Math.min(100, svgY / 10));
         renderEditor();
       };
       const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
@@ -283,8 +285,8 @@
     const box = svg.viewBox.baseVal;
     drag = { item, svg, rect };
     const move = (moveEvent) => {
-      item.x = Math.max(2, Math.min(96, (box.x + ((moveEvent.clientX - rect.left) / rect.width) * box.width) / 10));
-      item.y = Math.max(2, Math.min(96, (box.y + ((moveEvent.clientY - rect.top) / rect.height) * box.height) / 7));
+      item.x = Math.max(2, Math.min(96, (box.x + ((moveEvent.clientX - rect.left) / rect.width) * box.width) / 7));
+      item.y = Math.max(2, Math.min(96, (box.y + ((moveEvent.clientY - rect.top) / rect.height) * box.height) / 10));
       renderEditor();
     };
     const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); drag = null; };
@@ -294,7 +296,7 @@
     const svg = svgMarkup(board).replace('<svg class="hs-tactics-pitch"', '<svg xmlns="http://www.w3.org/2000/svg" class="hs-tactics-pitch"');
     const image = new Image();
     image.onload = () => {
-      const canvas = document.createElement("canvas"); canvas.width = 1400; canvas.height = 980;
+      const canvas = document.createElement("canvas"); canvas.width = 980; canvas.height = 1400;
       const context = canvas.getContext("2d"); context.drawImage(image, 0, 0, canvas.width, canvas.height);
       const link = document.createElement("a"); link.download = `${(board.title || "tactics-board").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`; link.href = canvas.toDataURL("image/png"); link.click();
     };
@@ -351,6 +353,7 @@
         const value = boardById(embed.id); if (!value) return;
         const figure = document.createElement("figure"); figure.className = "hs-tactics-embed";
         figure.classList.add(`size-${embed.size || "wide"}`);
+        figure.classList.add(`align-${embed.align || "center"}`);
         figure.innerHTML = `${svgMarkup(value)}<figcaption><strong>${esc(value.title)}</strong>${isAdmin() ? `<span><button data-tactics-edit="${esc(embed.id)}">Edit board</button><button data-tactics-unlink="${esc(embed.id)}" data-tactics-type="${type}" data-tactics-index="${index}">Remove from post</button></span>` : ""}</figcaption>`;
         (embed.placement === "before" ? before : after).appendChild(figure);
       });

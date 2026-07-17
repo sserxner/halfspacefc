@@ -532,6 +532,8 @@ test("Tactics Board saves editable drafts and embeds read-only diagrams in edito
   assert.match(tactics, /Save current shape/);
   assert.match(tactics, /Final third/);
   assert.match(tactics, /function pitchLines/);
+  assert.match(tactics, /0 0 700 1000/);
+  assert.match(tactics, /canvas\.width = 980; canvas\.height = 1400/);
   assert.match(tactics, /section === "middle"/);
   assert.match(tactics, /section === "defensive"/);
   assert.match(tactics, /data-arrow-handle/);
@@ -559,6 +561,11 @@ test("Diaries and Transfer Recommendations use a full editorial composer", () =>
   assert.match(composer, /Live preview/);
   assert.match(composer, /mediaEmbeds/);
   assert.match(composer, /tacticsBoardEmbeds/);
+  assert.match(composer, /data-compose-video/);
+  assert.match(composer, /videoEmbedURL/);
+  assert.match(composer, /data-preview-size="mobile"/);
+  assert.match(composer, /data-media-setting="credit"/);
+  assert.match(composer, /data-board-setting="align"/);
   assert.match(composer, /Choose saved board/);
   assert.match(composer, /data-media-setting="size"/);
   assert.match(composer, /data-board-setting="placement"/);
