@@ -195,6 +195,8 @@ test("reader XI selection uses eligible-player search instead of dropdowns", () 
   assert.match(reader, /function showSuggestions/);
   assert.match(reader, /compatible\(player, position\)/);
   assert.match(reader, /selected\(offset\)/);
+  assert.match(reader, /function closeSuggestions/);
+  assert.match(reader, /active\.host === host/);
   assert.doesNotMatch(reader, /data-reader-xi="\$\{index\}"[^]*?<select/);
   assert.match(polish, /\.hs-player-suggestions\.open/);
 });
@@ -495,6 +497,67 @@ test("XI comments use one thread per team and Streets version", () => {
   assert.match(comments, /halfspace:country-xi/);
   assert.match(comments, /"showCountryDetail"/);
   assert.match(comments, /"showClubDetail"/);
+});
+
+test("Tactics Board saves editable drafts and embeds read-only diagrams in editorial content", () => {
+  const tactics = read("tactics-board.js");
+  const styles = read("css/features/tactics-board.css");
+  const diary = read("js/public/content.js");
+  const transfers = read("app.js");
+  const studio = read("studio.js");
+  const template = read("src/index.template.html");
+  assert.match(tactics, /tactics_boards_v1/);
+  assert.match(tactics, /defaultPlayers/);
+  assert.match(tactics, /data-tb-add="arrow"/);
+  assert.match(tactics, /data-tb-add="zone"/);
+  assert.match(tactics, /data-tb-add="label"/);
+  assert.match(tactics, /data-tb-add="defender"/);
+  assert.match(tactics, /tactics_formations_v1/);
+  assert.match(tactics, /Save current shape/);
+  assert.match(tactics, /Final third/);
+  assert.match(tactics, /function pitchLines/);
+  assert.match(tactics, /section === "middle"/);
+  assert.match(tactics, /section === "defensive"/);
+  assert.match(tactics, /data-arrow-handle/);
+  assert.match(tactics, /data-zone-handle/);
+  assert.match(tactics, /Width<input type="range"/);
+  assert.match(tactics, /Length<input type="range"/);
+  assert.match(tactics, /function undo/);
+  assert.match(tactics, /function redo/);
+  assert.match(tactics, /function exportImage/);
+  assert.match(tactics, /tacticsBoardIds/);
+  assert.match(tactics, /Embed in this post/);
+  assert.match(tactics, /Changes stay private until embedded/);
+  assert.match(styles, /\.hs-tactics-embed/);
+  assert.match(diary, /data-content-index/);
+  assert.match(transfers, /data-content-index/);
+  assert.match(studio, /Open Tactics Board/);
+  assert.match(template, /tactics-board\.js/);
+});
+
+test("Diaries and Transfer Recommendations use a full editorial composer", () => {
+  const composer = read("editorial-composer.js");
+  const styles = read("css/features/editorial-composer.css");
+  const template = read("src/index.template.html");
+  assert.match(composer, /Write the full post here/);
+  assert.match(composer, /Live preview/);
+  assert.match(composer, /mediaEmbeds/);
+  assert.match(composer, /tacticsBoardEmbeds/);
+  assert.match(composer, /Choose saved board/);
+  assert.match(composer, /data-media-setting="size"/);
+  assert.match(composer, /data-board-setting="placement"/);
+  assert.match(composer, /window\.addDiaryEntry/);
+  assert.match(composer, /window\.editTransferRecommendation/);
+  assert.match(styles, /\.hs-compose-body textarea/);
+  assert.match(styles, /min-height:390px/);
+  assert.match(template, /editorial-composer\.js/);
+});
+
+test("reused XI detail containers always reopen on the customizable builder", () => {
+  const reader = read("reader-xi.js");
+  assert.match(reader, /Never carry the previous team's Editor-XI view state/);
+  assert.match(reader, /container\.classList\.remove\("hs-editor-xi-visible"\)/);
+  assert.match(reader, /container\.classList\.add\("hs-editor-xi-collapsed"\)/);
 });
 
 test("XI list buttons replace detail state once without history bounce", () => {

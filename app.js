@@ -1216,7 +1216,7 @@
               ? visible
                   .map(
                     ({ x, i }) =>
-                      '<article class="transfer-entry"><div class="transfer-entry-head"><div><div class="transfer-entry-title">' +
+                      '<article class="transfer-entry" data-content-index="' + i + '"><div class="transfer-entry-head"><div><div class="transfer-entry-title">' +
                       esc(x.club) +
                       " — " +
                       esc(x.title) +

@@ -5,7 +5,7 @@
   let query = "";
   const sections = [
     ["overview", "Overview"], ["content", "Content"], ["rankings", "Rankings"],
-    ["xis", "XIs"], ["media", "Media"], ["publishing", "Publishing"], ["health", "Site Health"],
+    ["xis", "XIs"], ["tactics", "Tactics"], ["media", "Media"], ["publishing", "Publishing"], ["health", "Site Health"],
   ];
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const draft = () => window.HSData?.getDraft?.() || {};
@@ -78,11 +78,12 @@
   function contentView() { return `<div class="hs-studio-page-title"><span>Editorial inventory</span><h2>Content</h2><p>Stories, diaries, transfer recommendations, and site sections.</p></div>${rows(contentItems(), "No editorial content has been created yet.")}`; }
   function rankingsView() { return `<div class="hs-studio-page-title"><span>Football database</span><h2>Rankings</h2><p>Open the existing ranking editor at the correct section.</p></div>${rows(rankingItems())}`; }
   function xisView() { return `<div class="hs-studio-page-title"><span>Teams and formations</span><h2>XIs</h2><p>Find any Club or Country XI without loading every detail first.</p></div>${rows(xiItems())}`; }
+  function tacticsView() { return `<div class="hs-studio-page-title"><span>Visual analysis</span><h2>Tactics Board</h2><p>Create reusable diagrams, save drafts, export images, and embed boards in Diaries or Transfer Recommendations.</p></div><div class="hs-studio-tool-grid">${toolCard("Board","Open Tactics Board","Draw players, arrows, zones, and labels","tactics")}</div>`; }
   function mediaView() { return `<div class="hs-studio-page-title"><span>Reusable assets</span><h2>Media</h2><p>Upload once, then reuse or replace throughout Half Space.</p></div><div class="hs-studio-tool-grid">${toolCard("Library","Open Media Manager","Browse, upload, reuse, and replace assets","media")}</div>`; }
   function publishingView() { return `<div class="hs-studio-page-title"><span>From draft to live</span><h2>Publishing</h2><p>Review, schedule, notify, or recover before anything goes public.</p></div><div class="hs-studio-tool-grid">${toolCard("Review","Draft Comparison","Review every pending change","comparison")}${toolCard("Schedule","Scheduled Publishing","Drafts and timed releases","schedule")}${toolCard("Readers","Post Notification","Register a post and notify subscribers","notification")}${toolCard("Recovery","Backups","Create, download, import, or restore","backups")}</div>`; }
   function healthView() { return `<div class="hs-studio-page-title"><span>Diagnostics</span><h2>Site Health</h2><p>Run focused checks without crowding your daily toolbar.</p></div><div class="hs-studio-tool-grid">${toolCard("Content","Validation","Missing fields and unsafe states","validation")}${toolCard("URLs","Link Checker","Dead destinations and redirect loops","linkchecker")}${toolCard("Access","Accessibility","Labels, keyboard, contrast, and motion","a11y")}${toolCard("Speed","Performance","Page weight, timing, and heavy images","performance")}${toolCard("Failures","Error Log","Recorded browser and publishing errors","errorlog")}</div>`; }
   function body() {
-    return ({overview, content:contentView, rankings:rankingsView, xis:xisView, media:mediaView, publishing:publishingView, health:healthView}[active] || overview)();
+    return ({overview, content:contentView, rankings:rankingsView, xis:xisView, tactics:tacticsView, media:mediaView, publishing:publishingView, health:healthView}[active] || overview)();
   }
   function render() {
     const modal = document.getElementById("hsStudio");
@@ -101,7 +102,7 @@
     comparison: () => window.HSDraftComparison?.open?.(), validation: () => window.HSContentValidation?.open?.(), linkchecker: () => window.HSLinkChecker?.open?.(),
     a11y: () => window.HSAccessibilityAudit?.open?.(), performance: () => window.HSPerformance?.open?.(), errorlog: () => window.HSErrorLog?.open?.(),
     settings: () => window.HSSettings?.open?.(), schedule: () => window.HSScheduledPublishing?.open?.(), notification: () => window.HSPublishing?.open?.(),
-    backups: () => window.HSBackups?.open?.(), media: () => window.HSMediaManager?.open?.(),
+    backups: () => window.HSBackups?.open?.(), media: () => window.HSMediaManager?.open?.(), tactics: () => window.HSTacticsBoard?.open?.(),
   };
   function ensureUI() {
     if (document.getElementById("hsStudio")) return;

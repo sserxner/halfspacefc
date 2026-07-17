@@ -174,7 +174,7 @@
           visible
             .map(
               ({ entry: e, index: i }) =>
-                '<div class="diary-entry">' +
+                '<div class="diary-entry" data-content-index="' + i + '">' +
                 '<div class="diary-entry-header">' +
                 '<span class="diary-entry-title">' +
                 (e.title || "Untitled") +
@@ -443,5 +443,4 @@
           el.oninput = null;
         });
       }
-
 

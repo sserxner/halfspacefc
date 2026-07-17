@@ -164,6 +164,7 @@
   function showSuggestions(input) {
     const search = input.closest(".hs-player-search");
     if (!search || !active) return;
+    closeSuggestions(search);
     const suggestions = search.querySelector(".hs-player-suggestions");
     const items = matches(
       search.dataset.searchPosition,
@@ -175,6 +176,13 @@
       ? items.map((player) => `<button type="button" role="option" data-player-choice="${esc(player.name)}">${esc(player.name)}</button>`).join("")
       : '<span class="hs-player-no-match">No eligible player found</span>';
     suggestions.classList.add("open");
+  }
+
+  function closeSuggestions(except) {
+    document.querySelectorAll(".hs-player-suggestions.open").forEach((panel) => {
+      if (!except || panel.closest(".hs-player-search") !== except)
+        panel.classList.remove("open");
+    });
   }
 
   function choosePlayer(search, name) {
@@ -391,6 +399,10 @@
     const host = control?.closest?.(".hs-reader-inline");
     const container = host?.parentElement;
     if (!host || !container) return;
+    // Moving between fields in the same builder should be instantaneous.
+    // Keep its already-loaded pool and lineup instead of re-reading storage.
+    if (active?.inline && active.host === host && active.container === container)
+      return;
     const entity = entityFrom(container);
     const formations = formationKeys(entity);
     const fallback = {
@@ -467,6 +479,11 @@
       .filter(Boolean);
     [...new Set(candidates)].forEach((container) => {
       if (!(container instanceof Element) || !container.querySelector(".pitch")) return;
+      // Club/Country detail containers are reused as readers move between
+      // teams. Never carry the previous team's Editor-XI view state into the
+      // newly rendered team: the builder must always be the default view.
+      container.classList.remove("hs-editor-xi-visible");
+      container.classList.add("hs-editor-xi-collapsed");
       const existingActions = container.querySelectorAll(".hs-reader-actions");
       if (
         existingActions.length === 1 &&
@@ -545,6 +562,7 @@
 
   document.addEventListener("click", (event) => {
     activateFromControl(event.target);
+    if (!event.target.closest(".hs-player-search")) closeSuggestions();
     if (event.target.matches("[data-reader-close]")) close();
     if (event.target.matches("[data-reader-clear]")) { active.state.xi = []; active.state.bench = Array(9).fill(""); save(); render(); }
     if (event.target.matches("[data-reader-profile]")) saveToProfile();
@@ -617,13 +635,22 @@
   });
   document.addEventListener("focusin", (event) => {
     if (event.target.matches(".hs-player-search input")) {
+      closeSuggestions(event.target.closest(".hs-player-search"));
       activateFromControl(event.target);
       showSuggestions(event.target);
     }
   });
   document.addEventListener("focusout", (event) => {
     if (event.target.matches(".hs-player-search input"))
-      setTimeout(() => event.target.closest(".hs-player-search")?.querySelector(".hs-player-suggestions")?.classList.remove("open"), 120);
+      setTimeout(() => {
+        const search = event.target.closest(".hs-player-search");
+        if (!search?.contains(document.activeElement))
+          search?.querySelector(".hs-player-suggestions")?.classList.remove("open");
+      }, 80);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && event.target.matches(".hs-player-search input"))
+      closeSuggestions();
   });
   document.addEventListener("pointerdown", (event) => {
     const marker = event.target.closest("[data-layout-marker]");
