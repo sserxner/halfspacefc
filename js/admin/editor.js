@@ -749,6 +749,7 @@
         const containers = [
           document.getElementById("country-detail-content"),
           document.getElementById("club-detail-content"),
+          document.getElementById("streets-xi-content"),
           ...Array.from(document.querySelectorAll('[id^="xi-"]')),
         ].filter(Boolean);
         let container = containers.find((c) => c.contains(dotEl));
@@ -1132,4 +1133,3 @@
           siteData = Object.assign({}, baked);
         }
       }
-

@@ -64,6 +64,12 @@
           renderCountryDisplay();
           showCountryList("none");
         }
+        if (
+          ["club-xi", "country-xi", "continent-xi", "region-xi", "free-xi"].includes(id)
+        )
+          document
+            .querySelector(".nav-tab-band .hs-xi-nav")
+            ?.classList.add("active");
         writeHSHistory({ page: id, view: "page" }, historyMode || "push");
         window.scrollTo(0, 0);
       }

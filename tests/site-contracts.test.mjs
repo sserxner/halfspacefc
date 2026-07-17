@@ -34,12 +34,13 @@ test("desktop Misc dropdown can reopen after a submenu selection", () => {
   ["hs-dropdown-dismissed", "hs-force-closed", "hs-selection-closed"].forEach((name) => assert.ok(app.includes(name)));
 });
 
-test("Step 40 unifies rankings and promotes both XI builders", () => {
+test("Step 40 unifies rankings and promotes the XI workspace", () => {
   const template = read("src/index.template.html");
   const architecture = read("rankings-architecture.js");
   assert.match(template, />\s*Rankings\s*</);
-  assert.match(template, /Build a Club XI/);
-  assert.match(template, /Build a Country XI/);
+  assert.match(template, /Build an XI/);
+  assert.doesNotMatch(template, />\s*Build a Club XI\s*</);
+  assert.doesNotMatch(template, />\s*Build a Country XI\s*</);
   assert.match(template, /data-misc-page="streets"/);
   assert.doesNotMatch(template, /id="centuryRankingsDropdown"/);
   assert.match(architecture, /showRankingsEra/);
@@ -212,12 +213,13 @@ test("admins add reader players once and visually position every formation", () 
   assert.match(adminCSS, /\.hs-reader-layout-pitch/);
 });
 
-test("reader pitch sides stay corrected and admin always sees the Editor XI", () => {
+test("reader pitch sides stay corrected and the customizable XI stays primary in admin", () => {
   const reader = read("reader-xi.js");
   assert.match(reader, /88 - columnIndex \* \(76 \/ \(row\.length - 1\)\)/);
   assert.match(reader, /never reorder the saved player array/);
-  assert.match(reader, /container\.classList\.remove\("hs-editor-xi-collapsed"\)/);
-  assert.match(reader, /container\.classList\.add\("hs-editor-xi-visible"\)/);
+  assert.match(reader, /container\.classList\.remove\("hs-editor-xi-visible"\)/);
+  assert.match(reader, /container\.classList\.add\("hs-editor-xi-collapsed"\)/);
+  assert.match(reader, /View Editor's XI/);
 });
 
 test("Brazil keeps HEXACAMPEÃO and formation layouts are global by formation", () => {
@@ -262,6 +264,97 @@ test("player cards support structured careers and owner-controlled current-playe
   assert.match(features, /rpcTransferValue/);
   assert.match(features, /rpcInterestedClubs/);
   assert.match(features, /rpcSuggestedMove/);
+});
+
+test("verified player data remains an admin-reviewed draft before saving", () => {
+  const features = read("features.js");
+  const pilot = read("player-data-pilot.js");
+  const html = read("index.html");
+  assert.match(html, /player-data-pilot\.js/);
+  assert.match(pilot, /lionel-messi/);
+  assert.match(pilot, /cristiano-ronaldo/);
+  assert.match(pilot, /manuel-neuer/);
+  assert.match(features, /Verified data draft available/);
+  assert.match(features, /Load verified draft/);
+  assert.match(features, /does not save or publish/);
+  assert.match(features, /appliedVerifiedDraft/);
+});
+
+test("pilot career facts calculate age and identify league-only totals", () => {
+  const features = read("features.js");
+  assert.match(features, /const calculatedAge =/);
+  assert.match(features, /card\.dateOfBirth/);
+  assert.match(features, /league apps/);
+  assert.match(features, /Career team trophies/);
+  assert.match(features, /rpcCareerTrophyTotal/);
+});
+
+test("player cards derive subtle ranking and Editor XI distinctions", () => {
+  const features = read("features.js");
+  const links = read("xi-player-links.js");
+  assert.match(features, /const rankingMemberships =/);
+  assert.match(features, /Present Day Top 100/);
+  assert.match(features, /21st Century/);
+  assert.match(features, /profileTagsHTML/);
+  assert.match(links, /function editorXIMemberships/);
+  assert.match(links, /Editor’s.*XI/);
+  assert.match(links, /memberships: editorXIMemberships/);
+});
+
+test("Build an XI is one navigation section with five focused subtabs", () => {
+  const template = read("src/index.template.html");
+  const component = read("src/components/build-xi-hub.html");
+  const hub = read("build-xi-hub.js");
+  assert.match(template, />\s*Build an XI\s*</);
+  assert.doesNotMatch(template, />\s*Build a Club XI\s*</);
+  assert.doesNotMatch(template, />\s*Build a Country XI\s*</);
+  assert.match(hub, /"Club", "club-xi"/);
+  assert.match(hub, /"Country", "country-xi"/);
+  assert.match(hub, /"Continent", "continent-xi"/);
+  assert.match(hub, /"Regional", "region-xi"/);
+  assert.match(hub, /"Free Build", "free-xi"/);
+  assert.match(component, /page-continent-xi/);
+  assert.match(component, /page-region-xi/);
+  assert.match(component, /page-free-xi/);
+});
+
+test("Free Build uses every player in the selected era's positional rankings", () => {
+  const hub = read("build-xi-hub.js");
+  const reader = read("reader-xi.js");
+  assert.match(hub, /function rankedPlayers\(era\)/);
+  assert.match(hub, /ranking\(`\$\{section\}_\$\{era\}`\)/);
+  assert.match(hub, /Every player listed in this era/);
+  assert.match(hub, /data-free-era="century"/);
+  assert.match(hub, /data-free-era="now"/);
+  assert.match(reader, /container\?\._readerPlayerPool/);
+  assert.match(reader, /function activateFromControl/);
+  assert.match(hub, /rankingCount\(candidate\) > 0/);
+  assert.match(hub, /window\.HSData\?\.getDraft/);
+  assert.match(hub, /Object\.values\(source\?\.honorable/);
+});
+
+test("regional XI pages are owner-managed and player-card editing closes from the top", () => {
+  const hub = read("build-xi-hub.js");
+  const features = read("features.js");
+  const pilot = read("player-data-pilot.js");
+  assert.match(hub, /regional_xi_catalog_v1/);
+  assert.match(hub, /data-add-region/);
+  assert.match(hub, /Countries included/);
+  assert.match(hub, /data-region-era/);
+  assert.match(hub, /data-delete-region/);
+  assert.match(features, /rpcCloseTop/);
+  assert.match(features, /rank-card-editor-close/);
+  assert.match(pilot, /messi: "lionel-messi"/);
+  assert.match(pilot, /ronaldo: "cristiano-ronaldo"/);
+  assert.match(pilot, /neuer: "manuel-neuer"/);
+});
+
+test("individual awards lead with cumulative totals and tuck away specifics", () => {
+  const features = read("features.js");
+  assert.match(features, /const grouped = new Map/);
+  assert.match(features, /group\.count \+=/);
+  assert.match(features, /Where and when/);
+  assert.match(features, /rank-profile-award-group/);
 });
 
 test("the career map is a sleek visual journey with per-stint stats and trophies", () => {

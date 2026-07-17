@@ -39,6 +39,8 @@
   }
 
   function playerPool(container, entity) {
+    if (Array.isArray(container?._readerPlayerPool))
+      return container._readerPlayerPool;
     const configured = configuredPool(entity);
     if (configured.length) return configured;
     const map = new Map();
@@ -385,6 +387,34 @@
     render();
   }
 
+  function activateFromControl(control) {
+    const host = control?.closest?.(".hs-reader-inline");
+    const container = host?.parentElement;
+    if (!host || !container) return;
+    const entity = entityFrom(container);
+    const formations = formationKeys(entity);
+    const fallback = {
+      formation: formations[0] || "4-3-3",
+      xi: [],
+      bench: Array(9).fill(""),
+    };
+    active = {
+      entity,
+      container,
+      host,
+      pool: playerPool(container, entity),
+      state: load(entity, fallback),
+      inline: true,
+    };
+    if (!formations.includes(active.state.formation))
+      active.state.formation = fallback.formation;
+    active.state.bench = Array.from(
+      { length: 9 },
+      (_, index) => active.state.bench?.[index] || "",
+    );
+    active.state.notes = clean(active.state.notes);
+  }
+
   async function saveToProfile() {
     const result = await window.HSCommunity?.saveXIToProfile?.(currentPayload());
     if (result?.needsAuth) {
@@ -447,8 +477,8 @@
           if (!container.querySelector(":scope > .hs-reader-inline"))
             openInline(container);
         } else {
-          container.classList.remove("hs-editor-xi-collapsed");
-          container.classList.add("hs-editor-xi-visible");
+          container.classList.remove("hs-editor-xi-visible");
+          container.classList.add("hs-editor-xi-collapsed");
         }
         return;
       }
@@ -474,16 +504,18 @@
       const header = container.querySelector(".section-header");
       actions.appendChild(editorToggle);
       if (typeof adminMode !== "undefined" && adminMode) {
-        // A detail view may have been enhanced before admin mode opened.
-        // Admin must always see Sam's complete Editor XI and bench.
-        container.classList.remove("hs-editor-xi-collapsed");
-        container.classList.add("hs-editor-xi-visible");
-        const config = document.createElement("button");
-        config.type = "button";
-        config.className = "rk-btn hs-reader-pool-button";
-        config.textContent = "Set reader players (add once)";
-        config.addEventListener("click", () => configurePool(container));
-        actions.prepend(config);
+        // The customizable XI remains primary in admin too. The owner lineup
+        // is available through the same explicit toggle used by readers.
+        container.classList.remove("hs-editor-xi-visible");
+        container.classList.add("hs-editor-xi-collapsed");
+        if (container.dataset.readerPoolLocked !== "true") {
+          const config = document.createElement("button");
+          config.type = "button";
+          config.className = "rk-btn hs-reader-pool-button";
+          config.textContent = "Set reader players (add once)";
+          config.addEventListener("click", () => configurePool(container));
+          actions.prepend(config);
+        }
         const layout = document.createElement("button");
         layout.type = "button";
         layout.className = "rk-btn hs-reader-layout-button";
@@ -492,25 +524,27 @@
           configureLayout({ _entity: entityFrom(container) }),
         );
         actions.prepend(layout);
-        const cardLinks = document.createElement("button");
-        cardLinks.type = "button";
-        cardLinks.className = "rk-btn hs-xi-card-links-button";
-        cardLinks.textContent = "Player card links";
-        cardLinks.addEventListener("click", () =>
-          window.HSEditorXIPlayerLinks?.configure?.(container),
-        );
-        actions.prepend(cardLinks);
-        editorToggle.remove();
+        if (!container.classList.contains("hs-generic-xi")) {
+          const cardLinks = document.createElement("button");
+          cardLinks.type = "button";
+          cardLinks.className = "rk-btn hs-xi-card-links-button";
+          cardLinks.textContent = "Player card links";
+          cardLinks.addEventListener("click", () =>
+            window.HSEditorXIPlayerLinks?.configure?.(container),
+          );
+          actions.prepend(cardLinks);
+        }
       } else {
         container.classList.add("hs-editor-xi-collapsed");
       }
       if (header) header.insertAdjacentElement("afterend", actions);
       else container.prepend(actions);
-      if (typeof adminMode === "undefined" || !adminMode) openInline(container);
+      openInline(container);
     });
   }
 
   document.addEventListener("click", (event) => {
+    activateFromControl(event.target);
     if (event.target.matches("[data-reader-close]")) close();
     if (event.target.matches("[data-reader-clear]")) { active.state.xi = []; active.state.bench = Array(9).fill(""); save(); render(); }
     if (event.target.matches("[data-reader-profile]")) saveToProfile();
@@ -565,6 +599,7 @@
     }
   });
   document.addEventListener("change", (event) => {
+    activateFromControl(event.target);
     if (event.target.matches("[data-reader-formation]")) return changeFormation(event.target.value);
     if (event.target.matches("[data-layout-formation]")) {
       const modal = event.target.closest("#hsReaderLayoutEditor");
@@ -573,6 +608,7 @@
     }
   });
   document.addEventListener("input", (event) => {
+    activateFromControl(event.target);
     if (event.target.matches(".hs-player-search input")) return showSuggestions(event.target);
     if (event.target.matches("[data-reader-notes]") && active) {
       active.state.notes = event.target.value;
@@ -580,7 +616,10 @@
     }
   });
   document.addEventListener("focusin", (event) => {
-    if (event.target.matches(".hs-player-search input")) showSuggestions(event.target);
+    if (event.target.matches(".hs-player-search input")) {
+      activateFromControl(event.target);
+      showSuggestions(event.target);
+    }
   });
   document.addEventListener("focusout", (event) => {
     if (event.target.matches(".hs-player-search input"))
@@ -611,6 +650,20 @@
   });
   document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
   new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => node.nodeType === 1 && enhance(node)))).observe(document.body, { childList: true, subtree: true });
+  let previousAdminState = document.body.classList.contains("admin-active");
+  new MutationObserver(() => {
+    const nextAdminState = document.body.classList.contains("admin-active");
+    if (nextAdminState === previousAdminState) return;
+    previousAdminState = nextAdminState;
+    document
+      .querySelectorAll(
+        "#country-detail-content, #club-detail-content, [data-reader-xi-container]",
+      )
+      .forEach((container) => {
+        container.dataset.readerXiReady = "";
+        enhance(container);
+      });
+  }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => enhance()); else enhance();
   window.HSReaderXI = { open, openInline, openLibrary, close, enhance };
 })();

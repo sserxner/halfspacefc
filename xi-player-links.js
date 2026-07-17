@@ -237,6 +237,46 @@
     modal.remove();
   }
 
+  function editorXIMemberships(player) {
+    if (!player) return [];
+    if (!playerIndex.length) buildIndex();
+    const targetName =
+      normalize(player.name) ||
+      playerIndex.find(
+        (candidate) =>
+          candidate.key === player.key &&
+          candidate.tierIndex === Number(player.tierIndex) &&
+          candidate.entryIndex === Number(player.entryIndex),
+      )?.exact;
+    const store =
+      (typeof getData === "function" && getData(LINK_STORE_KEY, {})) || {};
+    const found = new Set();
+    Object.entries(store).forEach(([entity, slots]) => {
+      const includesPlayer = Object.values(slots || {}).some(
+        (reference) => {
+          const linked = playerIndex.find(
+            (candidate) =>
+              candidate.key === reference?.key &&
+              candidate.tierIndex === Number(reference?.tierIndex) &&
+              candidate.entryIndex === Number(reference?.entryIndex),
+          );
+          return linked?.exact === targetName;
+        },
+      );
+      if (includesPlayer) found.add(entity);
+    });
+    return [...found].map((entity) => {
+      const [kind, ...nameParts] = entity.split(":");
+      const name = nameParts
+        .join(":")
+        .replace(/[-_]+/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+      return {
+        label: `Editor’s ${kind === "country" ? "Country" : kind === "club" ? "Club" : "Streets"} XI · ${name}`,
+      };
+    });
+  }
+
   function openLinkedPlayer(node, event) {
     if (!node?.dataset.playerKey || typeof window.openRankProfile !== "function")
       return;
@@ -291,5 +331,10 @@
     ? document.addEventListener("DOMContentLoaded", initialize)
     : initialize();
 
-  window.HSEditorXIPlayerLinks = { decorate, findPlayer, configure };
+  window.HSEditorXIPlayerLinks = {
+    decorate,
+    findPlayer,
+    configure,
+    memberships: editorXIMemberships,
+  };
 })();

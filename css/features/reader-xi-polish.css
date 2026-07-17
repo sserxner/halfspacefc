@@ -156,16 +156,16 @@
   display: block;
   max-width: 150px;
   margin: 0.25rem auto 0;
-  padding: 0.38rem 0.55rem;
-  border-radius: 4px;
-  background: rgba(8, 42, 24, 0.56);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: #fff;
   font: 700 clamp(0.88rem, 1.5vw, 1.12rem)/1.05 var(--serif);
   text-align: center;
   text-transform: uppercase;
   line-height: 1.1;
   text-wrap: balance;
-  box-shadow: 0 4px 13px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
 }
 
 .hs-reader-notes {
