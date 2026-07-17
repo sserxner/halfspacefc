@@ -3,11 +3,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-<<<<<<< HEAD
-    <title>Attacking Midfielders | Half Space</title>
-=======
-    <title>Italy XI | Half Space</title>
->>>>>>> 58467aa (Update Half Space site)
+<title>Half Space</title>
     <link href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' rx='16' fill='%230f2518'/&gt;&lt;text x='50' y='48' text-anchor='middle' font-family='Georgia,serif' font-size='36' font-weight='700' fill='white'&gt;HS&lt;/text&gt;&lt;circle cx='50' cy='74' r='16' fill='white'/&gt;&lt;circle cx='50' cy='74' r='6' fill='%230f2518'/&gt;&lt;line x1='50' y1='58' x2='56' y2='66' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='50' y1='58' x2='44' y2='66' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='66' y1='69' x2='57' y2='71' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='66' y1='79' x2='57' y2='77' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='34' y1='69' x2='43' y2='71' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='34' y1='79' x2='43' y2='77' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='56' y1='90' x2='53' y2='82' stroke='%230f2518' stroke-width='2'/&gt;&lt;line x1='44' y1='90' x2='47' y2='82' stroke='%230f2518' stroke-width='2'/&gt;&lt;/svg&gt;" rel="icon" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/core/public.css?v=37">
@@ -9870,60 +9866,4 @@
 <script id="hs-mobile-header-placement-script" src="js/responsive/mobile-header-placement.js?v=31"></script>
 
 
-<div id="hsSettingsModal" class=""><div class="hs-set-card" role="dialog" aria-modal="true"><button id="hsSetClose" aria-label="Close">✕</button><h2>Site Settings</h2><p>Labels, XI choices, and publishing defaults stored with the site.</p><form id="hsSetForm"><h3>Site labels</h3><label>Site name<input name="text_hero_title"></label><label>Rankings navigation<input name="text_nav_rankings"></label><label>Country XIs navigation<input name="text_nav_country"></label><label>Club XIs navigation<input name="text_nav_club"></label><label>Continental XIs navigation<input name="text_nav_continental"></label><h3>Ranking labels</h3><label>Still playing<input name="stillPlaying"></label><label>Last cuts<input name="lastCuts"></label><label>Light considerations<input name="lightConsiderations"></label><h3>XI formations</h3><div id="hsFormationChecks" class="hs-set-checks"><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-3-3" checked=""> 4-3-3</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-2-3-1" checked=""> 4-2-3-1</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-3-1-2" checked=""> 4-3-1-2</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-4-2" checked=""> 4-4-2</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="3-4-3" checked=""> 3-4-3</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="3-5-2" checked=""> 3-5-2</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="3-3-1-3" checked=""> 3-3-1-3</label> <button type="button" data-edit-formation="3-3-1-3">Edit positions</button></span></div><p><button type="button" id="hsAddFormation">+ Add formation</button></p><h3>Publishing</h3><label><input type="checkbox" name="notifySubscribers"> Start “Notify subscribers” checked</label><footer><span id="hsSetStatus">Saved. Publish Changes when ready.</span><button type="submit">Save settings</button></footer></form></div></div><!-- Code injected by live-server -->
-<script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
-
-<div id="hsContentInventory" class="hs-content-overlay" aria-hidden="true">
-      <section class="hs-content-panel" role="dialog" aria-modal="true" aria-label="Content Manager">
-        <header class="hs-content-head">
-          <div>
-            <div class="hs-content-kicker">Half Space CMS</div>
-            <h2>Content Manager</h2>
-          </div>
-          <button id="hsContentClose" class="hs-content-close" type="button" aria-label="Close">×</button>
-        </header>
-
-        <div class="hs-content-tools">
-          <input id="hsContentSearch" type="search" placeholder="Search content…">
-          <div id="hsContentFilters" class="hs-content-filters"></div>
-        </div>
-
-        <div id="hsContentResults" class="hs-content-results"></div>
-      </section>
-    </div></body></html>
+<div id="hsSettingsModal" class=""><div class="hs-set-card" role="dialog" aria-modal="true"><button id="hsSetClose" aria-label="Close">✕</button><h2>Site Settings</h2><p>Labels, XI choices, and publishing defaults stored with the site.</p><form id="hsSetForm"><h3>Site labels</h3><label>Site name<input name="text_hero_title"></label><label>Rankings navigation<input name="text_nav_rankings"></label><label>Country XIs navigation<input name="text_nav_country"></label><label>Club XIs navigation<input name="text_nav_club"></label><label>Continental XIs navigation<input name="text_nav_continental"></label><h3>Ranking labels</h3><label>Still playing<input name="stillPlaying"></label><label>Last cuts<input name="lastCuts"></label><label>Light considerations<input name="lightConsiderations"></label><h3>XI formations</h3><div id="hsFormationChecks" class="hs-set-checks"><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-3-3" checked=""> 4-3-3</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-2-3-1" checked=""> 4-2-3-1</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-3-1-2" checked=""> 4-3-1-2</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="4-4-2" checked=""> 4-4-2</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="3-4-3" checked=""> 3-4-3</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="3-5-2" checked=""> 3-5-2</label></span><span class="hs-formation-item"><label><input type="checkbox" name="formation" value="3-3-1-3" checked=""> 3-3-1-3</label> <button type="button" data-edit-formation="3-3-1-3">Edit positions</button></span></div><p><button type="button" id="hsAddFormation">+ Add formation</button></p><h3>Publishing</h3><label><input type="checkbox" name="notifySubscribers"> Start “Notify subscribers” checked</label><footer><span id="hsSetStatus">Saved. Publish Changes when ready.</span><button type="submit">Save settings</button></footer></form></div></div></body></html>
