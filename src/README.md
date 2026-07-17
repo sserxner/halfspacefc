@@ -26,3 +26,7 @@ data catalogs, public navigation/XIs, public content, admin editing,
 authentication/publishing, responsive behavior, and initialization. The
 `baked_data` script intentionally remains inline because the browser publishing
 workflow updates that block when creating the deployable page.
+
+Step 32 adds the guarded build and validation commands documented in
+`BUILD.md`. Use the guarded build instead of assembling the deployed page by
+hand.

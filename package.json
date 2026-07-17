@@ -1,0 +1,12 @@
+{
+  "name": "halfspacefc-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Build and validation pipeline for the Half Space static site",
+  "scripts": {
+    "build": "node tools/build-site.mjs",
+    "check": "node tools/validate-site.mjs",
+    "sync": "node tools/modularize-html.mjs . && node tools/validate-site.mjs",
+    "refresh": "npm run sync && npm run build"
+  }
+}
