@@ -646,6 +646,36 @@
             .split(/\n|,/)
             .map((x) => x.trim())
             .filter(Boolean);
+        const cleanList = (value) =>
+          Array.isArray(value) ? value.filter((item) => item && typeof item === "object") : [];
+        const careerStints = (card) => cleanList(card.careerStints);
+        const individualAwards = (card) => cleanList(card.individualAwards);
+        const careerMapHTML = (stints) => {
+          if (!stints.length) return "";
+          return `<section class="rank-profile-section rank-career-section"><div class="rank-profile-label">Career Map</div><div class="rank-career-map">${stints.map((stint, index) => {
+            const stats = [
+              stint.appearances ? `${esc(stint.appearances)} apps` : "",
+              stint.goals ? `${esc(stint.goals)} goals` : "",
+              stint.assists ? `${esc(stint.assists)} assists` : "",
+            ].filter(Boolean);
+            const trophies = parts(stint.trophies);
+            return `<article class="rank-career-stop"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(stint.years || "")}</div><h3>${esc(stint.club || "")}</h3>${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}${trophies.length ? `<div class="rank-career-trophies">${trophies.map((trophy) => `<span>${esc(trophy)}</span>`).join("")}</div>` : ""}</div></article>`;
+          }).join("")}</div></section>`;
+        };
+        const profileFactsHTML = (card) => {
+          const facts = [
+            ["Current club", card.currentClub],
+            ["Age", card.age],
+            ["Half Space value", card.transferValue],
+          ].filter(([, value]) => String(value || "").trim());
+          return facts.length
+            ? `<section class="rank-profile-section"><div class="rank-profile-label">Current Profile</div><div class="rank-profile-facts">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div></section>`
+            : "";
+        };
+        const awardsHTML = (awards) =>
+          awards.length
+            ? `<section class="rank-profile-section"><div class="rank-profile-label">Individual Awards</div><div class="rank-profile-awards">${awards.map((award) => `<div><strong>${esc(award.name || "")}</strong>${award.club || award.year ? `<span>${esc([award.club, award.year].filter(Boolean).join(" · "))}</span>` : ""}</div>`).join("")}</div></section>`
+            : "";
         window.closeRankProfile = () => {
           document.getElementById("rankProfileBackdrop")?.remove();
           document.body.style.overflow = "";
@@ -666,7 +696,20 @@
               : "",
             timeline = c.teamsTimeline || c.teams || "",
             blurb = c.blurb || c.assessment || "",
-            comparisons = c.comparisons || c.comps || "";
+            comparisons = c.comparisons || c.comps || "",
+            stints = careerStints(c),
+            awards = individualAwards(c),
+            interestedClubs = c.interestedClubs || "",
+            suggestedMove = c.suggestedMove || "",
+            structuredProfileStarted = Boolean(
+              stints.length ||
+              awards.length ||
+              c.currentClub ||
+              c.age ||
+              c.transferValue ||
+              interestedClubs ||
+              suggestedMove,
+            );
           let b = document.createElement("div");
           b.id = "rankProfileBackdrop";
           b.className = "rank-profile-backdrop";
@@ -674,7 +717,7 @@
           b.dataset.rankKey = k;
           b.dataset.tierIndex = t;
           b.dataset.entryIndex = e;
-          b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([specificPosition, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${specificPosition ? `<section class="rank-profile-section"><div class="rank-profile-label">Specific Position</div><div class="rank-profile-copy">${positionMeaningURL ? `<a class="rank-profile-position-link" href="${esc(positionMeaningURL)}">${esc(specificPosition)}</a>` : esc(specificPosition)}</div></section>` : ""}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}${teamTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Team Titles</div><div class="rank-profile-honors">${teamTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Individual Titles</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Teams &amp; Country</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}${comparisons ? `<section class="rank-profile-section"><div class="rank-profile-label">Comps</div><div class="rank-profile-copy rank-profile-preline">${esc(comparisons)}</div></section>` : ""}${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit card</button>` : ""}</div></aside>`;
+          b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([specificPosition, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${adminMode && !structuredProfileStarted ? `<section class="rank-profile-admin-empty"><strong>New player profile fields are ready</strong><span>Add career-map stops, current-player facts, individual awards and your scouting fields.</span><button type="button" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Set up player card</button></section>` : ""}${profileFactsHTML(c)}${specificPosition ? `<section class="rank-profile-section"><div class="rank-profile-label">Specific Position</div><div class="rank-profile-copy">${positionMeaningURL ? `<a class="rank-profile-position-link" href="${esc(positionMeaningURL)}">${esc(specificPosition)}</a>` : esc(specificPosition)}</div></section>` : ""}${careerMapHTML(stints)}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}${!stints.length && teamTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Team Titles</div><div class="rank-profile-honors">${teamTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${awardsHTML(awards)}${!awards.length && individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Individual Titles</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${!stints.length && timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Teams &amp; Country</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}${comparisons ? `<section class="rank-profile-section"><div class="rank-profile-label">Player Comps</div><div class="rank-profile-copy rank-profile-preline">${esc(comparisons)}</div></section>` : ""}${interestedClubs ? `<section class="rank-profile-section"><div class="rank-profile-label">Clubs That Should Be Interested</div><div class="rank-profile-copy rank-profile-preline">${esc(interestedClubs)}</div></section>` : ""}${suggestedMove ? `<section class="rank-profile-section"><div class="rank-profile-label">Suggested Next Move</div><div class="rank-profile-copy rank-profile-preline">${esc(suggestedMove)}</div></section>` : ""}${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit player card</button>` : ""}</div></aside>`;
           b.onclick = (ev) => {
             if (ev.target === b) closeRankProfile();
           };
@@ -689,12 +732,54 @@
           m.id = "rankCardEditor";
           m.style.cssText =
             "position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100001;display:flex;padding:1rem;overflow:auto";
-          m.innerHTML = `<div style="background:#fff;border-radius:8px;padding:1.5rem;width:min(760px,100%);margin:auto"><h3 style="font-family:var(--serif);color:var(--accent);margin-bottom:.35rem">Player Card — ${esc(x.name || "")}</h3><p style="font: .74rem/1.45 var(--sans);color:var(--gray-500);margin:0 0 1rem">Saved once and reused anywhere this player appears, including Present Rankings. Blank optional fields stay hidden.</p><div class="rank-card-editor-grid"><div class="full"><label>Image URL or repository path</label><input id="rpcImage" value="${esc(c.image || "")}"></div><div><label>Specific Position</label><input id="rpcSpecificPosition" value="${esc(c.specificPosition || c.position || "")}" placeholder="e.g. Left-sided No. 8"></div><div><label>Position meaning link</label><input id="rpcPositionMeaningUrl" value="${esc(c.positionMeaningUrl || "")}" placeholder="/positions or https://…"></div><div><label>Country / National Team</label><input id="rpcNationality" value="${esc(c.nationality || "")}"></div><div><label>Career years</label><input id="rpcYears" value="${esc(c.years || "")}" placeholder="2006–present"></div><div class="full"><label>Teams &amp; Country timeline — one stop per line</label><textarea id="rpcTeamsTimeline" placeholder="Barcelona — 2008–2021 — appearances / goals\nArgentina — 2005–2023">${esc(c.teamsTimeline || c.teams || x.detail || "")}</textarea></div><div class="full"><label>Stats — Label: Value, one per line</label><textarea id="rpcStats">${esc(c.stats || "")}</textarea></div><div class="full"><label>Team titles — line or comma separated</label><textarea id="rpcTeamTitles">${esc(c.teamTitles || c.honors || "")}</textarea></div><div class="full"><label>Individual titles — line or comma separated</label><textarea id="rpcIndividualTitles">${esc(c.individualTitles || "")}</textarea></div><div class="full"><label>Blurb — optional</label><textarea id="rpcBlurb" placeholder="Hidden from the card when blank">${esc(c.blurb || c.assessment || "")}</textarea></div><div class="full"><label>Comps — optional</label><textarea id="rpcComparisons" placeholder="Potential comparisons; hidden when blank">${esc(c.comparisons || c.comps || "")}</textarea></div></div><div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem"><button id="rpcCancel" class="rk-btn">Cancel</button><button id="rpcSave" class="rk-btn">Save reusable card</button></div></div>`;
+          const stintLines = careerStints(c)
+            .map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | "))
+            .join("\n");
+          const awardLines = individualAwards(c)
+            .map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | "))
+            .join("\n");
+          m.innerHTML = `<div class="rank-card-editor-shell"><h3>Player Card — ${esc(x.name || "")}</h3><p>Saved once and reused everywhere this player appears. Blank optional fields stay completely hidden.</p><div class="rank-card-editor-grid">
+            <div class="full rank-editor-section-title">Core profile</div>
+            <div class="full"><label>Image URL or repository path — you control this</label><input id="rpcImage" value="${esc(c.image || "")}"></div>
+            <div><label>Specific position</label><input id="rpcSpecificPosition" value="${esc(c.specificPosition || c.position || "")}" placeholder="Left-sided No. 8"></div>
+            <div><label>Position meaning link</label><input id="rpcPositionMeaningUrl" value="${esc(c.positionMeaningUrl || "")}" placeholder="/positions or https://…"></div>
+            <div><label>Country / national team</label><input id="rpcNationality" value="${esc(c.nationality || "")}"></div>
+            <div><label>Career years</label><input id="rpcYears" value="${esc(c.years || "")}" placeholder="2006—"></div>
+            <div><label>Current club — active players only</label><input id="rpcCurrentClub" value="${esc(c.currentClub || "")}"></div>
+            <div><label>Age — active players only</label><input id="rpcAge" value="${esc(c.age || "")}"></div>
+            <div><label>Your transfer value</label><input id="rpcTransferValue" value="${esc(c.transferValue || "")}" placeholder="Left blank for you"></div>
+            <div class="full rank-editor-section-title">Visual career map</div>
+            <div class="full"><label>One club stint per line: Club | Years | Apps | Goals | Assists | Trophies separated by semicolons</label><textarea id="rpcCareerStints" class="rank-editor-tall" placeholder="Barcelona | 2004–2021 | 778 | 672 | 303 | La Liga ×10; Champions League ×4">${esc(stintLines)}</textarea><small>Use an open end for current clubs, such as 2023—. Leave unknown numbers empty between the | marks.</small></div>
+            <div class="full"><label>Legacy teams timeline — used only until structured career-map rows are added</label><textarea id="rpcTeamsTimeline">${esc(c.teamsTimeline || c.teams || x.detail || "")}</textarea></div>
+            <div class="full rank-editor-section-title">Honours and existing card details</div>
+            <div class="full"><label>Individual awards: Award | Club or country | Year</label><textarea id="rpcAwards" placeholder="Ballon d'Or | Barcelona | 2019">${esc(awardLines)}</textarea></div>
+            <div class="full"><label>Stats — Label: Value, one per line</label><textarea id="rpcStats">${esc(c.stats || "")}</textarea></div>
+            <div class="full"><label>Legacy team titles — hidden when career-map trophies are supplied</label><textarea id="rpcTeamTitles">${esc(c.teamTitles || c.honors || "")}</textarea></div>
+            <div class="full"><label>Legacy individual titles</label><textarea id="rpcIndividualTitles">${esc(c.individualTitles || "")}</textarea></div>
+            <div class="full rank-editor-section-title">Your editorial fields — AI leaves these blank</div>
+            <div class="full"><label>Half Space view</label><textarea id="rpcBlurb" placeholder="Your writing; hidden when blank">${esc(c.blurb || c.assessment || "")}</textarea></div>
+            <div class="full"><label>Player comparisons</label><textarea id="rpcComparisons" placeholder="Your comparisons; hidden when blank">${esc(c.comparisons || c.comps || "")}</textarea></div>
+            <div class="full"><label>Clubs that should be interested</label><textarea id="rpcInterestedClubs" placeholder="Your recommendations; hidden when blank">${esc(c.interestedClubs || "")}</textarea></div>
+            <div class="full"><label>Suggested next move</label><textarea id="rpcSuggestedMove" placeholder="Optional; hidden when blank">${esc(c.suggestedMove || "")}</textarea></div>
+          </div><div class="rank-card-editor-actions"><button id="rpcCancel" class="rk-btn">Cancel</button><button id="rpcSave" class="rk-btn">Save reusable card</button></div></div>`;
           document.body.appendChild(m);
           rpcCancel.onclick = () => m.remove();
           rpcSave.onclick = () => {
             let d = rankGet(k),
               z = d.tiers[t].entries[e];
+            const parsedStints = rpcCareerStints.value
+              .split("\n")
+              .map((line) => line.split("|").map((value) => value.trim()))
+              .filter((row) => row[0])
+              .map(([club, years, appearances, goals, assists, trophies]) => ({
+                club, years, appearances, goals, assists,
+                trophies: parts(String(trophies || "").replace(/;/g, "\n")),
+              }));
+            const parsedAwards = rpcAwards.value
+              .split("\n")
+              .map((line) => line.split("|").map((value) => value.trim()))
+              .filter((row) => row[0])
+              .map(([name, club, year]) => ({ name, club, year }));
             z.card = {
               image: rpcImage.value.trim(),
               specificPosition: rpcSpecificPosition.value.trim(),
@@ -702,16 +787,23 @@
               positionMeaningUrl: rpcPositionMeaningUrl.value.trim(),
               nationality: rpcNationality.value.trim(),
               years: rpcYears.value.trim(),
+              currentClub: rpcCurrentClub.value.trim(),
+              age: rpcAge.value.trim(),
+              transferValue: rpcTransferValue.value.trim(),
+              careerStints: parsedStints,
               teamsTimeline: rpcTeamsTimeline.value.trim(),
               teams: rpcTeamsTimeline.value.trim(),
               stats: rpcStats.value.trim(),
               teamTitles: rpcTeamTitles.value.trim(),
               honors: rpcTeamTitles.value.trim(),
               individualTitles: rpcIndividualTitles.value.trim(),
+              individualAwards: parsedAwards,
               blurb: rpcBlurb.value.trim(),
               assessment: rpcBlurb.value.trim(),
               comparisons: rpcComparisons.value.trim(),
               comps: rpcComparisons.value.trim(),
+              interestedClubs: rpcInterestedClubs.value.trim(),
+              suggestedMove: rpcSuggestedMove.value.trim(),
             };
             rankSet(k, d);
             saveSharedCard(z.name, z.card);
@@ -905,7 +997,7 @@
                       ti +
                       "," +
                       ei +
-                      ')">Card</button><button class="rk-btn rk-del" onclick="event.stopPropagation();rankDelete(\'' +
+                      ')">Edit player card</button><button class="rk-btn rk-del" onclick="event.stopPropagation();rankDelete(\'' +
                       key +
                       "'," +
                       ti +

@@ -352,7 +352,7 @@
                 ? `<span class="ranking-controls">
               <button class="rk-btn" onclick="rankMove('${key}',${ti},${ei},-1)">↑</button>
               <button class="rk-btn" onclick="rankMove('${key}',${ti},${ei},1)">↓</button>
-              <button class="rk-btn" onclick="event.stopPropagation();rankEdit('${key}',${ti},${ei})">Edit</button><button class="rk-btn" onclick="event.stopPropagation();rankEditCard('${key}',${ti},${ei})">Card</button>
+              <button class="rk-btn" onclick="event.stopPropagation();rankEdit('${key}',${ti},${ei})">Edit ranking entry</button><button class="rk-btn" onclick="event.stopPropagation();rankEditCard('${key}',${ti},${ei})">Edit player card</button>
               <button class="rk-btn rk-del" onclick="rankDelete('${key}',${ti},${ei})">✕</button>
               ${tierSel}
             </span>`
@@ -1132,5 +1132,4 @@
           siteData = Object.assign({}, baked);
         }
       }
-
 

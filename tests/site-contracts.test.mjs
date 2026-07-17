@@ -249,6 +249,56 @@ test("lineup comments and profile saves use compact bounded payloads", () => {
   assert.match(comments, /saved\.unshift\(normalized\)/);
 });
 
+test("player cards support structured careers and owner-controlled current-player fields", () => {
+  const features = read("features.js");
+  assert.match(features, /const careerStints =/);
+  assert.match(features, /const individualAwards =/);
+  assert.match(features, /Career Map/);
+  assert.match(features, /Current club/);
+  assert.match(features, /Half Space value/);
+  assert.match(features, /Player Comps/);
+  assert.match(features, /Clubs That Should Be Interested/);
+  assert.match(features, /Suggested Next Move/);
+  assert.match(features, /rpcTransferValue/);
+  assert.match(features, /rpcInterestedClubs/);
+  assert.match(features, /rpcSuggestedMove/);
+});
+
+test("the career map is a sleek visual journey with per-stint stats and trophies", () => {
+  const features = read("features.js");
+  const styles = read("css/rankings/ranking-player-card-style.css");
+  assert.match(features, /stint\.appearances/);
+  assert.match(features, /stint\.goals/);
+  assert.match(features, /stint\.assists/);
+  assert.match(features, /stint\.trophies/);
+  assert.match(styles, /\.rank-career-map/);
+  assert.match(styles, /overflow-x:\s*auto/);
+  assert.match(styles, /scroll-snap-type:\s*x proximity/);
+  assert.match(styles, /\.rank-career-map:before/);
+});
+
+test("blank player-card fields stay absent and legacy cards remain supported", () => {
+  const features = read("features.js");
+  assert.match(features, /interestedClubs \?/);
+  assert.match(features, /suggestedMove \?/);
+  assert.match(features, /facts\.length/);
+  assert.match(features, /!stints\.length && timeline/);
+  assert.match(features, /!awards\.length && individualTitles\.length/);
+  assert.match(features, /Saved once and reused everywhere this player appears/);
+});
+
+test("admin rankings clearly open the new player-card editor", () => {
+  const features = read("features.js");
+  const editor = read("js/admin/editor.js");
+  const styles = read("css/rankings/ranking-player-card-style.css");
+  assert.match(features, /New player profile fields are ready/);
+  assert.match(features, /Set up player card/);
+  assert.match(features, /Edit player card/);
+  assert.match(editor, /Edit ranking entry/);
+  assert.match(editor, /Edit player card/);
+  assert.match(styles, /\.rank-profile-admin-empty/);
+});
+
 test("saved reader XIs appear inside the signed-in Account panel", () => {
   const comments = read("comments.js");
   assert.match(comments, /id = "hsAccountPanel"/);
