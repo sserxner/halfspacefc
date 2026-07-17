@@ -421,6 +421,41 @@
   }
 
   .hs-reader-xi-inline-card .hs-reader-pitch {
-    min-height: 470px;
+    min-height: 520px;
+  }
+
+  .hs-reader-xi-inline-card .hs-reader-xi-layout {
+    padding-inline: 0.65rem;
+  }
+
+  .hs-reader-xi-inline-card .hs-reader-pitch-player {
+    width: 29%;
+  }
+
+  .hs-reader-xi-inline-card .hs-reader-pitch-player.selected strong {
+    padding: 0.3rem 0.32rem;
+    font-size: clamp(0.72rem, 3vw, 0.92rem);
+  }
+
+  .hs-reader-selectors label {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .hs-player-search input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .hs-player-suggestions button {
+    min-height: 44px;
+  }
+
+  .hs-reader-xi-inline-card > footer {
+    align-items: stretch;
+  }
+
+  .hs-reader-xi-inline-card > footer button {
+    flex: 1 1 calc(50% - 0.6rem);
+    min-height: 44px;
   }
 }

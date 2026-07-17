@@ -231,6 +231,24 @@ test("Brazil keeps HEXACAMPEÃO and formation layouts are global by formation", 
   assert.match(reader, /across every Club, Country, and Streets XI builder/);
 });
 
+test("Brazil recovers its legacy comment from live data regardless of old page key", () => {
+  const comments = read("comments.js");
+  assert.match(comments, /\.ilike\("body", "%HEXACAMP%"\)/);
+  assert.match(comments, /legacyBrazil\?\.data/);
+  assert.match(comments, /new Map\(recovered\.map/);
+  assert.match(comments, /keepMigratedThread\(unique\)/);
+});
+
+test("lineup comments and profile saves use compact bounded payloads", () => {
+  const comments = read("comments.js");
+  assert.match(comments, /function compactLineupPayload/);
+  assert.match(comments, /\.slice\(0, 11\)/);
+  assert.match(comments, /\.slice\(0, 12\)/);
+  assert.match(comments, /Math\.round\(Number\(point\?\.x/);
+  assert.match(comments, /encodeLineup\(compactLineupPayload\(payload\)\)/);
+  assert.match(comments, /saved\.unshift\(normalized\)/);
+});
+
 test("saved reader XIs appear inside the signed-in Account panel", () => {
   const comments = read("comments.js");
   assert.match(comments, /id = "hsAccountPanel"/);
@@ -280,7 +298,7 @@ test("reader XIs enforce valid selection and direct device-image saving", () => 
   assert.match(reader, /Save image to device/);
   assert.match(template, /data-misc-page="streets"/);
   assert.match(template, /streets-wont-forget\.html/);
-  assert.match(template, /reader-xi-polish\.css\?v=40\.6/);
+  assert.match(template, /reader-xi-polish\.css\?v=40\.9/);
   assert.match(reader, /image\/png/);
   assert.match(reader, /insertAdjacentElement\("afterend", actions\)/);
   assert.match(template, /reader-xi\.js\?v=40\.8/);

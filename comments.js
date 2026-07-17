@@ -40,6 +40,8 @@
         const GUEST_ID_KEY = "hs_guest_id_v1",
           GUEST_TOKEN_KEY = "hs_guest_token_v1",
           GUEST_OWNED_KEY = "hs_guest_owned_v1";
+        const COMMENT_FIELDS =
+          "id,page_key,parent_id,user_id,guest_id,display_name,body,status,pinned,editors_pick,posted_as_editor,created_at,updated_at,edited_at";
         const $ = (s) => document.querySelector(s);
         const esc = (v) =>
           String(v ?? "").replace(
@@ -258,13 +260,13 @@
           if (!host) return;
           state.pageKey = derivePageKey();
           const pageKeys = [state.pageKey, ...legacyKeysForCurrentThread()];
-          const [{ data: comments, error }, { data: settings }] =
+          const brazilThread =
+            state.pageKey === "halfspace:country-xi:country:brazil";
+          const [{ data: comments, error }, { data: settings }, legacyBrazil] =
             await Promise.all([
               db
                 .from("comments")
-                .select(
-                  "id,page_key,parent_id,user_id,guest_id,display_name,body,status,pinned,editors_pick,posted_as_editor,created_at,updated_at,edited_at",
-                )
+                .select(COMMENT_FIELDS)
                 .in("page_key", pageKeys)
                 .in("status", ["published", "deleted"]),
               db
@@ -272,12 +274,26 @@
                 .select("locked")
                 .eq("page_key", state.pageKey)
                 .maybeSingle(),
+              brazilThread
+                ? db
+                    .from("comments")
+                    .select(COMMENT_FIELDS)
+                    .ilike("body", "%HEXACAMP%")
+                    .in("status", ["published", "deleted"])
+                : Promise.resolve({ data: [] }),
             ]);
           if (error) {
             console.error(error);
             return;
           }
-          state.comments = keepMigratedThread(comments || []);
+          const recovered = [
+            ...(comments || []),
+            ...((legacyBrazil?.data || []).filter((comment) =>
+              /hexacampe(?:ã|a)o/i.test(comment.body || ""),
+            )),
+          ];
+          const unique = [...new Map(recovered.map((comment) => [comment.id, comment])).values()];
+          state.comments = keepMigratedThread(unique);
           state.settings = settings || { locked: false };
           await loadProfiles(state.comments.map((c) => c.user_id));
           mountComments(host);
@@ -313,6 +329,20 @@
           let binary = "";
           bytes.forEach((byte) => (binary += String.fromCharCode(byte)));
           return btoa(binary);
+        }
+        function compactLineupPayload(payload) {
+          return {
+            entity: cleanPublicText(payload?.entity, 100),
+            formation: cleanPublicText(payload?.formation, 30),
+            xi: (payload?.xi || []).slice(0, 11).map((name) => cleanPublicText(name, 80)),
+            bench: (payload?.bench || []).slice(0, 12).map((name) => cleanPublicText(name, 80)),
+            notes: cleanPublicText(payload?.notes, 600),
+            layout: (payload?.layout || []).slice(0, 11).map((point) => ({
+              x: Math.round(Number(point?.x || 50) * 10) / 10,
+              y: Math.round(Number(point?.y || 50) * 10) / 10,
+            })),
+            savedAt: payload?.savedAt || new Date().toISOString(),
+          };
         }
         function decodeLineup(value) {
           try {
@@ -628,7 +658,7 @@
           lastCommentAttempt = now;
           state.pageKey = derivePageKey();
           const body =
-            `[[halfspace-xi:${encodeLineup(payload)}]]` +
+            `[[halfspace-xi:${encodeLineup(compactLineupPayload(payload))}]]` +
             (String(blurb || "").trim()
               ? "\n" + cleanPublicText(blurb, 1200)
               : "");
@@ -682,10 +712,13 @@
           )
             ? state.user.user_metadata.halfspace_saved_xis
             : [];
+          const normalized = compactLineupPayload(payload);
           const saved = current.filter(
-            (item) => item?.entity !== payload.entity,
+            (item) =>
+              String(item?.entity || "").toLowerCase() !==
+              normalized.entity.toLowerCase(),
           );
-          saved.unshift(payload);
+          saved.unshift(normalized);
           const { data, error } = await db.auth.updateUser({
             data: { halfspace_saved_xis: saved.slice(0, 20) },
           });
