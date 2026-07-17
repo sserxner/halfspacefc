@@ -1,0 +1,131 @@
+/* Step 28: phone and tablet usability for Half Space administration. */
+@media (max-width: 1024px) {
+  body.admin-active button,
+  body.admin-active [role="button"],
+  body.admin-active select,
+  body.admin-active input[type="checkbox"] { min-height: 44px; }
+  body.admin-active input:not([type="checkbox"]):not([type="radio"]),
+  body.admin-active textarea,
+  body.admin-active select { font-size: 16px !important; max-width: 100%; }
+  body.admin-active textarea { min-height: 120px; }
+  body.admin-active .rank-card-editor-grid,
+  body.admin-active .music-editor-grid,
+  body.admin-active .tv-editor-grid,
+  body.admin-active .hs-comment-form-grid { grid-template-columns: 1fr !important; }
+  body.admin-active .rank-card-editor-grid .full,
+  body.admin-active .music-editor-grid .full,
+  body.admin-active .tv-editor-grid .full { grid-column: 1 !important; }
+  body.admin-active .scouting-admin-toolbar,
+  body.admin-active .scouting-admin-actions,
+  body.admin-active .hs-scout-toolbar,
+  body.admin-active .hs-scout-position-actions,
+  body.admin-active .hs-scout-tier-actions,
+  body.admin-active .manager-entry-actions,
+  body.admin-active .position-subtype-actions,
+  body.admin-active .transfer-actions,
+  body.admin-active .cms-row-actions { flex-wrap: wrap !important; }
+}
+
+@media (max-width: 700px) {
+  body.admin-active { padding-bottom: calc(74px + env(safe-area-inset-bottom)) !important; overflow-x: hidden; }
+  #adminToolbar {
+    min-height: 64px; height: auto !important;
+    padding: .45rem max(.55rem, env(safe-area-inset-right)) calc(.45rem + env(safe-area-inset-bottom)) max(.55rem, env(safe-area-inset-left)) !important;
+  }
+  #adminToolbar .hs-toolbar-actions { display: grid !important; grid-template-columns: minmax(0,1fr) auto auto; gap: .4rem !important; }
+  #adminToolbar .tb-btn { min-height: 46px; padding: .55rem .65rem !important; white-space: nowrap; }
+  #adminToolbar .tb-publish { width: 100%; }
+  #adminToolbar .hs-tools-menu {
+    left: .55rem !important; right: .55rem !important;
+    bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+    width: auto !important; max-width: none !important; max-height: min(72vh, 620px) !important;
+    overscroll-behavior: contain;
+  }
+  .hs-tools-menu > button { min-height: 54px; padding: .7rem .8rem !important; }
+
+  body.admin-active :is(
+    .hs-validation-modal,.hs-diff-overlay,.hs-command-overlay,.hs-content-overlay,
+    .hs-media-overlay,.hs-schedule-overlay,.hs-seo-overlay,.hs-slug-overlay,
+    .hs-redirect-overlay,.hs-publishing-modal,#hsSettingsModal,#adminModal,
+    .hs-scout-modal
+  ) { align-items: flex-end !important; padding: 0 !important; }
+  body.admin-active :is(
+    .hs-validation-panel,.hs-diff-panel,.hs-command-panel,.hs-content-panel,
+    .hs-media-panel,.hs-schedule-panel,.hs-seo-panel,.hs-slug-panel,
+    .hs-redirect-panel,.hs-publishing-card,.hs-set-card,.hs-scout-modal-card
+  ) {
+    width: 100% !important; max-width: none !important;
+    max-height: 94dvh !important; border-radius: 14px 14px 0 0 !important;
+    margin: 0 !important; padding-bottom: env(safe-area-inset-bottom) !important;
+    overscroll-behavior: contain;
+  }
+  body.admin-active :is(
+    .hs-validation-head,.hs-diff-head,.hs-content-head,.hs-media-header,
+    .hs-schedule-head,.hs-seo-header,.hs-slug-header,.hs-redirect-header,
+    .hs-editorial-head
+  ) { position: sticky; top: 0; z-index: 5; background: #fff; padding: 1rem !important; }
+  body.admin-active :is(
+    .hs-validation-close,.hs-content-close,.hs-media-close,.hs-schedule-close,
+    .hs-editorial-close,#hsSetClose
+  ) { min-width: 44px !important; width: 44px !important; height: 44px !important; flex: 0 0 44px; }
+
+  .hs-editorial-drawer { width: 100% !important; max-width: none !important; }
+  .hs-editorial-actions,
+  .hs-schedule-actions,
+  .hs-seo-actions,
+  .hs-slug-actions,
+  .hs-redirect-actions,
+  .hs-media-detail-actions,
+  .hs-form-actions {
+    position: sticky; bottom: 0; z-index: 4; background: #fff;
+    display: grid !important; grid-template-columns: 1fr !important;
+    padding: .8rem !important; gap: .5rem !important;
+  }
+  .hs-editorial-actions button,
+  .hs-schedule-actions button,
+  .hs-seo-actions button,
+  .hs-slug-actions button,
+  .hs-redirect-actions button,
+  .hs-media-detail-actions button { width: 100%; }
+
+  .hs-media-workspace { display: block !important; overflow: auto !important; }
+  .hs-media-workspace > div { overflow: visible !important; }
+  .hs-media-detail { border-left: 0 !important; border-top: 1px solid #ddd; }
+  .hs-media-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .hs-schedule-panel,
+  .hs-seo-panel,
+  .hs-slug-panel,
+  .hs-redirect-panel { grid-template-columns: 1fr !important; }
+  .hs-schedule-list,
+  .hs-seo-list,
+  .hs-slug-list,
+  .hs-redirect-list { max-height: 34dvh !important; }
+
+  .xi-tier-header-controls { display: flex !important; flex-wrap: wrap; margin-top: .55rem; }
+  .xi-tier-card-controls { display: grid !important; grid-template-columns: minmax(0,1fr) 44px 44px; gap: .35rem; }
+  .xi-tier-card-controls select { width: 100%; min-width: 0; }
+  .formation-picker { display: grid !important; grid-template-columns: 1fr !important; gap: .5rem; }
+  .formation-picker select,
+  .formation-picker button { width: 100%; }
+  .xi-wrapper { overflow-x: auto; overscroll-behavior-x: contain; }
+  .pitch { min-width: 330px; }
+
+  #hsSetForm footer { position: sticky; bottom: 0; z-index: 4; background: #fff; flex-wrap: wrap; }
+  #hsSetForm footer button { width: 100%; min-height: 48px; }
+  .hs-set-checks { display: grid !important; grid-template-columns: 1fr !important; }
+  .hs-formation-item { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: .5rem; }
+}
+
+@media (max-width: 390px) {
+  #adminToolbar .tb-btn { font-size: .72rem !important; padding-inline: .5rem !important; }
+  .hs-media-grid { grid-template-columns: 1fr !important; }
+  body.admin-active .xi-country-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  body.admin-active :is(.hs-validation-panel,.hs-diff-panel,.hs-command-panel,.hs-content-panel,.hs-media-panel,.hs-schedule-panel,.hs-seo-panel,.hs-slug-panel,.hs-redirect-panel,.hs-publishing-card,.hs-set-card) { max-height: 100dvh !important; border-radius: 0 !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-active *, body.admin-active *::before, body.admin-active *::after { scroll-behavior: auto !important; }
+}
