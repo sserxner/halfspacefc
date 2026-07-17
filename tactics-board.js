@@ -52,6 +52,31 @@
     const value = read(FORMATION_KEY, []);
     return Array.isArray(value) ? value : [];
   }
+  function siteFormationNames() {
+    const enabled = window.HSSettings?.getFormations?.() || [];
+    const catalog = window.HSFormationCatalog || {};
+    return enabled.filter((name) => catalog[name]);
+  }
+  function siteFormationPreset(name) {
+    const formation = window.HSFormationCatalog?.[name];
+    if (!formation) return null;
+    const stored = read("reader_xi_layouts_v1", {})?.[name];
+    const rows = formation.rows || [];
+    const fallback = [];
+    let index = 0;
+    rows.forEach((row, rowIndex) => row.forEach((_, columnIndex) => {
+      fallback[index++] = {
+        x: row.length === 1 ? 50 : 88 - columnIndex * (76 / (row.length - 1)),
+        y: rows.length === 1 ? 50 : 90 - rowIndex * (80 / (rows.length - 1)),
+      };
+    }));
+    const layout = Array.isArray(stored) && stored.length === formation.positions.length ? stored : fallback;
+    return formation.positions.map((position, positionIndex) => [
+      position.label || position.pos,
+      layout[positionIndex]?.x ?? 50,
+      layout[positionIndex]?.y ?? 50,
+    ]);
+  }
   function pitchViewBox(section) {
     return "0 0 700 1000";
   }
@@ -123,7 +148,8 @@
   function renderFormationOptions() {
     const select = document.querySelector("[data-tb-formation]");
     if (!select) return;
-    select.innerHTML = `<optgroup label="Built in">${Object.keys(FORMATIONS).map((key) => `<option value="${esc(key)}">${esc(key)}</option>`).join("")}</optgroup>${customFormations().length ? `<optgroup label="Your formations">${customFormations().map((item) => `<option value="custom:${esc(item.id)}">${esc(item.name)}</option>`).join("")}</optgroup>` : ""}`;
+    const site = siteFormationNames();
+    select.innerHTML = `${site.length ? `<optgroup label="Site formations">${site.map((key) => `<option value="site:${esc(key)}">${esc(key)}</option>`).join("")}</optgroup>` : `<optgroup label="Built in">${Object.keys(FORMATIONS).map((key) => `<option value="${esc(key)}">${esc(key)}</option>`).join("")}</optgroup>`}${customFormations().length ? `<optgroup label="Saved tactical scenarios">${customFormations().map((item) => `<option value="custom:${esc(item.id)}">${esc(item.name)}</option>`).join("")}</optgroup>` : ""}`;
   }
   function renderInspector() {
     const node = document.querySelector(".hs-tb-inspector");
@@ -192,10 +218,12 @@
   }
   function applyFormation(key) {
     const custom = key.startsWith("custom:") ? customFormations().find((item) => item.id === key.slice(7)) : null;
-    const preset = custom?.players || FORMATIONS[key];
+    const siteName = key.startsWith("site:") ? key.slice(5) : "";
+    const preset = custom?.players || (siteName ? siteFormationPreset(siteName) : FORMATIONS[key]);
     if (!preset) return;
     const nonPlayers = board.items.filter((item) => item.type !== "player");
-    if (board.items.some((item) => item.type === "player") && !confirm(`Replace the current players with a ${key} shape?`)) return;
+    const label = custom?.name || siteName || key;
+    if (board.items.some((item) => item.type === "player") && !confirm(`Replace the current players with a ${label} shape?`)) return;
     checkpoint();
     board.items = [...nonPlayers, ...preset.map((entry) => {
       const [label, x, y, team = "attack", color = team === "defend" ? "#ef6a62" : "#f3cf3c"] = entry;

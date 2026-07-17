@@ -38,11 +38,60 @@
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  function rankingPool(entity) {
+    const entityKey = keyName(entity).replace(/[^a-z0-9]+/g, " ").trim();
+    if (!entityKey) return [];
+    const aliases = {
+      "manchester city": ["man city"],
+      "manchester united": ["man united"],
+      "paris saint germain": ["psg"],
+      "internazionale": ["inter", "inter milan"],
+      "tottenham hotspur": ["tottenham", "spurs"],
+      "atletico madrid": ["atletico"],
+      "sporting cp": ["sporting lisbon", "sporting"],
+    };
+    const entityNames = [entityKey, ...(aliases[entityKey] || [])];
+    const sections = {
+      gk: ["GK"], cb: ["CB"], fb: ["RB", "LB", "RWB", "LWB"],
+      cm: ["DM", "CM"], am: ["AM", "CAM", "10"],
+      w: ["RW", "LW", "RM", "LM"], f: ["ST", "CF"],
+    };
+    const map = new Map();
+    Object.entries(sections).forEach(([section, positions]) => {
+      ["century", "now"].forEach((era) => {
+        const ranking = typeof getData === "function" ? getData(`ranking_${section}_${era}`, {}) : {};
+        (ranking?.tiers || []).forEach((tier) => (tier.entries || []).forEach((entry) => {
+          const detail = keyName(entry?.detail).replace(/[^a-z0-9]+/g, " ").trim();
+          const name = clean(entry?.name);
+          if (!name || !detail || !entityNames.some((candidate) => ` ${detail} `.includes(` ${candidate} `))) return;
+          const current = map.get(keyName(name)) || {name,positions:[]};
+          positions.forEach((position) => { if (!current.positions.includes(position)) current.positions.push(position); });
+          map.set(keyName(name), current);
+        }));
+      });
+    });
+    return [...map.values()];
+  }
+
+  function mergedPool(entity, fallback = []) {
+    const map = new Map();
+    [...rankingPool(entity), ...fallback].forEach((player) => {
+      const key = keyName(player.name);
+      if (!key) return;
+      const current = map.get(key) || {name:player.name,positions:[]};
+      (player.positions || []).forEach((position) => {
+        const exact = clean(position).toUpperCase();
+        if (exact && !current.positions.includes(exact)) current.positions.push(exact);
+      });
+      map.set(key,current);
+    });
+    configuredPool(entity).forEach((player) => map.set(keyName(player.name), player));
+    return [...map.values()].sort((a,b) => a.name.localeCompare(b.name));
+  }
+
   function playerPool(container, entity) {
     if (Array.isArray(container?._readerPlayerPool))
-      return container._readerPlayerPool;
-    const configured = configuredPool(entity);
-    if (configured.length) return configured;
+      return mergedPool(entity, container._readerPlayerPool);
     const map = new Map();
     container.querySelectorAll(".xi-player-row").forEach((row) => {
       const name = clean(row.querySelector(".xi-player-name")?.textContent);
@@ -53,7 +102,7 @@
       const name = clean(node.textContent);
       if (name && name !== "—" && !map.has(keyName(name))) map.set(keyName(name), { name, positions: ["BENCH"] });
     });
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return mergedPool(entity, [...map.values()]);
   }
 
   function availablePositions(entity) {
@@ -67,15 +116,14 @@
   function configurePool(container) {
     if (typeof adminMode !== "undefined" && !adminMode) return;
     const entity = entityFrom(container);
-    const existing = configuredPool(entity);
-    const players = existing.length ? existing : playerPool(container, entity);
+    const players = playerPool(container, entity);
     document.getElementById("hsReaderPoolEditor")?.remove();
     const modal = document.createElement("div");
     modal.id = "hsReaderPoolEditor";
     modal.className = "open";
     modal.innerHTML = `<section class="hs-reader-pool-card" role="dialog" aria-modal="true" aria-label="Reader player options">
       <header><div><div class="hs-reader-xi-kicker">Reader XI setup</div><h2>${esc(entity)}</h2></div><button type="button" data-pool-close aria-label="Close">×</button></header>
-      <div class="hs-reader-pool-help"><strong>Add every player once.</strong><span>Enter the player's name, then list every eligible position separated by commas. The same player automatically becomes available in every compatible formation and on the bench.</span></div>
+      <div class="hs-reader-pool-help"><strong>Ranked players are added automatically.</strong><span>If ${esc(entity)} appears in a player’s ranking details, that player is included under their broad ranking position. Use this list only to add exceptions or refine eligible positions.</span></div>
       <div class="hs-reader-pool-head"><span>Player</span><span>Eligible positions</span><span></span></div>
       <div class="hs-reader-pool-rows">${players.map((player) => poolRow(player)).join("")}</div>
       <button type="button" class="hs-pool-add" data-pool-add>+ Add player</button>
@@ -328,7 +376,7 @@
     modal.innerHTML = `<section class="hs-reader-xi-card${inline ? " hs-reader-xi-inline-card" : ""}" ${inline ? "" : 'role="dialog" aria-modal="true"'} aria-label="Build your ${esc(active.entity)} XI">
       <header><div><div class="hs-reader-xi-kicker">Build your XI</div><h2>${esc(active.entity)}</h2></div>${inline ? "" : '<button type="button" data-reader-close aria-label="Close">×</button>'}</header>
       <div class="hs-reader-xi-controls"><label>Formation<select data-reader-formation>${formationKeys(active.entity).map((key) => `<option ${key === active.state.formation ? "selected" : ""}>${esc(key)}</option>`).join("")}</select></label><span>Selections save automatically on this device.</span></div>
-      <div class="hs-reader-xi-layout"><div class="hs-reader-pitch">${positions.map((position, index) => `<div class="hs-reader-pitch-player ${active.state.xi[index] ? "selected" : "empty"}" style="left:${layout[index]?.x || 50}%;top:${layout[index]?.y || 50}%">${active.state.xi[index] ? `<strong>${esc(surname(active.state.xi[index]))}</strong>` : `<span>${esc(position)}</span>`}</div>`).join("")}</div>
+      <div class="hs-reader-xi-layout"><div class="hs-reader-pitch"><div class="hs-reader-pitch-markings" aria-hidden="true"><i class="top-box"></i><i class="bottom-box"></i><i class="center-spot"></i></div>${positions.map((position, index) => `<div class="hs-reader-pitch-player ${active.state.xi[index] ? "selected" : "empty"}" style="left:${layout[index]?.x || 50}%;top:${layout[index]?.y || 50}%">${active.state.xi[index] ? `<strong>${esc(surname(active.state.xi[index]))}</strong>` : `<span>${esc(position)}</span>`}</div>`).join("")}</div>
       <div class="hs-reader-selectors"><h3>Starting XI</h3>${positions.map((position, index) => `<label><span>${esc(position)}</span>${picker(position, active.state.xi[index], index, "xi", index)}</label>`).join("")}<h3>Bench</h3>${active.state.bench.map((name, index) => `<label><span>${index + 1}</span>${picker("", name, active.state.xi.length + index, "bench", index)}</label>`).join("")}<label class="hs-reader-notes"><span>Notes (optional)</span><textarea data-reader-notes maxlength="600" placeholder="Your thinking behind the XI…">${esc(active.state.notes || "")}</textarea></label></div></div>
       <footer><span class="hs-reader-save-status" aria-live="polite"></span><button type="button" data-reader-clear>Clear team</button><button type="button" data-reader-profile>Save to profile</button><button type="button" data-reader-library>My saved XIs</button><button type="button" data-reader-comment>Post as comment</button><button type="button" data-reader-image class="primary">Save image to device</button>${inline ? "" : '<button type="button" data-reader-close>Done</button>'}</footer></section>`;
   }

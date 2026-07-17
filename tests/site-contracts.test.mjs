@@ -204,11 +204,13 @@ test("reader XI selection uses eligible-player search instead of dropdowns", () 
 test("admins add reader players once and visually position every formation", () => {
   const reader = read("reader-xi.js");
   const adminCSS = read("css/features/reader-xi-admin.css");
-  assert.match(reader, /Add every player once/);
+  assert.match(reader, /Ranked players are added automatically/);
   assert.match(reader, /data-pool-name/);
   assert.match(reader, /data-pool-positions/);
   assert.match(reader, /Set reader players \(add once\)/);
   assert.match(reader, /Edit reader pitch layout/);
+  assert.match(reader, /function rankingPool/);
+  assert.match(reader, /ranking_\$\{section\}_\$\{era\}/);
   assert.match(reader, /reader_xi_layouts_v1/);
   assert.match(reader, /data-layout-marker/);
   assert.match(reader, /setPointerCapture/);
@@ -529,6 +531,9 @@ test("Tactics Board saves editable drafts and embeds read-only diagrams in edito
   assert.match(tactics, /data-tb-add="label"/);
   assert.match(tactics, /data-tb-add="defender"/);
   assert.match(tactics, /tactics_formations_v1/);
+  assert.match(tactics, /Site formations/);
+  assert.match(tactics, /HSSettings\?\.getFormations/);
+  assert.match(tactics, /reader_xi_layouts_v1/);
   assert.match(tactics, /Save current shape/);
   assert.match(tactics, /Final third/);
   assert.match(tactics, /function pitchLines/);
