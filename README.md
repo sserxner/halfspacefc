@@ -38,6 +38,8 @@ backup, synchronizes with GitHub, and publishes only if all checks pass.
 - [TESTING.md](TESTING.md) — automated protection
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — safe responses to common failures
 - [ROADMAP.md](ROADMAP.md) — preserved future product work
+- [SECURITY.md](SECURITY.md) — credentials, authorization, and incident response
+- [LICENSE.md](LICENSE.md) — proprietary use restrictions
 
 ## Safety rules
 

@@ -65,6 +65,12 @@
           crypto.getRandomValues(a);
           return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
         };
+        const cleanPublicText = (value, maximum) =>
+          String(value || "")
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+            .trim()
+            .slice(0, maximum);
+        let lastCommentAttempt = 0;
         function getGuest() {
           let id = localStorage.getItem(GUEST_ID_KEY),
             token = localStorage.getItem(GUEST_TOKEN_KEY);
@@ -468,7 +474,10 @@
         async function post(e, parentId) {
           e.preventDefault();
           if (state.settings.locked) return;
-          const body = $("#hsCommentBody" + parentId)?.value.trim();
+          const now = Date.now();
+          if (now - lastCommentAttempt < 3000) return;
+          lastCommentAttempt = now;
+          const body = cleanPublicText($("#hsCommentBody" + parentId)?.value, 5000);
           if (!body) return;
           const status = $("#hsPostStatus" + parentId);
           try {
@@ -484,8 +493,8 @@
               });
               if (error) throw error;
             } else {
-              const name = $("#hsGuestName" + parentId)?.value.trim(),
-                email = $("#hsGuestEmail" + parentId)?.value.trim() || null,
+              const name = cleanPublicText($("#hsGuestName" + parentId)?.value, 50),
+                email = cleanPublicText($("#hsGuestEmail" + parentId)?.value, 254) || null,
                 { id, token } = getGuest(),
                 editToken = randomToken();
               const { data, error } = await db.rpc("post_guest_comment", {

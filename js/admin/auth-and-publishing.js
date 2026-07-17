@@ -316,20 +316,53 @@
         }
       }
 
+      function requestGitHubToken() {
+        return new Promise((resolve) => {
+          const modal = document.createElement("div");
+          modal.id = "hsTokenPrompt";
+          // Draft Comparison uses 100070, so authorization must sit above it.
+          modal.style.cssText = "position:fixed;inset:0;z-index:100100;background:rgba(5,16,9,.78);display:flex;align-items:center;justify-content:center;padding:1rem";
+          modal.innerHTML = '<form style="width:min(460px,100%);background:#fff;padding:1.5rem;border-radius:8px;font-family:var(--sans)"><h2 style="font-family:var(--serif);color:var(--accent);margin:0 0 .5rem">Authorize publishing</h2><p style="color:#555;font-size:.85rem;line-height:1.5">Enter a fine-grained GitHub token limited to the Half Space repository with Contents write access. It is kept only for this browser session.</p><label style="display:block;font-size:.8rem;font-weight:700;margin-top:1rem">GitHub token<input type="password" autocomplete="off" required style="display:block;width:100%;margin-top:.35rem;padding:.7rem;border:1px solid #bbb;border-radius:3px"></label><div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem"><button type="button">Cancel</button><button type="submit">Continue</button></div></form>';
+          const finish = (value) => { modal.remove(); resolve(value); };
+          modal.querySelector('button[type="button"]').onclick = () => finish("");
+          modal.onclick = (event) => { if (event.target === modal) finish(""); };
+          modal.querySelector("form").onsubmit = (event) => {
+            event.preventDefault();
+            finish(modal.querySelector('input[type="password"]').value.trim());
+          };
+          document.body.appendChild(modal);
+          modal.querySelector("input").focus();
+        });
+      }
+
       async function saveToGitHub() {
         const REPO = "sserxner/halfspacefc";
         const FILE = "index.html";
         const BRANCH = "main";
         const TOKEN_KEY = "hs_github_token";
 
-        let token = localStorage.getItem(TOKEN_KEY) || "";
+        // A publishing credential must never survive the browser session.
+        // Remove the legacy persistent copy before doing anything else.
+        localStorage.removeItem(TOKEN_KEY);
+        const db = window.HalfSpaceSupabase;
+        const sessionResult = await db?.auth?.getSession?.();
+        const session = sessionResult?.data?.session;
+        if (!session?.user) {
+          alert("Your admin session has expired. Sign in again before publishing.");
+          return false;
+        }
+        const adminResult = await db.rpc("is_site_admin");
+        if (adminResult.error || adminResult.data !== true) {
+          alert("Publishing was blocked because this account is not an authorized administrator.");
+          return false;
+        }
+
+        let token = sessionStorage.getItem(TOKEN_KEY) || "";
         if (!token) {
-          token = prompt(
-            "GitHub personal access token (stored only in this browser):\n\nGenerate at github.com/settings/tokens — classic token with repo scope",
-          );
+          token = await requestGitHubToken();
           if (!token || !token.trim()) return false;
           token = token.trim();
-          localStorage.setItem(TOKEN_KEY, token);
+          sessionStorage.setItem(TOKEN_KEY, token);
         }
 
         const btn = document.getElementById("githubSaveBtn");
@@ -364,13 +397,13 @@
               {
                 cache: "no-store",
                 headers: {
-                  Authorization: "token " + token,
+                  Authorization: "Bearer " + token,
                   Accept: "application/vnd.github.v3+json",
                 },
               },
             );
             if (getResp.status === 401) {
-              localStorage.removeItem(TOKEN_KEY);
+              sessionStorage.removeItem(TOKEN_KEY);
               if (btn) {
                 btn.textContent = origText;
                 btn.disabled = false;
@@ -387,7 +420,7 @@
               {
                 method: "PUT",
                 headers: {
-                  Authorization: "token " + token,
+                  Authorization: "Bearer " + token,
                   Accept: "application/vnd.github.v3+json",
                   "Content-Type": "application/json",
                 },

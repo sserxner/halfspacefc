@@ -338,6 +338,7 @@
   .hero [data-editable]:focus { background: rgba(255,255,255,0.1) !important; border-bottom-color: rgba(255,255,255,0.8) !important; }
 
   footer p { font-size: 0.85rem; color: rgba(255,255,255,0.65); font-family: var(--serif); font-style: italic; }
+  footer .hs-copyright { margin-top: 0.4rem; font: 500 0.68rem/1.4 var(--sans); font-style: normal; letter-spacing: 0.04em; }
 
   @media (max-width: 768px) {
     .nav-tab-band { display: none; }

@@ -77,3 +77,25 @@ test("owner documentation covers operation, recovery, and future work", () => {
   const roadmap = read("ROADMAP.md");
   ["Notebook", "Inline media", "Tactics-board", "transfer value", "blank optional field"].forEach((idea) => assert.ok(roadmap.includes(idea), `Roadmap lost: ${idea}`));
 });
+
+test("publishing credentials and authorization are hardened", () => {
+  const publishing = read("js/admin/auth-and-publishing.js");
+  assert.match(publishing, /sessionStorage\.getItem\(TOKEN_KEY\)/);
+  assert.match(publishing, /localStorage\.removeItem\(TOKEN_KEY\)/);
+  assert.match(publishing, /type=\\?"password/);
+  assert.match(publishing, /db\.rpc\("is_site_admin"\)/);
+  assert.match(publishing, /adminResult\.data !== true/);
+  assert.match(publishing, /z-index:100100/);
+  const comparisonCSS = read("css/admin/draft-comparison.css");
+  const comparisonLayer = Number(comparisonCSS.match(/z-index:\s*(\d+)/)?.[1] || 0);
+  assert.ok(100100 > comparisonLayer, "Token authorization must appear above Draft Comparison");
+  assert.doesNotMatch(publishing, /localStorage\.setItem\(TOKEN_KEY/);
+});
+
+test("public comments retain output escaping and input limits", () => {
+  const comments = read("comments.js");
+  assert.match(comments, /cleanPublicText/);
+  assert.match(comments, /slice\(0, maximum\)/);
+  assert.match(comments, /esc\(c\.body\)/);
+  assert.match(comments, /now - lastCommentAttempt < 3000/);
+});
