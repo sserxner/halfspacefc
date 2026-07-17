@@ -10,5 +10,11 @@ publishing flow do not depend on runtime HTML requests.
   `node tools/modularize-html.mjs .` before editing components so the latest live
   content is retained.
 
-CSS remains in its current files for Step 30. Inline JavaScript remains in the
-template for Step 31.
+Inline JavaScript remains in the template for Step 31.
+
+## CSS modules
+
+Step 30 moved active styling into `css/`, grouped by public, admin, rankings,
+XI, community, feature, and responsive concerns. `styles.css` remains only as a
+compatibility marker. New styles should be added to the narrowest relevant
+module instead of restoring rules to the legacy file.
