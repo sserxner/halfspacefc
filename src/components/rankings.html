@@ -1,6 +1,10 @@
     <!-- RANKINGS -->
     <div class="page" id="page-rankings">
       <div class="content">
+        <nav class="hs-rankings-era-tabs" aria-label="Rankings period">
+          <button type="button" data-rankings-era="present" onclick="showRankingsEra('present')">Present Day</button>
+          <button class="active" type="button" data-rankings-era="century" onclick="showRankingsEra('century')">21st Century</button>
+        </nav>
         <!-- Primary position tabs -->
         <div class="sub-tabs" id="rankings-primary-tabs">
           <button class="sub-tab" onclick="showRankingSection('overall')">

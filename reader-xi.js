@@ -154,9 +154,13 @@
     canvas.toBlob((blob) => {
       if (!blob) return;
       const fileName = `${active.entity.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-xi.png`;
-      const file = new File([blob], fileName, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) navigator.share({ files: [file], title: `${active.entity} XI` }).catch(() => {});
-      else { const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = fileName; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); }
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }, "image/png");
   }
 
@@ -172,8 +176,9 @@
   }
 
   function render() {
-    const modal = document.getElementById("hsReaderXI");
+    const modal = active?.host || document.getElementById("hsReaderXI");
     if (!modal || !active) return;
+    const inline = Boolean(active.inline);
     const formation = window.HSFormationCatalog[active.state.formation];
     if (!formation) return;
     const positions = formation.positions.map((item) => item.label || item.pos);
@@ -181,12 +186,12 @@
     const rows = [];
     let cursor = 0;
     formation.rows.forEach((row) => { rows.push(row.map(() => cursor++)); });
-    modal.innerHTML = `<section class="hs-reader-xi-card" role="dialog" aria-modal="true" aria-label="Build your ${esc(active.entity)} XI">
-      <header><div><div class="hs-reader-xi-kicker">Build your XI</div><h2>${esc(active.entity)}</h2></div><button type="button" data-reader-close aria-label="Close">×</button></header>
+    modal.innerHTML = `<section class="hs-reader-xi-card${inline ? " hs-reader-xi-inline-card" : ""}" ${inline ? "" : 'role="dialog" aria-modal="true"'} aria-label="Build your ${esc(active.entity)} XI">
+      <header><div><div class="hs-reader-xi-kicker">Build your XI</div><h2>${esc(active.entity)}</h2></div>${inline ? "" : '<button type="button" data-reader-close aria-label="Close">×</button>'}</header>
       <div class="hs-reader-xi-controls"><label>Formation<select data-reader-formation>${formationKeys(active.entity).map((key) => `<option ${key === active.state.formation ? "selected" : ""}>${esc(key)}</option>`).join("")}</select></label><span>Selections save automatically on this device.</span></div>
       <div class="hs-reader-xi-layout"><div class="hs-reader-pitch">${[...rows].reverse().map((row) => `<div class="hs-reader-pitch-row">${[...row].reverse().map((index) => `<div class="hs-reader-pitch-player"><span>${esc(positions[index])}</span><strong>${esc(surname(active.state.xi[index]))}</strong></div>`).join("")}</div>`).join("")}</div>
       <div class="hs-reader-selectors"><h3>Starting XI</h3>${positions.map((position, index) => `<label><span>${esc(position)}</span><select data-reader-xi="${index}">${options(position, active.state.xi[index], index)}</select></label>`).join("")}<h3>Bench</h3>${active.state.bench.map((name, index) => `<label><span>${index + 1}</span><select data-reader-bench="${index}">${options("", name, active.state.xi.length + index)}</select></label>`).join("")}</div></div>
-      <footer><span class="hs-reader-save-status" aria-live="polite"></span><button type="button" data-reader-clear>Clear team</button><button type="button" data-reader-save>Remember XI</button><button type="button" data-reader-image class="primary">Save image</button><button type="button" data-reader-close>Done</button></footer></section>`;
+      <footer><span class="hs-reader-save-status" aria-live="polite"></span><button type="button" data-reader-clear>Clear team</button><button type="button" data-reader-save>Remember XI</button><button type="button" data-reader-image class="primary">Save image to device</button>${inline ? "" : '<button type="button" data-reader-close>Done</button>'}</footer></section>`;
   }
 
   function changeFormation(next) {
@@ -209,12 +214,44 @@
     const entity = entityFrom(container);
     const formations = formationKeys(entity);
     const fallback = { formation: formations[0] || "4-3-3", xi: [], bench: Array(9).fill("") };
-    active = { entity, container, pool: playerPool(container, entity), state: load(entity, fallback) };
+    active = { entity, container, pool: playerPool(container, entity), state: load(entity, fallback), inline: false };
     if (!formationKeys(entity).includes(active.state.formation)) active.state.formation = fallback.formation;
     active.state.bench = Array.from({ length: 9 }, (_, index) => active.state.bench?.[index] || "");
     let modal = document.getElementById("hsReaderXI");
     if (!modal) { modal = document.createElement("div"); modal.id = "hsReaderXI"; document.body.appendChild(modal); }
     modal.className = "open"; document.documentElement.classList.add("hs-reader-xi-open"); render();
+  }
+
+  function openInline(container) {
+    const entity = entityFrom(container);
+    const formations = formationKeys(entity);
+    const fallback = {
+      formation: formations[0] || "4-3-3",
+      xi: [],
+      bench: Array(9).fill(""),
+    };
+    let host = container.querySelector(":scope > .hs-reader-inline");
+    if (!host) {
+      host = document.createElement("div");
+      host.className = "hs-reader-inline";
+      const actions = container.querySelector(":scope > .hs-reader-actions");
+      actions?.insertAdjacentElement("afterend", host);
+    }
+    active = {
+      entity,
+      container,
+      host,
+      pool: playerPool(container, entity),
+      state: load(entity, fallback),
+      inline: true,
+    };
+    if (!formations.includes(active.state.formation))
+      active.state.formation = fallback.formation;
+    active.state.bench = Array.from(
+      { length: 9 },
+      (_, index) => active.state.bench?.[index] || "",
+    );
+    render();
   }
 
   function close() { document.getElementById("hsReaderXI")?.classList.remove("open"); document.documentElement.classList.remove("hs-reader-xi-open"); }
@@ -229,18 +266,36 @@
       const existingActions = container.querySelectorAll(".hs-reader-actions");
       if (
         existingActions.length === 1 &&
-        existingActions[0].querySelectorAll(".hs-build-xi-button").length === 1
-      ) return;
+        container.dataset.readerXiReady === "true"
+      ) {
+        if (typeof adminMode === "undefined" || !adminMode) {
+          container.classList.add("hs-editor-xi-collapsed");
+          if (!container.querySelector(":scope > .hs-reader-inline"))
+            openInline(container);
+        }
+        return;
+      }
       // Detail views can be redrawn in place. Clear every earlier copy,
       // including buttons nested inside an older header/action wrapper.
       container.querySelectorAll(".hs-reader-actions, .hs-build-xi-button, .hs-reader-pool-button").forEach((node) => node.remove());
       container.dataset.readerXiReady = "true";
       const actions = document.createElement("div");
       actions.className = "hs-reader-actions";
-      const button = document.createElement("button"); button.type = "button"; button.className = "hs-build-xi-button"; button.innerHTML = "<span>Build your XI</span><small>Choose your formation, starters and bench</small>";
-      button.addEventListener("click", () => open(container));
+      const editorToggle = document.createElement("button");
+      editorToggle.type = "button";
+      editorToggle.className = "hs-editor-xi-toggle";
+      editorToggle.textContent = "View Editor's XI";
+      editorToggle.setAttribute("aria-expanded", "false");
+      editorToggle.addEventListener("click", () => {
+        const showingEditor = container.classList.toggle("hs-editor-xi-visible");
+        container.classList.toggle("hs-editor-xi-collapsed", !showingEditor);
+        editorToggle.textContent = showingEditor
+          ? "Return to Build Your XI"
+          : "View Editor's XI";
+        editorToggle.setAttribute("aria-expanded", String(showingEditor));
+      });
       const header = container.querySelector(".section-header");
-      actions.appendChild(button);
+      actions.appendChild(editorToggle);
       if (typeof adminMode !== "undefined" && adminMode) {
         const config = document.createElement("button");
         config.type = "button";
@@ -248,9 +303,21 @@
         config.textContent = "Reader player options";
         config.addEventListener("click", () => configurePool(container));
         actions.prepend(config);
+        const cardLinks = document.createElement("button");
+        cardLinks.type = "button";
+        cardLinks.className = "rk-btn hs-xi-card-links-button";
+        cardLinks.textContent = "Player card links";
+        cardLinks.addEventListener("click", () =>
+          window.HSEditorXIPlayerLinks?.configure?.(container),
+        );
+        actions.prepend(cardLinks);
+        editorToggle.remove();
+      } else {
+        container.classList.add("hs-editor-xi-collapsed");
       }
       if (header) header.insertAdjacentElement("afterend", actions);
       else container.prepend(actions);
+      if (typeof adminMode === "undefined" || !adminMode) openInline(container);
     });
   }
 
@@ -276,5 +343,5 @@
   document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
   new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => node.nodeType === 1 && enhance(node)))).observe(document.body, { childList: true, subtree: true });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => enhance()); else enhance();
-  window.HSReaderXI = { open, close, enhance };
+  window.HSReaderXI = { open, openInline, close, enhance };
 })();

@@ -194,10 +194,9 @@
       }
     });
 
-    const close = drawer.querySelector(".rank-profile-close");
-    close?.parentElement
-      ? close.parentElement.insertBefore(button, close)
-      : drawer.prepend(button);
+    const body = drawer.querySelector(".rank-profile-body");
+    if (body) body.appendChild(button);
+    else drawer.appendChild(button);
   }
 
   function installClickRouting() {
@@ -238,20 +237,25 @@
     style.id = "hsRouterStyles";
     style.textContent = `
       .hs-profile-link-button {
-        position: relative;
-        z-index: 5;
-        border: 1px solid rgba(255,255,255,.42);
+        display: block;
+        width: fit-content;
+        margin: 1.15rem 0 0 auto;
+        border: 1px solid rgba(15,37,24,.2);
         border-radius: 999px;
-        background: rgba(10,31,18,.45);
-        color: #fff;
-        padding: .5rem .78rem;
-        font: 700 .62rem var(--sans);
+        background: transparent;
+        color: var(--gray-500, #667068);
+        padding: .4rem .68rem;
+        font: 650 .58rem var(--sans);
         letter-spacing: .05em;
         text-transform: uppercase;
         cursor: pointer;
-        backdrop-filter: blur(8px);
       }
-      .hs-profile-link-button:hover { background: rgba(255,255,255,.14); }
+      .hs-profile-link-button:hover,
+      .hs-profile-link-button:focus-visible {
+        color: var(--accent, #1f5a39);
+        border-color: currentColor;
+        background: rgba(31,90,57,.05);
+      }
     `;
     document.head.appendChild(style);
   }

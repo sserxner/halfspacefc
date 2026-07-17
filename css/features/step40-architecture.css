@@ -1,0 +1,171 @@
+/* Step 40 architecture layer. Full visual redesign remains a later batch. */
+.hs-rankings-era-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  max-width: 36rem;
+  margin: 0 auto 1.75rem;
+  padding: 0.35rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  background: var(--cream, #f7f4ed);
+}
+
+.hs-rankings-era-tabs button {
+  min-height: 2.65rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--green-900, #0b2f1d);
+  font: 700 0.82rem/1 var(--sans);
+  letter-spacing: 0.035em;
+  cursor: pointer;
+}
+
+.hs-rankings-era-tabs button.active {
+  color: #fff;
+  background: var(--green-700, #1f5a39);
+  box-shadow: 0 4px 14px rgba(11, 47, 29, 0.16);
+}
+
+.nav-tab-band {
+  gap: 0;
+}
+
+.nav-tab-band > .nav-tab,
+.nav-tab-band > .nav-dropdown > .nav-tab {
+  padding-inline: clamp(0.65rem, 1.25vw, 1.35rem);
+}
+
+@media (max-width: 1180px) {
+  .nav-tab-band > .nav-tab,
+  .nav-tab-band > .nav-dropdown > .nav-tab {
+    font-size: 0.68rem;
+    letter-spacing: 0.035em;
+    padding-inline: 0.65rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hs-rankings-era-tabs {
+    margin-bottom: 1.15rem;
+  }
+}
+
+.hs-editor-xi-player-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer !important;
+}
+
+.hs-editor-xi-player-link:hover,
+.hs-editor-xi-player-link:focus-visible {
+  color: inherit;
+  text-shadow: 0 0 0.65rem rgba(228, 195, 74, 0.72);
+  outline: 1px dotted rgba(228, 195, 74, 0.7);
+  outline-offset: 0.2rem;
+}
+
+#hsXIPlayerCardLinks {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 130000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(7, 20, 12, 0.84);
+}
+
+#hsXIPlayerCardLinks.open {
+  display: flex;
+}
+
+.hs-xi-card-link-card {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 8px;
+  background: #f8f7f3;
+  color: #172019;
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.5);
+}
+
+.hs-xi-card-link-card > header,
+.hs-xi-card-link-card > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #ddd8ca;
+}
+
+.hs-xi-card-link-card > header h2 {
+  margin: 0.12rem 0 0;
+  color: var(--accent);
+  font: 700 1.45rem var(--serif);
+}
+
+.hs-xi-card-link-card > header button {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 50%;
+  background: #eceae4;
+  font-size: 1.25rem;
+}
+
+.hs-xi-card-link-card > p {
+  margin: 0;
+  padding: 1rem 1.2rem 0.35rem;
+  color: #687069;
+  font: 0.8rem/1.5 var(--sans);
+}
+
+.hs-xi-card-link-rows {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem 1.2rem 1.2rem;
+}
+
+.hs-xi-card-link-rows label {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.65fr) minmax(220px, 1.35fr);
+  align-items: center;
+  gap: 0.75rem;
+  font: 700 0.72rem var(--sans);
+}
+
+.hs-xi-card-link-rows select {
+  min-width: 0;
+  width: 100%;
+  padding: 0.48rem;
+  border: 1px solid #d5d2c8;
+  background: #fff;
+}
+
+.hs-xi-card-link-card > footer {
+  justify-content: flex-end;
+  border-top: 1px solid #ddd8ca;
+  border-bottom: 0;
+}
+
+.hs-xi-card-link-card > footer button {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #cfcbbf;
+  background: #fff;
+}
+
+.hs-xi-card-link-card > footer .primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .hs-xi-card-link-rows label {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}

@@ -48,23 +48,15 @@
         <button class="nav-tab" onclick="showPage('transfers')">
           Transfer Recommendations
         </button>
-        <button class="nav-tab" onclick="showPage('present-rankings')">
-          Present Rankings
+        <button class="nav-tab hs-rankings-nav" onclick="showRankingsEra('present')">
+          Rankings
         </button>
-        <div class="nav-dropdown" id="centuryRankingsDropdown">
-          <button aria-expanded="false" aria-haspopup="true" class="nav-tab nav-dropdown-toggle" id="centuryRankingsToggle" type="button">
-            21<sup style="margin-right: 0.16em">st</sup>&nbsp;Century Rankings ▾
-          </button>
-          <div class="nav-dropdown-menu" id="centuryRankingsMenu" role="menu">
-            <button data-century-page="rankings" type="button">
-              Player Rankings
-            </button>
-            <button data-century-page="club-xi" type="button">Club XIs</button>
-            <button data-century-page="country-xi" type="button">
-              Country XIs
-            </button>
-          </div>
-        </div>
+        <button class="nav-tab hs-xi-nav" onclick="showPage('club-xi')">
+          Build a Club XI
+        </button>
+        <button class="nav-tab hs-xi-nav" onclick="showPage('country-xi')">
+          Build a Country XI
+        </button>
         <button class="nav-tab" onclick="showPage('positions')">
           Positions
         </button>
@@ -102,28 +94,22 @@
         Transfer Recommendations
       </button>
       <button class="nav-tab" onclick="
-          showPage('present-rankings');
+          showRankingsEra('present');
           toggleMobileMenu();
         ">
-        Present Rankings
-      </button>
-      <button class="nav-tab" onclick="
-          showPage('rankings');
-          toggleMobileMenu();
-        ">
-        21st Century — Player Rankings
+        Rankings
       </button>
       <button class="nav-tab" onclick="
           showPage('club-xi');
           toggleMobileMenu();
         ">
-        21st Century — Club XIs
+        Build a Club XI
       </button>
       <button class="nav-tab" onclick="
           showPage('country-xi');
           toggleMobileMenu();
         ">
-        21st Century — Country XIs
+        Build a Country XI
       </button>
       <button class="nav-tab" onclick="
           showPage('positions');
@@ -186,8 +172,8 @@
     <script src="js/admin/auth-and-publishing.js?v=38"></script>
     <link rel="stylesheet" href="css/features/reader-xi.css?v=39">
     <link rel="stylesheet" href="css/features/reader-xi-admin.css?v=39">
-    <link rel="stylesheet" href="css/features/reader-xi-polish.css?v=39">
-    <script src="reader-xi.js?v=39" defer></script>
+    <link rel="stylesheet" href="css/features/reader-xi-polish.css?v=40.4">
+    <script src="reader-xi.js?v=40.4" defer></script>
     <script src="streets-xi.js?v=39" defer></script>
     <script src="js/core/init.js?v=31"></script>
     <div id="adminToolbar" style="display:none">
@@ -243,6 +229,8 @@
     </div>
     <link id="halfspace-architecture-overrides" rel="stylesheet" href="css/features/halfspace-architecture-overrides.css?v=30">
     <script src="app.js?v=21"></script>
+    <link rel="stylesheet" href="css/features/step40-architecture.css?v=40.3">
+    <script src="rankings-architecture.js?v=40.3"></script>
     <link id="halfspace-position-subtypes-styles" rel="stylesheet" href="css/rankings/halfspace-position-subtypes-styles.css?v=30">
     <link id="halfspace-requested-updates" rel="stylesheet" href="css/features/halfspace-requested-updates.css?v=30">
     <link id="scouting-rankings-style-fix" rel="stylesheet" href="css/rankings/scouting-rankings-style-fix.css?v=30">
@@ -316,7 +304,7 @@
         </form>
       </div>
     </div>
-    <script src="comments.js?v=37"></script>
+    <script src="comments.js?v=40.1"></script>
     <link id="hs-mobile-final-cascade-fix" rel="stylesheet" href="css/responsive/hs-mobile-final-cascade-fix.css?v=30">
     <link id="desktop-century-hover-account-fix" rel="stylesheet" href="css/features/desktop-century-hover-account-fix.css?v=30">
 
@@ -378,7 +366,8 @@
     <script src="slug-manager.js?v=19"></script>
     <script src="redirect-manager.js?v=19"></script>
     <script src="editorial.js?v=20"></script>
-    <script src="router.js?v=17"></script>
+    <script src="router.js?v=40.3"></script>
+    <script src="xi-player-links.js?v=40.3"></script>
     <script src="ranking-editor.js?v=19"></script>
     <script src="command-palette.js?v=38"></script>
     <script src="content-manager.js?v=38"></script>

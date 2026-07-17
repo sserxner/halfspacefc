@@ -148,6 +148,37 @@
           if (!COMMENT_PAGES.has(p)) return null;
           return document.querySelector("#page-" + CSS.escape(p));
         }
+        function legacyKeysForCurrentThread() {
+          // The original Country XI comments all shared one key. Preserve the
+          // known Brazil thread while the architecture moves to team-specific keys.
+          return state.pageKey === "halfspace:country-xi:country:brazil"
+            ? ["halfspace:country-xi"]
+            : [];
+        }
+        function keepMigratedThread(comments) {
+          if (state.pageKey !== "halfspace:country-xi:country:brazil")
+            return comments;
+          const keep = new Set(
+            comments
+              .filter(
+                (comment) =>
+                  comment.page_key === state.pageKey ||
+                  /hexacampe[oõ]nes/i.test(comment.body || ""),
+              )
+              .map((comment) => comment.id),
+          );
+          let changed = true;
+          while (changed) {
+            changed = false;
+            comments.forEach((comment) => {
+              if (comment.parent_id && keep.has(comment.parent_id) && !keep.has(comment.id)) {
+                keep.add(comment.id);
+                changed = true;
+              }
+            });
+          }
+          return comments.filter((comment) => keep.has(comment.id));
+        }
         function ensureAccountArea() {
           if ($("#hsAccountArea")) return;
           const bar = document.querySelector(".nav-logo-bar");
@@ -226,6 +257,7 @@
           removeComments();
           if (!host) return;
           state.pageKey = derivePageKey();
+          const pageKeys = [state.pageKey, ...legacyKeysForCurrentThread()];
           const [{ data: comments, error }, { data: settings }] =
             await Promise.all([
               db
@@ -233,7 +265,7 @@
                 .select(
                   "id,page_key,parent_id,user_id,guest_id,display_name,body,status,pinned,editors_pick,posted_as_editor,created_at,updated_at,edited_at",
                 )
-                .eq("page_key", state.pageKey)
+                .in("page_key", pageKeys)
                 .in("status", ["published", "deleted"]),
               db
                 .from("comment_settings")
@@ -245,7 +277,7 @@
             console.error(error);
             return;
           }
-          state.comments = comments || [];
+          state.comments = keepMigratedThread(comments || []);
           state.settings = settings || { locked: false };
           await loadProfiles(state.comments.map((c) => c.user_id));
           mountComments(host);

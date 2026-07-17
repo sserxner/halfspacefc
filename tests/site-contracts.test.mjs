@@ -27,11 +27,66 @@ test("club and country clicks use the fast local slug path", () => {
   assert.match(navigation, /showClubList\("replace"\)/);
 });
 
-test("desktop dropdowns can reopen after a submenu selection", () => {
+test("desktop Misc dropdown can reopen after a submenu selection", () => {
   const app = read("app.js");
-  assert.match(app, /\["centuryRankingsDropdown", "miscDropdown"\]/);
+  assert.match(app, /miscDropdown/);
   assert.match(app, /addEventListener\("pointerenter"/);
   ["hs-dropdown-dismissed", "hs-force-closed", "hs-selection-closed"].forEach((name) => assert.ok(app.includes(name)));
+});
+
+test("Step 40 unifies rankings and promotes both XI builders", () => {
+  const template = read("src/index.template.html");
+  const architecture = read("rankings-architecture.js");
+  assert.match(template, />\s*Rankings\s*</);
+  assert.match(template, /Build a Club XI/);
+  assert.match(template, /Build a Country XI/);
+  assert.match(template, /data-misc-page="streets"/);
+  assert.doesNotMatch(template, /id="centuryRankingsDropdown"/);
+  assert.match(architecture, /showRankingsEra/);
+  assert.match(architecture, /present-rankings/);
+  assert.match(architecture, /"rankings"/);
+  assert.match(read("src/components/present-rankings.html"), /data-rankings-era="century"/);
+  assert.match(read("src/components/rankings.html"), /data-rankings-era="present"/);
+});
+
+test("only Editor XIs link names to existing player cards", () => {
+  const links = read("xi-player-links.js");
+  const reader = read("reader-xi.js");
+  const template = read("src/index.template.html");
+  assert.match(links, /#country-detail-content, #club-detail-content, #streets-xi-content/);
+  assert.match(links, /openRankProfile/);
+  assert.match(links, /\.pitch-label:not\(\.empty-label\), \.bench-name/);
+  assert.match(links, /typeof adminMode !== "undefined" && adminMode/);
+  assert.match(links, /tiedNames\.size === 1/);
+  assert.match(links, /xi_player_card_links_v1/);
+  assert.match(links, /function configure\(container\)/);
+  assert.match(links, /data-card-link-slot/);
+  assert.doesNotMatch(reader, /hs-editor-xi-player-link/);
+  assert.match(template, /xi-player-links\.js\?v=40\.3/);
+});
+
+test("XI pages lead with the builder and keep the Editor XI optional", () => {
+  const reader = read("reader-xi.js");
+  const polish = read("css/features/reader-xi-polish.css");
+  assert.match(reader, /View Editor's XI/);
+  assert.match(reader, /hs-editor-xi-collapsed/);
+  assert.match(reader, /Player card links/);
+  assert.match(polish, /\.hs-editor-xi-collapsed > \.xi-wrapper/);
+  assert.match(polish, /\.hs-editor-xi-collapsed > \.xi-bench-wrap/);
+});
+
+test("homepage nav is neutral and Streets introduction is editor-controlled", () => {
+  const architecture = read("rankings-architecture.js");
+  const streets = read("src/components/streets-wont-forget.html");
+  assert.match(architecture, /if \(centuryActive \|\| presentActive\)/);
+  assert.match(streets, /data-editable="streets_intro"/);
+});
+
+test("profile copy link sits quietly at the end of the player card", () => {
+  const router = read("router.js");
+  assert.match(router, /body\.appendChild\(button\)/);
+  assert.match(router, /margin: 1\.15rem 0 0 auto/);
+  assert.doesNotMatch(router, /insertBefore\(button, close\)/);
 });
 
 test("publishing keeps safeguards, retry handling, and a pre-publish backup", () => {
@@ -131,13 +186,14 @@ test("the green bar prioritizes daily work and groups specialist tools", () => {
   assert.doesNotMatch(template, /data-admin-tool="media"/);
 });
 
-test("reader XIs enforce valid selection and phone-image saving", () => {
+test("reader XIs enforce valid selection and direct device-image saving", () => {
   const reader = read("reader-xi.js");
   const template = read("src/index.template.html");
   assert.match(reader, /STORAGE_PREFIX/);
   assert.match(reader, /selected\(except\)/);
   assert.match(reader, /compatible\(player, position\)/);
-  assert.match(reader, /navigator\.share/);
+  assert.match(reader, /link\.download = fileName/);
+  assert.doesNotMatch(reader, /navigator\.share/);
   assert.doesNotMatch(reader, /function streetsPool\(\)/);
   assert.match(reader, /reader_xi_pools_v1/);
   assert.match(reader, /Reader player options/);
@@ -146,14 +202,14 @@ test("reader XIs enforce valid selection and phone-image saving", () => {
   assert.match(reader, /node\.closest\(selector\)/);
   assert.match(reader, /\[\.\.\.new Set\(candidates\)\]/);
   assert.match(reader, /existingActions\.length === 1/);
-  assert.match(reader, /querySelectorAll\("\.hs-build-xi-button"\)\.length === 1/);
-  assert.match(reader, /Choose your formation, starters and bench/);
+  assert.match(reader, /function openInline\(container\)/);
+  assert.match(reader, /Save image to device/);
   assert.match(template, /data-misc-page="streets"/);
   assert.match(template, /streets-wont-forget\.html/);
-  assert.match(template, /reader-xi-polish\.css\?v=39/);
+  assert.match(template, /reader-xi-polish\.css\?v=40\.4/);
   assert.match(reader, /image\/png/);
   assert.match(reader, /insertAdjacentElement\("afterend", actions\)/);
-  assert.match(template, /reader-xi\.js\?v=39/);
+  assert.match(template, /reader-xi\.js\?v=40\.4/);
   assert.match(template, /id="hsMediaToolbarButton"/);
 });
 
@@ -200,6 +256,8 @@ test("XI comments use one thread per team and Streets version", () => {
   assert.match(comments, /"country:" \+ content\.dataset\.countryId/);
   assert.match(comments, /"club:" \+ content\.dataset\.clubId/);
   assert.match(comments, /readerStorageKey/);
+  assert.ok(comments.includes("hexacampe[oõ]nes"));
+  assert.match(comments, /halfspace:country-xi/);
   assert.match(comments, /"showCountryDetail"/);
   assert.match(comments, /"showClubDetail"/);
 });

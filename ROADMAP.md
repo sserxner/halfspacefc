@@ -3,6 +3,18 @@
 These ideas are preserved for later product steps; they are not claims about
 features already available.
 
+## Step 40 delivery order
+
+1. Unified Rankings architecture, dedicated Club/Country XI destinations,
+   comment migration, and Editor XI preservation.
+2. XI builder completion: builder-first pages, subtle Editor's XI view,
+   profile saves, optional image comments, and mobile image export.
+3. Tactics Board.
+4. Notebook and inline media.
+5. Player cards and career-map data.
+6. Full public-site, admin, and pitch visual redesign.
+7. Whole-site integration, performance, accessibility, and regression testing.
+
 ## Editorial and media
 
 - A Notebook area, informed by the earlier Transfer Recommendations concept

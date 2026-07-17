@@ -1,0 +1,23 @@
+{
+  "capturedFrom": "Step 39 live source before Step 40 navigation migration",
+  "minimums": {
+    "allXIKeys": 517,
+    "clubXIKeys": 286,
+    "countryXIKeys": 208,
+    "otherXIKeys": 23,
+    "nonBlankXIKeys": 516,
+    "formationKeys": 20,
+    "managerKeys": 23
+  },
+  "requiredFormationKeys": [
+    "formation_Brazil",
+    "formation_Arsenal",
+    "formation_Paris_Saint-Germain",
+    "formation_Real_Madrid",
+    "formation_Juventus"
+  ],
+  "requiredDataContracts": [
+    "reader_xi_pools_v1",
+    "site_settings_v1"
+  ]
+}

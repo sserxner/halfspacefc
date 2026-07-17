@@ -34,6 +34,37 @@ test("XI selection code guards starters and bench from duplicate players", () =>
   assert.match(editor, /bench/i);
 });
 
+test("Step 40 preserves every existing Editor XI data family", () => {
+  const baseline = JSON.parse(read("data/step40-xi-migration-baseline.json"));
+  const keys = Object.keys(data);
+  const xiKeys = keys.filter((key) => key.startsWith("xi_"));
+  const clubKeys = xiKeys.filter((key) => key.startsWith("xi_club_"));
+  const countryKeys = xiKeys.filter((key) => key.startsWith("xi_country_"));
+  const otherKeys = xiKeys.filter(
+    (key) => !key.startsWith("xi_club_") && !key.startsWith("xi_country_"),
+  );
+  const formationKeys = keys.filter((key) => key.startsWith("formation_"));
+  const managerKeys = keys.filter((key) => key.startsWith("xi_manager_"));
+  const minimums = baseline.minimums;
+
+  assert.ok(xiKeys.length >= minimums.allXIKeys, "Editor XI records were lost");
+  assert.ok(clubKeys.length >= minimums.clubXIKeys, "Club XI records were lost");
+  assert.ok(countryKeys.length >= minimums.countryXIKeys, "Country XI records were lost");
+  assert.ok(otherKeys.length >= minimums.otherXIKeys, "Streets or other XI records were lost");
+  assert.ok(
+    xiKeys.filter((key) => String(data[key] ?? "").trim()).length >= minimums.nonBlankXIKeys,
+    "Populated Editor XI selections were blanked",
+  );
+  assert.ok(formationKeys.length >= minimums.formationKeys, "XI formations were lost");
+  assert.ok(managerKeys.length >= minimums.managerKeys, "XI managers were lost");
+  baseline.requiredFormationKeys.forEach((key) =>
+    assert.ok(Object.hasOwn(data, key), `Missing preserved formation: ${key}`),
+  );
+  baseline.requiredDataContracts.forEach((key) =>
+    assert.ok(Object.hasOwn(data, key), `Missing XI contract: ${key}`),
+  );
+});
+
 test("redirect records have unique sources and no direct self-loop", () => {
   const redirects = data.redirect_management_v1?.manual || [];
   const sources = new Set();
