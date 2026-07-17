@@ -207,7 +207,9 @@
           "#hsScheduleManager",
           "#hsDraftComparison",
           "#hsExistingPlayerModal",
-          "#hsContentButton", "#cmsToolbarButton", "#hsContentManager", "#hsContentStyles",
+          "#hsContentButton", "#cmsToolbarButton", "#hsContentManager", "#hsContentInventory", "#hsContentStyles",
+          "#adminModal", "#positionSubtypeModal",
+          "#hsReaderXI", "#hsReaderPoolEditor",
           "#hsStudio",
           "#hsHeaderSearch",
           "#hsCommandPalette", "#hsCommandButton", "#hsCommandStyles",
@@ -224,6 +226,9 @@
         ].forEach((selector) =>
           exportRoot.querySelectorAll(selector).forEach((node) => node.remove()),
         );
+        exportRoot.querySelectorAll("script").forEach((node) => {
+          if (/Code injected by live-server|Live reload enabled|new WebSocket\(address\)/.test(node.textContent || "")) node.remove();
+        });
         exportRoot.querySelectorAll(".hs-add-existing-player, .hs-rank-duplicate, .hs-duplicate-name-warning").forEach((node) => node.remove());
         resetSaveControls(exportRoot);
         let html = "<!DOCTYPE html>\n" + exportRoot.outerHTML;

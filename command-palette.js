@@ -119,6 +119,7 @@
     ["rankings", "21st Century Rankings"],
     ["club-xi", "Club XIs"],
     ["country-xi", "Country XIs"],
+    ["streets", "Streets Won't Forget"],
     ["continental-xi", "Continental XIs"],
     ["managers", "Influential Managers"],
     ["positions", "Positions"],

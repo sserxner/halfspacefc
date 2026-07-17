@@ -31,6 +31,7 @@
           "rankings",
           "country-xi",
           "club-xi",
+          "streets",
           "tv",
           "nba",
           "diary",
@@ -122,22 +123,24 @@
           else if (p === "tv")
             suffix = activeButtonValue("#tv-category-tabs", "data-category");
           else if (p === "country-xi") {
-            const h = document.querySelector("#page-country-xi .section-title");
-            suffix = h
-              ? h.textContent
-                  .trim()
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-")
-              : "";
+            const detail = document.getElementById("country-detail-view");
+            const content = document.getElementById("country-detail-content");
+            suffix =
+              detail?.style.display !== "none" && content?.dataset.countryId
+                ? "country:" + content.dataset.countryId
+                : "all-countries";
           } else if (p === "club-xi") {
-            const h = document.querySelector("#page-club-xi .section-title");
-            suffix = h
-              ? h.textContent
-                  .trim()
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-")
-              : "";
-          }
+            const detail = document.getElementById("club-detail-view");
+            const content = document.getElementById("club-detail-content");
+            suffix =
+              detail?.style.display !== "none" && content?.dataset.clubId
+                ? "club:" + content.dataset.clubId
+                : "all-clubs";
+          } else if (p === "streets")
+            suffix =
+              "lineup:" +
+              (document.getElementById("streets-xi-content")?.dataset
+                .readerStorageKey || "premier-league");
           return "halfspace:" + p + (suffix ? ":" + suffix : "");
         }
         function commentsHost() {
@@ -883,6 +886,10 @@
             "showRankingSection",
             "showNBAPosition",
             "showTVCategory",
+            "showCountryDetail",
+            "showClubDetail",
+            "returnToCountryList",
+            "returnToClubList",
           ];
           names.forEach((name) => {
             const orig = window[name];

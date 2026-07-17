@@ -42,11 +42,30 @@ while [ "$attempt" -le 2 ]; do
   echo "Synchronizing with the latest live files..."
   git fetch origin main
   if ! git rebase origin/main; then
-    git rebase --abort >/dev/null 2>&1 || true
-    echo "Deployment stopped safely because the same file changed in two places."
-    echo "Nothing was deleted. Ask Codex to resolve the conflict."
-    exit 1
+    conflicted_files=$(git diff --name-only --diff-filter=U)
+    if [ "$conflicted_files" = "index.html" ]; then
+      echo "Preserving the latest live content and rebuilding the generated page..."
+      if "$node_command" tools/resolve-generated-index.mjs "$site_root" &&
+        "$node_command" tools/build-site.mjs &&
+        git add index.html src/index.template.html &&
+        GIT_EDITOR=true git rebase --continue; then
+        echo "The generated page conflict was resolved automatically."
+      else
+        git rebase --abort >/dev/null 2>&1 || true
+        echo "Automatic recovery could not safely complete."
+        echo "Nothing was deleted. Ask Codex to inspect the deployment."
+        exit 1
+      fi
+    else
+      git rebase --abort >/dev/null 2>&1 || true
+      echo "Deployment stopped safely because source files changed in two places."
+      echo "Nothing was deleted. Ask Codex to resolve the conflict."
+      exit 1
+    fi
   fi
+
+  echo "Rechecking the synchronized site..."
+  "$node_command" tools/validate-site.mjs
 
   echo "Publishing to GitHub..."
   if git push origin main; then

@@ -23,8 +23,8 @@ test("club and country clicks use the fast local slug path", () => {
   assert.match(navigation, /function defaultXISlug/);
   assert.match(navigation, /const direct = COUNTRIES\.find/);
   assert.match(navigation, /const direct = CLUBS\.find/);
-  assert.match(navigation, /showCountryList\("none"\);\s*history\.back\(\)/);
-  assert.match(navigation, /showClubList\("none"\);\s*history\.back\(\)/);
+  assert.match(navigation, /showCountryList\("replace"\)/);
+  assert.match(navigation, /showClubList\("replace"\)/);
 });
 
 test("desktop dropdowns can reopen after a submenu selection", () => {
@@ -64,6 +64,16 @@ test("the one-click deployment remains executable and runs tests first", () => {
   const deploy = read("tools/deploy-site.sh");
   assert.match(deploy, /--test tests\/\*\.test\.mjs/);
   assert.ok(deploy.indexOf("--test tests/*.test.mjs") < deploy.indexOf("git add --all"));
+});
+
+test("deployment automatically rebuilds generated-index conflicts", () => {
+  const deploy = read("tools/deploy-site.sh");
+  const resolver = read("tools/resolve-generated-index.mjs");
+  assert.match(deploy, /conflicted_files/);
+  assert.match(deploy, /resolve-generated-index\.mjs/);
+  assert.match(deploy, /tools\/build-site\.mjs/);
+  assert.match(resolver, /git", \["show", ":2:index\.html"\]/);
+  assert.match(resolver, /Latest live content was preserved/);
 });
 
 test("owner documentation covers operation, recovery, and future work", () => {
@@ -119,4 +129,88 @@ test("the green bar prioritizes daily work and groups specialist tools", () => {
   ["Workflow", "Site setup", "URLs and discovery", "Site health", "Safety and access"].forEach((label) => assert.ok(template.includes(`>${label}</div>`), `More menu missing ${label}`));
   assert.doesNotMatch(template, /data-admin-tool="content"/);
   assert.doesNotMatch(template, /data-admin-tool="media"/);
+});
+
+test("reader XIs enforce valid selection and phone-image saving", () => {
+  const reader = read("reader-xi.js");
+  const template = read("src/index.template.html");
+  assert.match(reader, /STORAGE_PREFIX/);
+  assert.match(reader, /selected\(except\)/);
+  assert.match(reader, /compatible\(player, position\)/);
+  assert.match(reader, /navigator\.share/);
+  assert.doesNotMatch(reader, /function streetsPool\(\)/);
+  assert.match(reader, /reader_xi_pools_v1/);
+  assert.match(reader, /Reader player options/);
+  assert.match(reader, /positions: \["BENCH"\]/);
+  assert.match(reader, /querySelectorAll\("\.hs-reader-actions, \.hs-build-xi-button, \.hs-reader-pool-button"\)/);
+  assert.match(reader, /node\.closest\(selector\)/);
+  assert.match(reader, /\[\.\.\.new Set\(candidates\)\]/);
+  assert.match(reader, /existingActions\.length === 1/);
+  assert.match(reader, /querySelectorAll\("\.hs-build-xi-button"\)\.length === 1/);
+  assert.match(reader, /Choose your formation, starters and bench/);
+  assert.match(template, /data-misc-page="streets"/);
+  assert.match(template, /streets-wont-forget\.html/);
+  assert.match(template, /reader-xi-polish\.css\?v=39/);
+  assert.match(reader, /image\/png/);
+  assert.match(reader, /insertAdjacentElement\("afterend", actions\)/);
+  assert.match(template, /reader-xi\.js\?v=39/);
+  assert.match(template, /id="hsMediaToolbarButton"/);
+});
+
+test("corrected pitch sides preserve existing player assignments", () => {
+  const xis = read("js/public/navigation-and-xis.js");
+  assert.match(xis, /RB: "LB", LB: "RB"/);
+  assert.match(xis, /RCB: "LCB", LCB: "RCB"/);
+  assert.match(xis, /legacySideLabel\(p\.label\)/);
+});
+
+test("Streets Won't Forget keeps two owner-managed XI versions", () => {
+  const streets = read("streets-xi.js");
+  const component = read("src/components/streets-wont-forget.html");
+  assert.match(component, /Premier League Version/);
+  assert.match(component, /World Cup Version/);
+  assert.match(streets, /streets_premier_league/);
+  assert.match(streets, /streets_world_cup/);
+  assert.match(streets, /restoreXIData/);
+  assert.match(streets, /makeXIEditable/);
+  assert.doesNotMatch(streets, /ranking_/);
+});
+
+test("publishing strips transient admin and development UI", () => {
+  const publishing = read("js/admin/auth-and-publishing.js");
+  const deployment = read("tools/deploy-site.sh");
+  assert.match(publishing, /#hsContentInventory/);
+  assert.match(publishing, /Code injected by live-server/);
+  assert.match(deployment, /Rechecking the synchronized site/);
+});
+
+test("admins can create and remove Club and Country XI profiles", () => {
+  const xis = read("js/public/navigation-and-xis.js");
+  assert.match(xis, /function createXIProfile\(kind\)/);
+  assert.match(xis, /function deleteXIProfile\(kind, name\)/);
+  assert.match(xis, /xi_custom_profiles_v1/);
+  assert.match(xis, /xi_hidden_profiles_v1/);
+  assert.match(xis, /Its lineup data will be kept/);
+  assert.match(xis, /HSCommandPalette\?\.rebuild/);
+});
+
+test("XI comments use one thread per team and Streets version", () => {
+  const comments = read("comments.js");
+  assert.match(comments, /"streets"/);
+  assert.match(comments, /"country:" \+ content\.dataset\.countryId/);
+  assert.match(comments, /"club:" \+ content\.dataset\.clubId/);
+  assert.match(comments, /readerStorageKey/);
+  assert.match(comments, /"showCountryDetail"/);
+  assert.match(comments, /"showClubDetail"/);
+});
+
+test("XI list buttons replace detail state once without history bounce", () => {
+  const xis = read("js/public/navigation-and-xis.js");
+  assert.match(xis, /let hsXIListTransition = false/);
+  assert.match(xis, /showCountryList\("replace"\)/);
+  assert.match(xis, /showClubList\("replace"\)/);
+  const countryBack = xis.match(/function returnToCountryList\(\) \{([\s\S]*?)\n      \}/)?.[1] || "";
+  const clubBack = xis.match(/function returnToClubList\(\) \{([\s\S]*?)\n      \}/)?.[1] || "";
+  assert.doesNotMatch(countryBack, /history\.back/);
+  assert.doesNotMatch(clubBack, /history\.back/);
 });

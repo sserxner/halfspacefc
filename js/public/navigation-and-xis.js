@@ -1,5 +1,6 @@
       // ---- NAVIGATION ----
       let hsRestoringHistory = false;
+      let hsXIListTransition = false;
 
       function hsRouteState(extra) {
         return Object.assign(
@@ -32,6 +33,7 @@
       }
 
       function showPage(id, historyMode) {
+        syncXIProfiles();
         document
           .querySelectorAll(".page")
           .forEach((p) => p.classList.remove("active"));
@@ -49,6 +51,7 @@
         if (id === "scouting") renderScouting();
         if (id === "home") renderHomePostFeed();
         if (id === "positions") renderPositions();
+        if (id === "streets") window.HSStreetsXI?.render?.();
         if (id === "rankings") {
           renderAllRankings();
           showRankingSection("overall");
@@ -108,6 +111,66 @@
 
       // ---- COUNTRY VIEW ----
       let currentCountryView = "continent";
+
+      function syncXIProfiles() {
+        if (window.__hsXIProfilesSynced) return;
+        window.__hsXIProfilesSynced = true;
+        const custom = getData("xi_custom_profiles_v1", { country: [], club: [] }) || {};
+        const hidden = getData("xi_hidden_profiles_v1", { country: [], club: [] }) || {};
+        const merge = (list, additions, removed) => {
+          const hiddenNames = new Set((removed || []).map(String));
+          for (let index = list.length - 1; index >= 0; index--) if (hiddenNames.has(list[index].name)) list.splice(index, 1);
+          (additions || []).forEach((profile) => {
+            if (profile?.name && !list.some((item) => item.name.toLowerCase() === profile.name.toLowerCase())) list.push(profile);
+          });
+        };
+        merge(COUNTRIES, custom.country, hidden.country);
+        merge(CLUBS, custom.club, hidden.club);
+      }
+
+      function createXIProfile(kind) {
+        if (!adminMode) return;
+        const label = kind === "country" ? "country" : "club";
+        const name = prompt(`New ${label} XI profile name:`)?.trim();
+        if (!name) return;
+        const list = kind === "country" ? COUNTRIES : CLUBS;
+        if (list.some((item) => item.name.toLowerCase() === name.toLowerCase())) {
+          alert(`A ${label} XI profile with that name already exists.`);
+          return;
+        }
+        const region = prompt(kind === "country" ? "Continent:" : "Country / league:", "")?.trim() || "Other";
+        const profile = kind === "country"
+          ? { name, continent: region, wc: 0, euros: 0, copa: 0, afcon: 0, bestWC: "—", bestEuros: "—" }
+          : { name, country: region };
+        list.push(profile);
+        const custom = getData("xi_custom_profiles_v1", { country: [], club: [] }) || { country: [], club: [] };
+        custom.country ||= []; custom.club ||= []; custom[kind].push(profile);
+        setData("xi_custom_profiles_v1", custom);
+        const hidden = getData("xi_hidden_profiles_v1", { country: [], club: [] }) || { country: [], club: [] };
+        hidden.country ||= []; hidden.club ||= []; hidden[kind] = hidden[kind].filter((item) => item !== name);
+        setData("xi_hidden_profiles_v1", hidden);
+        window.HSCommandPalette?.rebuild?.();
+        if (kind === "country") { renderCountryDisplay(); showCountryDetail(name); }
+        else { buildClubGrid(); showClubDetail(name); }
+      }
+
+      function deleteXIProfile(kind, name) {
+        if (!adminMode || !confirm(`Remove the ${name} ${kind} XI profile from the public site?\n\nIts lineup data will be kept in case you restore it later.`)) return;
+        const list = kind === "country" ? COUNTRIES : CLUBS;
+        const index = list.findIndex((item) => item.name === name);
+        if (index >= 0) list.splice(index, 1);
+        const custom = getData("xi_custom_profiles_v1", { country: [], club: [] }) || { country: [], club: [] };
+        custom.country ||= []; custom.club ||= []; custom[kind] = custom[kind].filter((item) => item.name !== name);
+        setData("xi_custom_profiles_v1", custom);
+        const hidden = getData("xi_hidden_profiles_v1", { country: [], club: [] }) || { country: [], club: [] };
+        hidden.country ||= []; hidden.club ||= []; if (!hidden[kind].includes(name)) hidden[kind].push(name);
+        setData("xi_hidden_profiles_v1", hidden);
+        window.HSCommandPalette?.rebuild?.();
+        const tiers = getXITiers(kind).map((tier) => ({ ...tier, members: tier.members.filter((member) => member !== name) }));
+        setXITiers(kind, tiers);
+        if (kind === "country") { showCountryList("replace"); renderCountryDisplay(); }
+        else { showClubList("replace"); buildClubGrid(); }
+      }
 
       function setCountryView(view) {
         currentCountryView = view;
@@ -427,7 +490,7 @@
             )
             .join("") +
           (adminMode
-            ? `<button class="admin-add-btn xi-tier-add" onclick="xiTierAdd('country')">+ Add country tier</button>`
+            ? `<button class="admin-add-btn" onclick="createXIProfile('country')">+ Add Country XI</button><button class="admin-add-btn xi-tier-add" onclick="xiTierAdd('country')">+ Add country tier</button>`
             : "");
         bindCountryCards(container);
       }
@@ -508,9 +571,12 @@
         const storedFormation = getXIDataValue(formationStorageKey) || "4-3-3";
         const fKey = FORMATIONS[storedFormation] ? storedFormation : "4-3-3";
         content.innerHTML = buildXIDetail(name, country, fKey);
+        if (adminMode) content.querySelector(".section-header")?.insertAdjacentHTML("beforeend", `<button type="button" class="rk-btn rk-del" onclick="deleteXIProfile('country','${name.replace(/'/g, "\\'")}')">Delete profile</button>`);
         const key = "country_" + name.replace(/\s+/g, "_");
         restoreXIData(key, content);
         if (adminMode) makeXIEditable(key, content);
+        content.dataset.readerXiReady = "";
+        window.HSReaderXI?.enhance?.(content);
         writeHSHistory(
           {
             page: "country-xi",
@@ -521,7 +587,7 @@
         );
         requestAnimationFrame(() =>
           content
-            .querySelector(".pitch")
+            .querySelector(".section-header")
             ?.scrollIntoView({ block: "start", behavior: "auto" }),
         );
       }
@@ -535,15 +601,11 @@
         );
       }
       function returnToCountryList() {
-        const st = history.state;
-        if (st && st.halfspace && st.view === "country-detail") {
-          showCountryList("none");
-          history.back();
-        }
-        else {
-          showPage("country-xi");
-          showCountryList("replace");
-        }
+        if (hsXIListTransition) return;
+        hsXIListTransition = true;
+        showCountryList("replace");
+        window.scrollTo(0, 0);
+        window.setTimeout(() => { hsXIListTransition = false; }, 250);
       }
 
       // ---- CLUB XIs ----
@@ -707,7 +769,7 @@
             )
             .join("") +
           (adminMode
-            ? `<button class="admin-add-btn xi-tier-add" onclick="xiTierAdd('club')">+ Add club tier</button>`
+            ? `<button class="admin-add-btn" onclick="createXIProfile('club')">+ Add Club XI</button><button class="admin-add-btn xi-tier-add" onclick="xiTierAdd('club')">+ Add club tier</button>`
             : "");
       }
 
@@ -734,16 +796,19 @@
         const storedFormation = getXIDataValue(formationStorageKey) || "4-3-3";
         const fKey = FORMATIONS[storedFormation] ? storedFormation : "4-3-3";
         content.innerHTML = buildXIDetail(name, null, fKey);
+        if (adminMode) content.querySelector(".section-header")?.insertAdjacentHTML("beforeend", `<button type="button" class="rk-btn rk-del" onclick="deleteXIProfile('club','${name.replace(/'/g, "\\'")}')">Delete profile</button>`);
         const key = "club_" + name.replace(/\s+/g, "_");
         restoreXIData(key, content);
         if (adminMode) makeXIEditable(key, content);
+        content.dataset.readerXiReady = "";
+        window.HSReaderXI?.enhance?.(content);
         writeHSHistory(
           { page: "club-xi", view: "club-detail", item: clubSlug(name) },
           historyMode || "push",
         );
         requestAnimationFrame(() =>
           content
-            .querySelector(".pitch")
+            .querySelector(".section-header")
             ?.scrollIntoView({ block: "start", behavior: "auto" }),
         );
       }
@@ -756,15 +821,11 @@
         );
       }
       function returnToClubList() {
-        const st = history.state;
-        if (st && st.halfspace && st.view === "club-detail") {
-          showClubList("none");
-          history.back();
-        }
-        else {
-          showPage("club-xi");
-          showClubList("replace");
-        }
+        if (hsXIListTransition) return;
+        hsXIListTransition = true;
+        showClubList("replace");
+        window.scrollTo(0, 0);
+        window.setTimeout(() => { hsXIListTransition = false; }, 250);
       }
 
       // ---- XI BUILDER ----
@@ -1009,8 +1070,20 @@
 
         // Build label-based storage keys (handle duplicates: CB_0, CB_1)
         const labelCounts = {};
+        const legacySideLabel = (label) => {
+          const sidePairs = {
+            RB: "LB", LB: "RB", RCB: "LCB", LCB: "RCB",
+            RWB: "LWB", LWB: "RWB", RM: "LM", LM: "RM",
+            RCM: "LCM", LCM: "RCM", RAM: "LAM", LAM: "RAM",
+            RW: "LW", LW: "RW", RF: "LF", LF: "RF",
+          };
+          return sidePairs[label] || label;
+        };
         const posKeys = positions.map((p) => {
-          const lc = p.label.replace(/[^a-zA-Z0-9]/g, "_");
+          // Existing XIs were entered while left/right rendered backwards.
+          // Keep those saved players on their intended visual side while the
+          // corrected pitch labels and editor controls remain left/right true.
+          const lc = legacySideLabel(p.label).replace(/[^a-zA-Z0-9]/g, "_");
           labelCounts[lc] = labelCounts[lc] || 0;
           const key = lc + "_" + labelCounts[lc];
           labelCounts[lc]++;
@@ -1111,8 +1184,10 @@
           "country-detail-content",
         );
         const clubContent = document.getElementById("club-detail-content");
+        const streetsContent = document.getElementById("streets-xi-content");
         const countryView = document.getElementById("country-detail-view");
         const clubView = document.getElementById("club-detail-view");
+        const streetsView = document.getElementById("page-streets");
         let detailContent = null;
         let keyPrefix = "";
         if (countryView && countryView.style.display !== "none") {
@@ -1121,6 +1196,9 @@
         } else if (clubView && clubView.style.display !== "none") {
           detailContent = clubContent;
           keyPrefix = "club_";
+        } else if (streetsView?.classList.contains("active") && streetsContent) {
+          detailContent = streetsContent;
+          keyPrefix = "";
         } else {
           // Continental — find the visible xi- div
           const visibleXi = [
@@ -1143,9 +1221,16 @@
         if (!detailContent) return;
         const meta = hasMeta === "true" ? window.__lastMeta || null : null;
         detailContent.innerHTML = buildXIDetail(name, meta, fKey);
-        const key = keyPrefix + name.replace(/\s+/g, "_");
+        const key = detailContent.dataset.readerStorageKey || keyPrefix + name.replace(/\s+/g, "_");
         restoreXIData(key, detailContent);
         if (adminMode) makeXIEditable(key, detailContent);
+        detailContent.dataset.readerXiReady = "";
+        window.HSReaderXI?.enhance?.(detailContent);
+        if (detailContent === streetsContent) {
+          const profileLabel = name.includes("World Cup") ? "World Cup Version" : "Premier League Version";
+          const title = detailContent.querySelector(".section-title");
+          if (title) title.textContent = profileLabel;
+        }
       }
 
       // ---- CONTINENTAL XIs ----
@@ -1234,3 +1319,6 @@
           submit.textContent = originalLabel;
         }
       }
+
+      // Apply saved additions/removals before global search builds its catalog.
+      syncXIProfiles();
