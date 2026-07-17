@@ -569,6 +569,24 @@ test("Diaries and Transfer Recommendations use a full editorial composer", () =>
   assert.match(template, /editorial-composer\.js/);
 });
 
+test("Notebook stays private while supporting recovery and deliberate conversion", () => {
+  const notebook = read("notebook.js");
+  const studio = read("studio.js");
+  const template = read("src/index.template.html");
+  assert.match(notebook, /notebook_pages_v1/);
+  assert.match(notebook, /Saved privately/);
+  assert.match(notebook, /revisions\.slice\(0,30\)/);
+  assert.match(notebook, /data-note-restore/);
+  assert.match(notebook, /HSMediaManager/);
+  assert.match(notebook, /tacticsBoardEmbeds/);
+  assert.match(notebook, /Copy to Matchday Diary/);
+  assert.match(notebook, /Copy to Transfer Recommendation/);
+  assert.match(notebook, /HSEditorialComposer/);
+  assert.match(studio, /\["notebook", "Notebook"\]/);
+  assert.match(template, /notebook\.js/);
+  assert.match(template, /notebook\.css/);
+});
+
 test("reused XI detail containers always reopen on the customizable builder", () => {
   const reader = read("reader-xi.js");
   assert.match(reader, /Never carry the previous team's Editor-XI view state/);

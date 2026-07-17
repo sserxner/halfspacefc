@@ -116,10 +116,10 @@
     if (button.dataset.removeBoard !== undefined) { state.record.tacticsBoardEmbeds.splice(Number(button.dataset.removeBoard),1); renderAssets(); renderPreview(); }
     if (button.dataset.editBoard) window.HSTacticsBoard?.open?.({id:button.dataset.editBoard});
   }
-  function open(type, index = -1) {
+  function open(type, index = -1, seed = null) {
     if (!isAdmin()) return false;
     const c = config(type), records = read(c.key, []);
-    state = {type, index, record:ensureRecord(index >= 0 ? records[index] : {published:false,date:new Date().toLocaleDateString()}, type)};
+    state = {type, index, record:ensureRecord(index >= 0 ? records[index] : {...(seed || {}),published:false,date:seed?.date || new Date().toLocaleDateString()}, type)};
     render();
     document.getElementById("hsEditorialComposer").classList.add("open");
     document.body.classList.add("hs-compose-open");
