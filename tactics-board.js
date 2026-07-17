@@ -62,7 +62,7 @@
       return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="90" x2="975" y2="90"/><rect x="260" y="440" width="480" height="235"/><rect x="375" y="580" width="250" height="95"/><line x1="425" y1="675" x2="425" y2="692"/><line x1="575" y1="675" x2="575" y2="692"/><circle cx="500" cy="515" r="5"/><path d="M390 440 A120 120 0 0 1 610 440"/>`;
     if (section === "half")
       return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="675" x2="975" y2="675"/><rect x="260" y="25" width="480" height="235"/><rect x="375" y="25" width="250" height="95"/><circle cx="500" cy="185" r="5"/><path d="M390 260 A120 120 0 0 0 610 260"/><path d="M395 675 A105 105 0 0 1 605 675"/>`;
-    return `<rect x="25" y="25" width="950" height="650"/><line x1="500" y1="25" x2="500" y2="675"/><circle cx="500" cy="350" r="85"/><rect x="25" y="215" width="150" height="270"/><rect x="825" y="215" width="150" height="270"/><circle cx="500" cy="350" r="5"/>`;
+    return `<rect x="25" y="25" width="950" height="650"/><line x1="25" y1="350" x2="975" y2="350"/><circle cx="500" cy="350" r="85"/><circle cx="500" cy="350" r="5"/><rect x="260" y="25" width="480" height="180"/><rect x="375" y="25" width="250" height="75"/><circle cx="500" cy="155" r="5"/><rect x="260" y="495" width="480" height="180"/><rect x="375" y="600" width="250" height="75"/><circle cx="500" cy="545" r="5"/>`;
   }
   function saveBoard() {
     if (!board) return;

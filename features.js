@@ -808,7 +808,7 @@
           b.dataset.rankKey = k;
           b.dataset.tierIndex = t;
           b.dataset.entryIndex = e;
-          b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([specificPosition, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${adminMode && !structuredProfileStarted ? `<section class="rank-profile-admin-empty"><strong>New player profile fields are ready</strong><span>Add career-map stops, current-player facts, individual awards and your scouting fields.</span><button type="button" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Set up player card</button></section>` : ""}${profileFactsHTML(c)}${specificPosition ? `<section class="rank-profile-section"><div class="rank-profile-label">Specific Position</div><div class="rank-profile-copy">${positionMeaningURL ? `<a class="rank-profile-position-link" href="${esc(positionMeaningURL)}">${esc(specificPosition)}</a>` : esc(specificPosition)}</div></section>` : ""}${careerMapHTML(stints)}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}${!stints.length && teamTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Team Titles</div><div class="rank-profile-honors">${teamTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${awardsHTML(awards)}${!awards.length && individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Individual Titles</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${!stints.length && timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Teams &amp; Country</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}${comparisons ? `<section class="rank-profile-section"><div class="rank-profile-label">Player Comps</div><div class="rank-profile-copy rank-profile-preline">${esc(comparisons)}</div></section>` : ""}${interestedClubs ? `<section class="rank-profile-section"><div class="rank-profile-label">Clubs That Should Be Interested</div><div class="rank-profile-copy rank-profile-preline">${esc(interestedClubs)}</div></section>` : ""}${suggestedMove ? `<section class="rank-profile-section"><div class="rank-profile-label">Suggested Next Move</div><div class="rank-profile-copy rank-profile-preline">${esc(suggestedMove)}</div></section>` : ""}${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit player card</button>` : ""}</div></aside>`;
+          b.innerHTML = `<aside class="rank-profile-drawer"><div class="rank-profile-hero">${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}<button class="rank-profile-close" onclick="closeRankProfile()">×</button><div class="rank-profile-heading"><div class="rank-profile-rank">#${globalRank(k, t, e)}</div><div class="rank-profile-name">${esc(x.name || "")}</div><div class="rank-profile-meta">${esc([specificPosition, c.nationality, c.years].filter(Boolean).join(" · ") || x.detail || "")}</div></div></div><div class="rank-profile-body">${adminMode && !structuredProfileStarted ? `<section class="rank-profile-admin-empty"><strong>New player profile fields are ready</strong><span>Add career-map stops, current-player facts, individual awards and your scouting fields.</span><button type="button" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Set up player card</button></section>` : ""}${profileFactsHTML(c)}${specificPosition ? `<section class="rank-profile-section"><div class="rank-profile-label">Specific Position</div><div class="rank-profile-copy">${positionMeaningURL ? `<a class="rank-profile-position-link" href="${esc(positionMeaningURL)}">${esc(specificPosition)}</a>` : esc(specificPosition)}</div></section>` : ""}${careerMapHTML(stints)}${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}${teamTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Other Team Honours</div><div class="rank-profile-honors">${teamTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${awardsHTML(awards)}${!awards.length && individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Individual Titles</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}${!stints.length && timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Teams &amp; Country</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}${comparisons ? `<section class="rank-profile-section"><div class="rank-profile-label">Player Comps</div><div class="rank-profile-copy rank-profile-preline">${esc(comparisons)}</div></section>` : ""}${interestedClubs ? `<section class="rank-profile-section"><div class="rank-profile-label">Clubs That Should Be Interested</div><div class="rank-profile-copy rank-profile-preline">${esc(interestedClubs)}</div></section>` : ""}${suggestedMove ? `<section class="rank-profile-section"><div class="rank-profile-label">Suggested Next Move</div><div class="rank-profile-copy rank-profile-preline">${esc(suggestedMove)}</div></section>` : ""}${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit player card</button>` : ""}</div></aside>`;
           b.querySelector(".rank-profile-body")?.insertAdjacentHTML(
             "afterbegin",
             profileTagsHTML(x, playerReference),
@@ -834,7 +834,7 @@
           const awardLines = individualAwards(c)
             .map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | "))
             .join("\n");
-          m.innerHTML = `<div class="rank-card-editor-shell"><h3>Player Card — ${esc(x.name || "")}</h3><p>Saved once and reused everywhere this player appears. Blank optional fields stay completely hidden.</p>${verifiedDraft ? `<section class="rank-verified-draft"><div><strong>Verified data draft available</strong><span>Reviewed through ${esc(verifiedDraft.dataAsOf || "")}. Loading it fills factual fields only and does not save or publish.</span></div><button type="button" id="rpcApplyVerified" class="rk-btn">Load verified draft</button><small>${verifiedDraft.sources.map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ")}</small></section>` : ""}<div class="rank-card-editor-grid">
+          m.innerHTML = `<div class="rank-card-editor-shell"><h3>Player Card — ${esc(x.name || "")}</h3><p>Saved once and reused everywhere this player appears. Blank optional fields stay completely hidden.</p><section class="rank-verified-draft"><div><strong>${verifiedDraft ? "Verified data draft available" : "Prepare verified autofill"}</strong><span id="rpcVerifiedStatus">${verifiedDraft ? `Reviewed through ${esc(verifiedDraft.dataAsOf || "")}. Loading it fills factual fields only and does not save or publish.` : "Available for every ranked player. Wikipedia and Wikidata facts are prepared into a private draft for your review."}</span></div><button type="button" id="${verifiedDraft ? "rpcApplyVerified" : "rpcPrepareVerified"}" class="rk-btn">${verifiedDraft ? "Load verified draft" : "Prepare draft"}</button><small id="rpcVerifiedSources">${(verifiedDraft?.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ")}</small></section><div class="rank-card-editor-grid">
             <div class="full rank-editor-section-title">Core profile</div>
             <div class="full"><label>Image URL or repository path — you control this</label><input id="rpcImage" value="${esc(c.image || "")}"></div>
             <div><label>Specific position</label><input id="rpcSpecificPosition" value="${esc(c.specificPosition || c.position || "")}" placeholder="Left-sided No. 8"></div>
@@ -864,26 +864,39 @@
             "afterbegin",
             '<button type="button" id="rpcCloseTop" class="rank-card-editor-close" aria-label="Close player-card editor">×</button>',
           );
-          if (!verifiedDraft)
-            m.querySelector(".rank-card-editor-grid")?.insertAdjacentHTML(
-              "beforebegin",
-              '<section class="rank-manual-card-note"><strong>Manual player card</strong><span>Every field below is available for this player. Verified autofill has not been prepared yet.</span></section>',
-            );
           document.body.appendChild(m);
           rpcCancel.onclick = () => m.remove();
           rpcCloseTop.onclick = () => m.remove();
           let appliedVerifiedDraft = null;
-          if (verifiedDraft) rpcApplyVerified.onclick = () => {
-            appliedVerifiedDraft = verifiedDraft;
-            rpcNationality.value = verifiedDraft.nationality || rpcNationality.value;
-            rpcYears.value = verifiedDraft.years || rpcYears.value;
-            rpcCurrentClub.value = verifiedDraft.currentClub || rpcCurrentClub.value;
-            rpcDateOfBirth.value = verifiedDraft.dateOfBirth || rpcDateOfBirth.value;
-            rpcCareerTrophyTotal.value = verifiedDraft.careerTrophyTotal || rpcCareerTrophyTotal.value;
-            rpcCareerStints.value = verifiedDraft.careerStints.map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | ")).join("\n");
-            rpcAwards.value = verifiedDraft.individualAwards.map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | ")).join("\n");
-            rpcApplyVerified.textContent = "Draft loaded — review below";
-            rpcApplyVerified.disabled = true;
+          const loadVerifiedDraft = (draft) => {
+            appliedVerifiedDraft = draft;
+            rpcNationality.value = draft.nationality || rpcNationality.value;
+            rpcYears.value = draft.years || rpcYears.value;
+            rpcCurrentClub.value = draft.currentClub || rpcCurrentClub.value;
+            rpcDateOfBirth.value = draft.dateOfBirth || rpcDateOfBirth.value;
+            rpcCareerTrophyTotal.value = draft.careerTrophyTotal || rpcCareerTrophyTotal.value;
+            rpcCareerStints.value = (draft.careerStints || []).map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | ")).join("\n");
+            rpcTeamTitles.value = draft.teamTitles || rpcTeamTitles.value;
+            rpcAwards.value = (draft.individualAwards || []).map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | ")).join("\n");
+            rpcVerifiedStatus.textContent = `${draft.reviewWarnings?.length ? `${draft.reviewWarnings.join(" ")} ` : ""}Draft loaded below. Review every field before saving.`;
+            rpcVerifiedSources.innerHTML = (draft.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ");
+            const button = document.getElementById("rpcApplyVerified") || document.getElementById("rpcPrepareVerified");
+            button.textContent = "Draft loaded — review below";
+            button.disabled = true;
+          };
+          if (verifiedDraft) rpcApplyVerified.onclick = () => loadVerifiedDraft(verifiedDraft);
+          else rpcPrepareVerified.onclick = async () => {
+            rpcPrepareVerified.disabled = true;
+            rpcPrepareVerified.textContent = "Preparing…";
+            rpcVerifiedStatus.textContent = "Checking Wikipedia and Wikidata. Nothing will be saved automatically.";
+            try {
+              const prepared = await window.HSVerifiedPlayerDrafts.prepare(x.name);
+              loadVerifiedDraft(prepared);
+            } catch (error) {
+              rpcPrepareVerified.disabled = false;
+              rpcPrepareVerified.textContent = "Try again";
+              rpcVerifiedStatus.textContent = `Could not prepare this player: ${error.message}`;
+            }
           };
           rpcSave.onclick = () => {
             let d = rankGet(k),

@@ -280,6 +280,22 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(features, /Load verified draft/);
   assert.match(features, /does not save or publish/);
   assert.match(features, /appliedVerifiedDraft/);
+  assert.match(pilot, /async function prepare\(name\)/);
+  assert.match(pilot, /availableFor\(\) \{ return true/);
+  assert.match(pilot, /en\.wikipedia\.org\/w\/api\.php/);
+  assert.match(pilot, /www\.wikidata\.org\/w\/api\.php/);
+  assert.match(pilot, /reviewWarnings/);
+  assert.match(pilot, /function confidentTitle/);
+  assert.match(pilot, /lookupWikipediaPage/);
+  assert.match(pilot, /No unambiguous matching Wikipedia player page/);
+  assert.match(pilot, /A surname alone is insufficient/);
+  assert.match(pilot, /function careerRowsFromWikitext/);
+  assert.match(pilot, /function honoursFromWikitext/);
+  assert.match(pilot, /clubs\$\{index\}/);
+  assert.match(pilot, /caps\$\{index\}/);
+  assert.match(pilot, /prop=text\|wikitext\|revid/);
+  assert.match(features, /Prepare verified autofill/);
+  assert.match(features, /Review every field before saving/);
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
