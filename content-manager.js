@@ -213,10 +213,10 @@
   }
 
   function ensureUI() {
-    if (document.getElementById("hsContentManager")) return;
+    if (document.getElementById("hsContentInventory")) return;
 
     const overlay = document.createElement("div");
-    overlay.id = "hsContentManager";
+    overlay.id = "hsContentInventory";
     overlay.className = "hs-content-overlay";
     overlay.setAttribute("aria-hidden", "true");
     overlay.innerHTML = `
@@ -338,7 +338,7 @@
     activeFilter = "all";
     query = "";
 
-    const overlay = document.getElementById("hsContentManager");
+    const overlay = document.getElementById("hsContentInventory");
     overlay.classList.add("open");
     overlay.setAttribute("aria-hidden", "false");
 
@@ -350,7 +350,7 @@
 
   function close() {
     openState = false;
-    const overlay = document.getElementById("hsContentManager");
+    const overlay = document.getElementById("hsContentInventory");
     overlay?.classList.remove("open");
     overlay?.setAttribute("aria-hidden", "true");
   }

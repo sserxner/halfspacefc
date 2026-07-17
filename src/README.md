@@ -18,3 +18,11 @@ Step 30 moved active styling into `css/`, grouped by public, admin, rankings,
 XI, community, feature, and responsive concerns. `styles.css` remains only as a
 compatibility marker. New styles should be added to the narrowest relevant
 module instead of restoring rules to the legacy file.
+
+## JavaScript modules
+
+Step 31 moved the remaining inline application logic into `js/`, grouped by
+data catalogs, public navigation/XIs, public content, admin editing,
+authentication/publishing, responsive behavior, and initialization. The
+`baked_data` script intentionally remains inline because the browser publishing
+workflow updates that block when creating the deployable page.
