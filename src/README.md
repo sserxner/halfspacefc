@@ -33,3 +33,9 @@ hand.
 
 Step 34 adds the browser-data and code-recovery system documented in
 `BACKUPS.md`.
+
+Step 35 adds automated regression and content-integrity checks documented in
+`TESTING.md`.
+
+Step 36 adds the owner, architecture, content, troubleshooting, and roadmap
+documentation linked from the project-level `README.md`.

@@ -65,3 +65,15 @@ test("the one-click deployment remains executable and runs tests first", () => {
   assert.match(deploy, /--test tests\/\*\.test\.mjs/);
   assert.ok(deploy.indexOf("--test tests/*.test.mjs") < deploy.indexOf("git add --all"));
 });
+
+test("owner documentation covers operation, recovery, and future work", () => {
+  const documents = [
+    "README.md", "ADMIN-GUIDE.md", "ARCHITECTURE.md", "CONTENT-DATA.md",
+    "DEPLOYMENT.md", "BACKUPS.md", "TESTING.md", "TROUBLESHOOTING.md", "ROADMAP.md",
+  ];
+  documents.forEach((file) => assert.ok(fs.existsSync(path.join(root, file)), `Missing ${file}`));
+  assert.match(read("README.md"), /two publishing paths/i);
+  assert.match(read("TROUBLESHOOTING.md"), /Do not force-push/i);
+  const roadmap = read("ROADMAP.md");
+  ["Notebook", "Inline media", "Tactics-board", "transfer value", "blank optional field"].forEach((idea) => assert.ok(roadmap.includes(idea), `Roadmap lost: ${idea}`));
+});

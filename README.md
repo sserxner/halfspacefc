@@ -1,35 +1,48 @@
-# Half Space HTML components
+# Half Space FC
 
-The public page markup is split into logical files under `components/`. The deployed
-`index.html` remains a complete static document, so GitHub Pages and the admin
-publishing flow do not depend on runtime HTML requests.
+Half Space is a static editorial football site with a browser-based owner/admin
+system. The public site is served from `index.html`; the admin tools update the
+site's content and publish that assembled file to GitHub.
 
-- Edit page markup in the relevant component.
-- Run `node tools/build-html.mjs .` to assemble `index.html`.
-- If the admin publisher has updated `index.html`, run
-  `node tools/modularize-html.mjs .` before editing components so the latest live
-  content is retained.
+## The two publishing paths
 
-Inline JavaScript remains in the template for Step 31.
+### Editing content
 
-## CSS modules
+For writing, rankings, XIs, formations, labels, media records, and other normal
+site content:
 
-Step 30 moved active styling into `css/`, grouped by public, admin, rankings,
-XI, community, feature, and responsive concerns. `styles.css` remains only as a
-compatibility marker. New styles should be added to the narrowest relevant
-module instead of restoring rules to the legacy file.
+1. Open Half Space admin.
+2. Make and preview the change.
+3. Select **Publish Changes** in the admin toolbar.
 
-## JavaScript modules
+This publishes content directly. A private backup is created first.
 
-Step 31 moved the remaining inline application logic into `js/`, grouped by
-data catalogs, public navigation/XIs, public content, admin editing,
-authentication/publishing, responsive behavior, and initialization. The
-`baked_data` script intentionally remains inline because the browser publishing
-workflow updates that block when creating the deployable page.
+### Installing structural work
 
-Step 32 adds the guarded build and validation commands documented in
-`BUILD.md`. Use the guarded build instead of assembling the deployed page by
-hand.
+For a ZIP supplied by Codex:
 
-Step 34 adds the browser-data and code-recovery system documented in
-`BACKUPS.md`.
+1. Copy the ZIP contents into the `halfspacefc` folder and choose **Replace All**.
+2. Test the requested behavior locally.
+3. Double-click **Deploy Half Space.command**.
+
+The deployment runs automated tests and validation, creates a recoverable code
+backup, synchronizes with GitHub, and publishes only if all checks pass.
+
+## Owner documentation
+
+- [ADMIN-GUIDE.md](ADMIN-GUIDE.md) — daily editing and admin tools
+- [ARCHITECTURE.md](ARCHITECTURE.md) — file layout and how the systems connect
+- [CONTENT-DATA.md](CONTENT-DATA.md) — where content is stored and published
+- [DEPLOYMENT.md](DEPLOYMENT.md) — both publishing paths
+- [BACKUPS.md](BACKUPS.md) — backup and recovery procedures
+- [TESTING.md](TESTING.md) — automated protection
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — safe responses to common failures
+- [ROADMAP.md](ROADMAP.md) — preserved future product work
+
+## Safety rules
+
+- Never delete or replace the complete `halfspacefc` folder to install a package.
+- Never force-push Git history.
+- Do not place passwords, access tokens, or private keys in site files.
+- If deployment stops, read its message; files remain safe and nothing should be
+  forced through.
