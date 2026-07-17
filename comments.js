@@ -163,7 +163,7 @@
               .filter(
                 (comment) =>
                   comment.page_key === state.pageKey ||
-                  /hexacampe[oõ]nes/i.test(comment.body || ""),
+                  /hexacampe(?:ã|a)o/i.test(comment.body || ""),
               )
               .map((comment) => comment.id),
           );
@@ -307,6 +307,69 @@
           } catch {
             return "";
           }
+        }
+        function encodeLineup(payload) {
+          const bytes = new TextEncoder().encode(JSON.stringify(payload));
+          let binary = "";
+          bytes.forEach((byte) => (binary += String.fromCharCode(byte)));
+          return btoa(binary);
+        }
+        function decodeLineup(value) {
+          try {
+            const binary = atob(value);
+            const bytes = Uint8Array.from(binary, (character) =>
+              character.charCodeAt(0),
+            );
+            return JSON.parse(new TextDecoder().decode(bytes));
+          } catch {
+            return null;
+          }
+        }
+        function lineupImage(payload) {
+          const formation =
+            window.HSFormationCatalog?.[payload?.formation] ||
+            window.HSFormationCatalog?.["4-3-3"];
+          if (!formation || !Array.isArray(payload?.xi)) return "";
+          const escXML = (value) =>
+            String(value || "").replace(
+              /[&<>"]/g,
+              (character) =>
+                ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[
+                  character
+                ],
+            );
+          const layout = Array.isArray(payload.layout)
+            ? payload.layout
+            : formation.positions.map((_, index) => ({
+                x: 50,
+                y: 90 - index * (80 / Math.max(1, formation.positions.length - 1)),
+              }));
+          const names = formation.positions
+            .map((_, index) => {
+              const point = layout[index] || { x: 50, y: 50 };
+              const x = 70 + point.x * 7.6;
+              const y = 155 + point.y * 7.7;
+              const name = payload.xi[index] || "—";
+              return `<text x="${x}" y="${y}" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-size="22" font-weight="700">${escXML(name)}</text>`;
+            })
+            .join("");
+          const bench = (payload.bench || [])
+            .filter(Boolean)
+            .map(escXML)
+            .join(" · ");
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1125" viewBox="0 0 900 1125"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d3f25"/><stop offset="1" stop-color="#17643a"/></linearGradient></defs><rect width="900" height="1125" rx="28" fill="url(#g)"/><text x="450" y="62" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-size="40" font-weight="700">HALF SPACE</text><text x="450" y="108" text-anchor="middle" fill="#e4c34a" font-family="Arial,sans-serif" font-size="22" font-weight="700">${escXML(payload.entity)}</text><rect x="70" y="155" width="760" height="770" fill="none" stroke="#ffffff99" stroke-width="3"/><line x1="70" y1="540" x2="830" y2="540" stroke="#ffffff80" stroke-width="3"/><circle cx="450" cy="540" r="78" fill="none" stroke="#ffffff80" stroke-width="3"/>${names}<text x="450" y="975" text-anchor="middle" fill="#e4c34a" font-family="Arial,sans-serif" font-size="20" font-weight="700">${escXML(payload.formation)}</text><text x="450" y="1025" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="15">${bench}</text></svg>`;
+          return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        }
+        function renderCommentBody(body) {
+          const source = String(body || "");
+          const match = source.match(
+            /^\[\[halfspace-xi:([A-Za-z0-9+/=]+)\]\](?:\n([\s\S]*))?$/,
+          );
+          if (!match) return esc(source);
+          const payload = decodeLineup(match[1]);
+          const image = lineupImage(payload);
+          if (!payload || !image) return esc(source);
+          return `<figure class="hs-comment-lineup"><img src="${esc(image)}" alt="${esc(payload.entity || "Reader")} XI"><figcaption><strong>${esc(payload.entity || "Reader XI")}</strong>${match[2] ? `<span>${esc(match[2])}</span>` : ""}</figcaption></figure>`;
         }
         function memberSince(id) {
           const p = state.profileMap.get(id);
@@ -489,7 +552,7 @@
             "</span>" +
             member +
             '</div><div class="hs-comment-body">' +
-            esc(c.body) +
+            renderCommentBody(c.body) +
             "</div>" +
             actions +
             admin +
@@ -557,6 +620,90 @@
               status.className = "hs-status error";
             }
           }
+        }
+        async function postLineup(payload, blurb = "") {
+          if (!payload || state.settings.locked) return { ok: false };
+          const now = Date.now();
+          if (now - lastCommentAttempt < 3000) return { ok: false };
+          lastCommentAttempt = now;
+          state.pageKey = derivePageKey();
+          const body =
+            `[[halfspace-xi:${encodeLineup(payload)}]]` +
+            (String(blurb || "").trim()
+              ? "\n" + cleanPublicText(blurb, 1200)
+              : "");
+          try {
+            if (state.user) {
+              const { error } = await db.rpc("post_member_comment", {
+                p_page_key: state.pageKey,
+                p_body: body,
+                p_parent_id: null,
+                p_post_as_editor: false,
+              });
+              if (error) throw error;
+            } else {
+              const name = cleanPublicText(
+                prompt("Name for this comment:", "") || "",
+                50,
+              );
+              if (!name) return { ok: false, needsAuth: true };
+              const { id, token } = getGuest();
+              const editToken = randomToken();
+              const { data, error } = await db.rpc("post_guest_comment", {
+                p_page_key: state.pageKey,
+                p_display_name: name,
+                p_body: body,
+                p_guest_id: id,
+                p_edit_token: editToken,
+                p_guest_email: null,
+                p_parent_id: null,
+              });
+              if (error) throw error;
+              state.guestOwned[data.id] = {
+                token: editToken,
+                createdAt: data.created_at,
+              };
+              saveOwned();
+            }
+            await loadComments();
+            return { ok: true };
+          } catch (error) {
+            console.error("XI comment failed", error);
+            return { ok: false };
+          }
+        }
+        async function saveXIToProfile(payload) {
+          if (!state.user) {
+            openAuth("signin");
+            return { ok: false, needsAuth: true };
+          }
+          const current = Array.isArray(
+            state.user.user_metadata?.halfspace_saved_xis,
+          )
+            ? state.user.user_metadata.halfspace_saved_xis
+            : [];
+          const saved = current.filter(
+            (item) => item?.entity !== payload.entity,
+          );
+          saved.unshift(payload);
+          const { data, error } = await db.auth.updateUser({
+            data: { halfspace_saved_xis: saved.slice(0, 20) },
+          });
+          if (error) {
+            console.error("XI profile save failed", error);
+            return { ok: false };
+          }
+          if (data?.user) state.user = data.user;
+          return { ok: true };
+        }
+        async function savedXIs() {
+          if (!state.user) {
+            openAuth("signin");
+            return null;
+          }
+          return Array.isArray(state.user.user_metadata?.halfspace_saved_xis)
+            ? state.user.user_metadata.halfspace_saved_xis
+            : [];
         }
         function accountChoice() {
           if (state.user) return;
@@ -883,27 +1030,66 @@
           await refreshIdentity();
           await loadComments();
         }
+        function closeAccount() {
+          document.getElementById("hsAccountPanel")?.remove();
+        }
         function account() {
           if (!state.user) return openAuth("signin");
-          const name = prompt(
-            "Display name:",
-            state.profile?.display_name || "",
+          closeAccount();
+          const saved = Array.isArray(
+            state.user.user_metadata?.halfspace_saved_xis,
+          )
+            ? state.user.user_metadata.halfspace_saved_xis
+            : [];
+          const panel = document.createElement("div");
+          panel.id = "hsAccountPanel";
+          panel.className = "hs-account-panel";
+          panel.innerHTML =
+            '<section class="hs-account-card" role="dialog" aria-modal="true" aria-label="Account">' +
+            '<header><div><span>YOUR PROFILE</span><h2>Account</h2></div><button type="button" data-account-close aria-label="Close">×</button></header>' +
+            '<label>Display name<input id="hsAccountName" maxlength="80" value="' +
+            esc(state.profile?.display_name || "") +
+            '"></label><label class="hs-account-notify"><input id="hsAccountNotify" type="checkbox"' +
+            (state.profile?.notify_new_posts ? " checked" : "") +
+            '> Notify me about new posts</label>' +
+            '<div class="hs-account-xis"><div><h3>My saved XIs</h3><span>' +
+            saved.length +
+            " saved</span></div>" +
+            (saved.length
+              ? saved
+                  .map(
+                    (item) =>
+                      "<article><strong>" +
+                      esc(item.entity || "Saved XI") +
+                      "</strong><span>" +
+                      esc(item.formation || "") +
+                      "</span></article>",
+                  )
+                  .join("")
+              : "<p>Your profile XIs will appear here after you save one.</p>") +
+            '</div><footer><button class="hs-secondary" type="button" data-account-close>Cancel</button><button class="hs-primary" type="button" data-account-save>Save account</button></footer><div id="hsAccountStatus" class="hs-status"></div></section>';
+          document.body.appendChild(panel);
+        }
+        async function saveAccount() {
+          const name = cleanPublicText(
+            document.getElementById("hsAccountName")?.value,
+            80,
           );
-          if (name === null) return;
-          const notify = confirm(
-            "Notify you about new posts?\n\nOK = Yes, Cancel = No",
+          const notify = Boolean(
+            document.getElementById("hsAccountNotify")?.checked,
           );
-          db.rpc("update_own_profile", {
+          const status = document.getElementById("hsAccountStatus");
+          const { error } = await db.rpc("update_own_profile", {
             p_display_name: name,
             p_avatar_url: state.profile?.avatar_url || null,
             p_notify_new_posts: notify,
-          }).then(async ({ error }) => {
-            if (error) alert(error.message);
-            else {
-              await refreshIdentity();
-              alert("Account updated.");
-            }
           });
+          if (error) {
+            if (status) status.textContent = error.message;
+            return;
+          }
+          await refreshIdentity();
+          closeAccount();
         }
         function sort(v) {
           state.sort = v;
@@ -973,6 +1159,11 @@
           $("#hsAuthModal")?.addEventListener("click", (e) => {
             if (e.target.id === "hsAuthModal") closeAuth();
           });
+          document.addEventListener("click", (e) => {
+            if (e.target.matches("[data-account-close]")) closeAccount();
+            if (e.target.matches("[data-account-save]")) saveAccount();
+            if (e.target.id === "hsAccountPanel") closeAccount();
+          });
           db.auth.onAuthStateChange(async (event, session) => {
             if (event === "PASSWORD_RECOVERY") openPasswordRecovery();
             await refreshIdentity(session);
@@ -995,8 +1186,12 @@
           openPasswordRecovery,
           signOut,
           account,
+          closeAccount,
           sort,
           post,
+          postLineup,
+          saveXIToProfile,
+          savedXIs,
           recommend,
           reply,
           cancelReply,

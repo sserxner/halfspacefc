@@ -161,8 +161,82 @@ test("public comments retain output escaping and input limits", () => {
   const comments = read("comments.js");
   assert.match(comments, /cleanPublicText/);
   assert.match(comments, /slice\(0, maximum\)/);
-  assert.match(comments, /esc\(c\.body\)/);
+  assert.match(comments, /renderCommentBody\(c\.body\)/);
+  assert.match(comments, /if \(!match\) return esc\(source\)/);
   assert.match(comments, /now - lastCommentAttempt < 3000/);
+});
+
+test("reader XIs can be saved, downloaded, and optionally posted as page comments", () => {
+  const reader = read("reader-xi.js");
+  const comments = read("comments.js");
+  const polish = read("css/features/reader-xi-polish.css");
+  assert.match(reader, /data-reader-notes/);
+  assert.match(reader, /Save to profile/);
+  assert.match(reader, /My saved XIs/);
+  assert.match(reader, /Post as comment/);
+  assert.match(reader, /Save image to device/);
+  assert.match(reader, /link\.download/);
+  assert.match(reader, /HSCommunity\?\.postLineup/);
+  assert.match(comments, /halfspace_saved_xis/);
+  assert.match(comments, /db\.auth\.updateUser/);
+  assert.match(comments, /async function postLineup/);
+  assert.match(comments, /\[\[halfspace-xi:/);
+  assert.match(comments, /derivePageKey\(\)/);
+  assert.match(polish, /\.hs-reader-pitch-player\.selected::before[\s\S]*display:\s*none/);
+  assert.doesNotMatch(reader, /navigator\.share/);
+});
+
+test("reader XI selection uses eligible-player search instead of dropdowns", () => {
+  const reader = read("reader-xi.js");
+  const polish = read("css/features/reader-xi-polish.css");
+  assert.match(reader, /type="search"/);
+  assert.match(reader, /data-player-choice/);
+  assert.match(reader, /function showSuggestions/);
+  assert.match(reader, /compatible\(player, position\)/);
+  assert.match(reader, /selected\(offset\)/);
+  assert.doesNotMatch(reader, /data-reader-xi="\$\{index\}"[^]*?<select/);
+  assert.match(polish, /\.hs-player-suggestions\.open/);
+});
+
+test("admins add reader players once and visually position every formation", () => {
+  const reader = read("reader-xi.js");
+  const adminCSS = read("css/features/reader-xi-admin.css");
+  assert.match(reader, /Add every player once/);
+  assert.match(reader, /data-pool-name/);
+  assert.match(reader, /data-pool-positions/);
+  assert.match(reader, /Set reader players \(add once\)/);
+  assert.match(reader, /Edit reader pitch layout/);
+  assert.match(reader, /reader_xi_layouts_v1/);
+  assert.match(reader, /data-layout-marker/);
+  assert.match(reader, /setPointerCapture/);
+  assert.match(adminCSS, /\.hs-reader-layout-pitch/);
+});
+
+test("reader pitch sides stay corrected and admin always sees the Editor XI", () => {
+  const reader = read("reader-xi.js");
+  assert.match(reader, /88 - columnIndex \* \(76 \/ \(row\.length - 1\)\)/);
+  assert.match(reader, /never reorder the saved player array/);
+  assert.match(reader, /container\.classList\.remove\("hs-editor-xi-collapsed"\)/);
+  assert.match(reader, /container\.classList\.add\("hs-editor-xi-visible"\)/);
+});
+
+test("Brazil keeps HEXACAMPEÃO and formation layouts are global by formation", () => {
+  const comments = read("comments.js");
+  const reader = read("reader-xi.js");
+  assert.match(comments, /hexacampe\(\?:ã\|a\)o/);
+  assert.match(comments, /\["halfspace:country-xi"\]/);
+  assert.match(reader, /store\[modal\._formation\] = modal\._layout/);
+  assert.doesNotMatch(reader, /store\[poolKey\(modal\._entity\)\].*layout/);
+  assert.match(reader, /Global formation layout/);
+  assert.match(reader, /across every Club, Country, and Streets XI builder/);
+});
+
+test("saved reader XIs appear inside the signed-in Account panel", () => {
+  const comments = read("comments.js");
+  assert.match(comments, /id = "hsAccountPanel"/);
+  assert.match(comments, /My saved XIs/);
+  assert.match(comments, /data-account-save/);
+  assert.match(comments, /update_own_profile/);
 });
 
 test("Half Space Studio is the primary admin workspace", () => {
@@ -206,10 +280,10 @@ test("reader XIs enforce valid selection and direct device-image saving", () => 
   assert.match(reader, /Save image to device/);
   assert.match(template, /data-misc-page="streets"/);
   assert.match(template, /streets-wont-forget\.html/);
-  assert.match(template, /reader-xi-polish\.css\?v=40\.4/);
+  assert.match(template, /reader-xi-polish\.css\?v=40\.6/);
   assert.match(reader, /image\/png/);
   assert.match(reader, /insertAdjacentElement\("afterend", actions\)/);
-  assert.match(template, /reader-xi\.js\?v=40\.4/);
+  assert.match(template, /reader-xi\.js\?v=40\.8/);
   assert.match(template, /id="hsMediaToolbarButton"/);
 });
 
@@ -256,7 +330,7 @@ test("XI comments use one thread per team and Streets version", () => {
   assert.match(comments, /"country:" \+ content\.dataset\.countryId/);
   assert.match(comments, /"club:" \+ content\.dataset\.clubId/);
   assert.match(comments, /readerStorageKey/);
-  assert.ok(comments.includes("hexacampe[oõ]nes"));
+  assert.ok(comments.includes("hexacampe(?:ã|a)o"));
   assert.match(comments, /halfspace:country-xi/);
   assert.match(comments, /"showCountryDetail"/);
   assert.match(comments, /"showClubDetail"/);

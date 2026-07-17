@@ -432,3 +432,130 @@
           flex-direction: column;
         }
       }
+.hs-comment-lineup {
+  width: min(430px, 100%);
+  margin: 0.7rem 0 0;
+}
+
+.hs-comment-lineup img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(15, 37, 24, 0.16);
+}
+
+.hs-comment-lineup figcaption {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.55rem;
+}
+
+.hs-comment-lineup figcaption strong {
+  color: var(--accent);
+  font: 700 0.78rem var(--sans);
+}
+
+.hs-comment-lineup figcaption span {
+  white-space: pre-line;
+  font: 0.85rem/1.5 var(--serif);
+}
+
+.hs-account-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 100250;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 30, 18, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+.hs-account-card {
+  width: min(560px, 100%);
+  max-height: min(760px, 92vh);
+  overflow: auto;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+}
+
+.hs-account-card header,
+.hs-account-card footer,
+.hs-account-xis > div,
+.hs-account-xis article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hs-account-card header {
+  margin-bottom: 1rem;
+}
+
+.hs-account-card header span,
+.hs-account-card label,
+.hs-account-xis span {
+  font: 700 0.68rem/1.3 var(--sans);
+  letter-spacing: 0.06em;
+  color: var(--gray-500);
+}
+
+.hs-account-card h2,
+.hs-account-card h3 {
+  margin: 0;
+  color: var(--accent);
+}
+
+.hs-account-card header button {
+  border: 0;
+  background: transparent;
+  color: var(--gray-500);
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.hs-account-card > label:not(.hs-account-notify) {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.hs-account-card input[type="text"],
+.hs-account-card input:not([type]) {
+  width: 100%;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  padding: 0.72rem;
+  font: 0.9rem var(--sans);
+}
+
+.hs-account-notify {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.85rem 0 1rem;
+}
+
+.hs-account-xis {
+  border-top: 1px solid var(--gray-100);
+  padding-top: 1rem;
+}
+
+.hs-account-xis article {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--gray-100);
+  font: 0.82rem var(--sans);
+}
+
+.hs-account-xis p {
+  color: var(--gray-500);
+  font: italic 0.85rem/1.5 var(--serif);
+}
+
+.hs-account-card footer {
+  justify-content: flex-end;
+  margin-top: 1.1rem;
+}
