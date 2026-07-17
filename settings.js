@@ -19,4 +19,5 @@
   window.HSSettings={get,label,getDefinitions:()=>get().definitions,getFormations:()=>get().formations,allowedFor:(name,all)=>{const s=get(),enabled=s.formations.filter(x=>all.includes(x)),team=s.teamFormations[name];return team?team.filter(x=>enabled.includes(x)):enabled;},configureTeam,open,close,apply};document.addEventListener("DOMContentLoaded",apply);
   document.addEventListener("click",event=>{const button=event.target.closest?.("#hsSetForm footer button");if(!button)return;event.preventDefault();event.stopImmediatePropagation();save({preventDefault(){},currentTarget:document.getElementById("hsSetForm")});},true);
   document.addEventListener("click",event=>{if(!event.target.closest?.("#hsSetClose"))return;event.preventDefault();event.stopImmediatePropagation();close();},true);
+  document.addEventListener("click",event=>{if(!event.target.closest?.("#hsAddFormation"))return;event.preventDefault();event.stopImmediatePropagation();addFormation();},true);
 })();
