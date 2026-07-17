@@ -346,49 +346,58 @@
             new Blob([html], { type: "text/html;charset=utf-8" }),
           );
           if (btn) btn.textContent = "⏳ Uploading…";
-          const getResp = await githubFetch(
-            "https://api.github.com/repos/" +
-              REPO +
-              "/contents/" +
-              FILE +
-              "?ref=" +
-              BRANCH,
-            {
-              headers: {
-                Authorization: "token " + token,
-                Accept: "application/vnd.github.v3+json",
+          let putResp;
+          for (let attempt = 0; attempt < 2; attempt += 1) {
+            const getResp = await githubFetch(
+              "https://api.github.com/repos/" +
+                REPO +
+                "/contents/" +
+                FILE +
+                "?ref=" +
+                BRANCH +
+                "&_=" +
+                Date.now(),
+              {
+                cache: "no-store",
+                headers: {
+                  Authorization: "token " + token,
+                  Accept: "application/vnd.github.v3+json",
+                },
               },
-            },
-          );
-          if (getResp.status === 401) {
-            localStorage.removeItem(TOKEN_KEY);
-            if (btn) {
-              btn.textContent = origText;
-              btn.disabled = false;
-            }
-            alert(
-              "GitHub token rejected. Click Save again to enter a new one.",
             );
-            return false;
-          }
-          const fileData = await getResp.json();
-          const putResp = await githubFetch(
-            "https://api.github.com/repos/" + REPO + "/contents/" + FILE,
-            {
-              method: "PUT",
-              headers: {
-                Authorization: "token " + token,
-                Accept: "application/vnd.github.v3+json",
-                "Content-Type": "application/json",
+            if (getResp.status === 401) {
+              localStorage.removeItem(TOKEN_KEY);
+              if (btn) {
+                btn.textContent = origText;
+                btn.disabled = false;
+              }
+              alert(
+                "GitHub token rejected. Click Save again to enter a new one.",
+              );
+              return false;
+            }
+            if (!getResp.ok) throw new Error("Could not read the latest live version (HTTP " + getResp.status + ").");
+            const fileData = await getResp.json();
+            putResp = await githubFetch(
+              "https://api.github.com/repos/" + REPO + "/contents/" + FILE,
+              {
+                method: "PUT",
+                headers: {
+                  Authorization: "token " + token,
+                  Accept: "application/vnd.github.v3+json",
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  message: "Update site — " + new Date().toLocaleString(),
+                  content: encoded,
+                  sha: fileData.sha,
+                  branch: BRANCH,
+                }),
               },
-              body: JSON.stringify({
-                message: "Update site — " + new Date().toLocaleString(),
-                content: encoded,
-                sha: fileData.sha,
-                branch: BRANCH,
-              }),
-            },
-          );
+            );
+            if (putResp.ok || putResp.status !== 409) break;
+            if (btn) btn.textContent = "⏳ Syncing latest version…";
+          }
           if (putResp.ok) {
             if (btn) {
               btn.textContent = "✓ Saved! Live in ~30s";
@@ -454,5 +463,4 @@
           }, 3000);
         }
       }
-
 

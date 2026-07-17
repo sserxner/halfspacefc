@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node tools/build-site.mjs",
     "check": "node tools/validate-site.mjs",
+    "deploy": "sh tools/deploy-site.sh",
     "sync": "node tools/modularize-html.mjs . && node tools/validate-site.mjs",
     "refresh": "npm run sync && npm run build"
   }
