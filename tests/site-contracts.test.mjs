@@ -616,3 +616,32 @@ test("XI list buttons replace detail state once without history bounce", () => {
   assert.doesNotMatch(countryBack, /history\.back/);
   assert.doesNotMatch(clubBack, /history\.back/);
 });
+
+test("Masthead Composer starts clean and keeps approved figures independently editable", () => {
+  const composer = read("masthead-composer.js");
+  const mastheadStyles = read("css/features/halfspace-masthead.css");
+  const composerStyles = read("css/admin/masthead-composer.css");
+  const studio = read("studio.js");
+  const template = read("src/index.template.html");
+  assert.match(composer, /const BASE_IMAGE = "blank"/);
+  assert.match(composer, /Approved figures/);
+  assert.match(composer, /approved_central_dribbler/);
+  assert.match(composer, /approved_manager_left/);
+  assert.match(composer, /approved_fourteen/);
+  assert.match(composer, /Clean green-and-gold canvas \+ independent layers/);
+  assert.match(composer, /data-mc-mode="desktop"/);
+  assert.match(composer, /data-mc-mode="mobile"/);
+  assert.match(composer, /Dissolve into banner/);
+  assert.match(composer, /Gold edge glow/);
+  assert.match(composer, /drawBlankBase/);
+  assert.match(composer, /drawBrandTitle/);
+  assert.match(composer, /media_library_v1/);
+  assert.match(composer, /masthead_composer_history_v1/);
+  assert.match(mastheadStyles, /--hs-masthead-image/);
+  assert.doesNotMatch(mastheadStyles, /halfspace-masthead-v1\.png/);
+  assert.match(composerStyles, /\.hs-mc-stage-title/);
+  assert.match(studio, /\["design", "Design"\]/);
+  assert.match(studio, /Open Masthead Composer/);
+  assert.match(template, /masthead-composer\.css/);
+  assert.match(template, /masthead-composer\.js/);
+});

@@ -166,7 +166,8 @@
     });
   }
 
-  async function uploadFiles(files) {
+  async function uploadFiles(files, options) {
+    const uploadOptions = options && typeof options === "object" ? options : {};
     const valid = files.filter((file) => ACCEPTED.has(file.type));
     if (!valid.length) { if (files.length) alert("Choose a JPG, PNG, GIF, WebP, AVIF, or SVG image."); return; }
     const items = library();
@@ -175,7 +176,9 @@
       for (const file of valid) {
         const prepared = await optimizeFile(file);
         const asset = {
-          id: id(), title: titleFromFile(file.name), alt: "", collection: "Unfiled", tags: [],
+          id: id(), title: titleFromFile(file.name), alt: "",
+          collection: String(uploadOptions.collection || "Unfiled"),
+          tags: Array.isArray(uploadOptions.tags) ? uploadOptions.tags.slice() : [],
           src: prepared.src, originalName: file.name, type: prepared.type, size: prepared.size,
           width: prepared.width, height: prepared.height, optimization: prepared.optimization,
           createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
@@ -240,11 +243,16 @@
       <div class="hs-media-usage">${uses ? `Used in ${uses} saved field${uses === 1 ? "" : "s"}. Replacing it updates every saved use.` : "Not currently used in saved content."}</div>
       <div class="hs-media-detail-actions">
         ${state.onChoose ? `<button type="button" class="primary" data-media-use>Use image</button>` : ""}
+        <button type="button" data-media-masthead>Add to Masthead</button>
         <label class="hs-media-replace"><input type="file" data-media-replace accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml"><span>Replace image</span></label>
         <button type="button" class="danger" data-media-delete>Delete</button>
       </div>`;
     detail.querySelectorAll("[data-media-field]").forEach((field) => field.addEventListener("change", () => updateMetadata(asset.id, field.dataset.mediaField, field.value)));
     detail.querySelector("[data-media-use]")?.addEventListener("click", () => choose(asset));
+    detail.querySelector("[data-media-masthead]")?.addEventListener("click", () => {
+      close();
+      window.HSMastheadComposer?.open?.({ assetId: asset.id });
+    });
     detail.querySelector("[data-media-replace]").addEventListener("change", (event) => replaceAsset(asset.id, event.target.files?.[0]));
     detail.querySelector("[data-media-delete]").addEventListener("click", () => deleteAsset(asset));
   }
@@ -330,7 +338,8 @@
     document.addEventListener("keydown", (event) => { if (event.key === "Escape" && state.open) close(); });
     window.HSMediaManager = {
       open, close, refresh: render,
-      async importFiles(files) { return await uploadFiles(Array.from(files || [])); },
+      list() { return library().slice(); },
+      async importFiles(files, options) { return await uploadFiles(Array.from(files || []), options); },
       chooseFor(input, callback) { open({ onChoose: callback || ((asset) => { input.value = asset.src; }) }); }
     };
   }

@@ -1,0 +1,437 @@
+      .rank-card-trigger {
+        cursor: pointer;
+      }
+      .rank-card-trigger:hover {
+        background: var(--gray-50);
+      }
+      .rank-profile-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 18, 12, 0.76);
+        z-index: 100000;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .rank-profile-drawer {
+        width: min(620px, 100%);
+        height: 100%;
+        background: var(--page-bg);
+        overflow: auto;
+        box-shadow: -18px 0 60px rgba(0, 0, 0, 0.28);
+      }
+      .rank-profile-hero {
+        background: linear-gradient(145deg, #0a1f12, #2d5c3f);
+        color: #fff;
+        position: relative;
+        min-height: 280px;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        overflow: hidden;
+      }
+      .rank-profile-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(1);
+        opacity: 0.4;
+      }
+      .rank-profile-hero:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, transparent, rgba(5, 20, 11, 0.92));
+      }
+      .rank-profile-heading {
+        position: relative;
+        z-index: 2;
+      }
+      .rank-profile-rank {
+        font-size: 0.68rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #f5d000;
+        font-weight: 700;
+      }
+      .rank-profile-name {
+        font-family: var(--serif);
+        font-size: clamp(2rem, 6vw, 3.6rem);
+        line-height: 1;
+        font-weight: 700;
+      }
+      .rank-profile-meta {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.72);
+        margin-top: 0.65rem;
+      }
+      .rank-profile-close {
+        position: absolute;
+        z-index: 3;
+        top: 1rem;
+        right: 1rem;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(0, 0, 0, 0.25);
+        color: #fff;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+      .rank-profile-body {
+        padding: 2rem;
+      }
+      .rank-profile-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.38rem;
+        margin: -0.15rem 0 1rem;
+      }
+      .rank-profile-tag {
+        padding: 0.32rem 0.55rem;
+        border: 1px solid rgba(30, 83, 55, 0.16);
+        border-radius: 999px;
+        background: #f6f7f3;
+        color: #59635c;
+        font: 600 0.64rem/1.2 var(--sans);
+      }
+      .rank-profile-tag b {
+        color: #295b40;
+      }
+      .rank-profile-tag-top {
+        border-color: rgba(194, 150, 0, 0.25);
+        background: #fbf7e8;
+        color: #78631b;
+      }
+      .rank-profile-tag-xi {
+        background: #eef5f0;
+        color: #295b40;
+      }
+      .rank-profile-section {
+        padding: 1.2rem 0;
+        border-bottom: 1px solid var(--gray-200);
+      }
+      .rank-profile-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.55rem;
+      }
+      .rank-profile-copy {
+        font-family: var(--serif);
+        font-size: 1rem;
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+      .rank-profile-honors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .rank-profile-honor {
+        font-size: 0.72rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 999px;
+        background: var(--gold-bg);
+        color: var(--gold);
+      }
+      .rank-profile-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+      }
+      .rank-profile-stat {
+        background: #fff;
+        border: 1px solid var(--gray-200);
+        padding: 0.75rem;
+        border-radius: 5px;
+      }
+      .rank-profile-stat-value {
+        font-family: var(--serif);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .rank-profile-stat-label {
+        font-size: 0.62rem;
+        color: var(--gray-400);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .rank-profile-facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+      .rank-profile-admin-empty {
+        display: grid;
+        gap: 0.35rem;
+        margin-bottom: 0.8rem;
+        padding: 1rem;
+        border: 1px solid #d7c36c;
+        border-radius: 8px;
+        background: #fff9df;
+      }
+      .rank-profile-admin-empty strong {
+        color: var(--accent);
+        font: 700 1rem var(--serif);
+      }
+      .rank-profile-admin-empty span {
+        color: #64665f;
+        font: 0.75rem/1.45 var(--sans);
+      }
+      .rank-profile-admin-empty button {
+        justify-self: start;
+        margin-top: 0.3rem;
+        border: 0;
+        border-radius: 4px;
+        background: var(--accent);
+        color: #fff;
+        padding: 0.55rem 0.75rem;
+        font: 700 0.68rem var(--sans);
+        cursor: pointer;
+      }
+      .rank-profile-facts > div {
+        display: grid;
+        gap: 0.22rem;
+        padding: 0.75rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
+        background: #fff;
+      }
+      .rank-profile-facts span {
+        color: var(--gray-400);
+        font: 700 0.58rem var(--sans);
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .rank-profile-facts strong {
+        color: var(--accent);
+        font: 700 1rem/1.15 var(--serif);
+      }
+      .rank-career-section {
+        overflow: hidden;
+      }
+      .rank-career-map {
+        position: relative;
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        padding: 0.2rem 0 0.85rem;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+      }
+      .rank-career-map:before {
+        content: "";
+        position: absolute;
+        top: 21px;
+        right: 0;
+        left: 0;
+        border-top: 2px solid #d7c36c;
+      }
+      .rank-career-stop {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 min(240px, 78vw);
+        scroll-snap-align: start;
+      }
+      .rank-career-rail {
+        height: 42px;
+        display: flex;
+        align-items: flex-start;
+      }
+      .rank-career-rail span {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border: 3px solid #d2aa24;
+        border-radius: 50%;
+        background: var(--page-bg);
+        color: var(--accent);
+        font: 800 0.7rem var(--sans);
+      }
+      .rank-career-stop-body {
+        min-height: 150px;
+        margin-top: 0.55rem;
+        padding: 0.85rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 7px 18px rgba(15, 37, 24, 0.07);
+      }
+      .rank-career-years {
+        color: #997600;
+        font: 800 0.62rem var(--sans);
+        letter-spacing: 0.06em;
+      }
+      .rank-career-stop h3 {
+        margin: 0.2rem 0 0.65rem;
+        color: var(--accent);
+        font: 700 1.05rem/1.15 var(--serif);
+      }
+      .rank-career-numbers,
+      .rank-career-trophies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+      .rank-career-numbers span {
+        color: #48534b;
+        font: 700 0.62rem var(--sans);
+      }
+      .rank-career-trophies {
+        margin-top: 0.65rem;
+      }
+      .rank-career-trophies span {
+        padding: 0.18rem 0.36rem;
+        border-radius: 999px;
+        background: var(--gold-bg);
+        color: #806200;
+        font: 700 0.56rem var(--sans);
+      }
+      .rank-profile-awards {
+        display: grid;
+        gap: 0.4rem;
+      }
+      .rank-profile-awards > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.58rem 0;
+        border-bottom: 1px solid var(--gray-200);
+      }
+      .rank-profile-awards strong {
+        color: var(--accent);
+        font: 700 0.78rem var(--sans);
+      }
+      .rank-profile-awards span {
+        color: var(--gray-400);
+        text-align: right;
+        font: 0.68rem var(--sans);
+      }
+      .rank-card-editor-shell {
+        width: min(860px, 100%);
+        margin: auto;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background: #fff;
+      }
+      .rank-card-editor-shell > h3 {
+        margin: 0 0 0.35rem;
+        color: var(--accent);
+        font: 700 1.4rem var(--serif);
+      }
+      .rank-card-editor-shell > p {
+        margin: 0 0 1rem;
+        color: var(--gray-500);
+        font: 0.74rem/1.45 var(--sans);
+      }
+      .rank-verified-draft {
+        margin: 1rem 0 1.25rem;
+        padding: 1rem;
+        border: 1px solid rgba(47, 104, 73, 0.28);
+        border-radius: 10px;
+        background: #f1f7f3;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.6rem 1rem;
+      }
+      .rank-verified-draft div {
+        display: grid;
+        gap: 0.2rem;
+      }
+      .rank-verified-draft span,
+      .rank-verified-draft small {
+        color: #536158;
+        font: 0.7rem/1.45 var(--sans);
+      }
+      .rank-verified-draft small {
+        grid-column: 1/-1;
+      }
+      .rank-verified-draft a {
+        color: #215d3d;
+        font-weight: 700;
+      }
+      .rank-editor-section-title {
+        margin-top: 0.4rem;
+        padding: 0.65rem 0 0.2rem;
+        border-top: 1px solid var(--gray-200);
+        color: #917000;
+        font: 800 0.68rem var(--sans);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+      .rank-card-editor-grid small {
+        display: block;
+        margin-top: 0.3rem;
+        color: var(--gray-400);
+        font: 0.66rem/1.4 var(--sans);
+      }
+      .rank-card-editor-grid .rank-editor-tall {
+        min-height: 145px;
+      }
+      .rank-card-editor-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      .rank-card-editor-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      .rank-card-editor-grid .full {
+        grid-column: 1/-1;
+      }
+      .rank-card-editor-grid label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        margin-bottom: 0.25rem;
+      }
+      .rank-card-editor-grid input,
+      .rank-card-editor-grid textarea {
+        width: 100%;
+        padding: 0.65rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 3px;
+        font: inherit;
+      }
+      .rank-card-editor-grid textarea {
+        min-height: 90px;
+      }
+      @media (max-width: 640px) {
+        .rank-card-editor-grid {
+          grid-template-columns: 1fr;
+        }
+        .rank-card-editor-grid .full {
+          grid-column: auto;
+        }
+        .rank-profile-body {
+          padding: 1.3rem;
+        }
+        .rank-profile-facts {
+          grid-template-columns: 1fr;
+        }
+        .rank-profile-awards > div {
+          display: grid;
+        }
+        .rank-profile-awards span {
+          text-align: left;
+        }
+        .rank-card-editor-shell {
+          padding: 1rem;
+        }
+        .rank-verified-draft {
+          grid-template-columns: 1fr;
+        }
+      }

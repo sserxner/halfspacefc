@@ -4,7 +4,7 @@
   let active = "overview";
   let query = "";
   const sections = [
-    ["overview", "Overview"], ["content", "Content"], ["rankings", "Rankings"],
+    ["overview", "Overview"], ["design", "Design"], ["content", "Content"], ["rankings", "Rankings"],
     ["xis", "XIs"], ["notebook", "Notebook"], ["tactics", "Tactics"], ["media", "Media"], ["publishing", "Publishing"], ["health", "Site Health"],
   ];
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
@@ -73,8 +73,9 @@
     return `<div class="hs-studio-heading"><div><span>Owner workspace</span><h2>Half Space Studio</h2><p>Everything you manage, in one place.</p></div><button data-studio-tool="comparison">Review ${esc(draftChanges)} change${draftChanges === "1" ? "" : "s"}</button></div>
       <div class="hs-studio-stats"><button data-studio-section="content"><b>${content.length}</b><span>Content items</span></button><button data-studio-section="rankings"><b>${rankings.length}</b><span>Rankings</span></button><button data-studio-section="xis"><b>${xis.length}</b><span>Club & country XIs</span></button><button data-studio-tool="validation"><b>✓</b><span>Check site health</span></button></div>
       <section class="hs-studio-block"><header><div><span>Continue working</span><h3>Recent content</h3></div><button data-studio-section="content">View all</button></header>${rows(recent, "Your recent content will appear here.")}</section>
-      <section class="hs-studio-block"><header><div><span>Quick actions</span><h3>Common tasks</h3></div></header><div class="hs-studio-tool-grid">${toolCard("Media","Open media library","Upload, reuse, or replace images","media")}${toolCard("Publishing","Review changes","See exactly what will go live","comparison")}${toolCard("Schedule","Scheduled publishing","Manage drafts and timed releases","schedule")}${toolCard("Settings","Site settings","Labels, formations, and defaults","settings")}</div></section>`;
+      <section class="hs-studio-block"><header><div><span>Quick actions</span><h3>Common tasks</h3></div></header><div class="hs-studio-tool-grid">${toolCard("Masthead","Compose the homepage banner","Place, size, crop, dissolve, and recolor approved figures","masthead")}${toolCard("Media","Open media library","Upload, reuse, or replace images","media")}${toolCard("Publishing","Review changes","See exactly what will go live","comparison")}${toolCard("Schedule","Scheduled publishing","Manage drafts and timed releases","schedule")}${toolCard("Settings","Site settings","Labels, formations, and defaults","settings")}</div></section>`;
   }
+  function designView() { return `<div class="hs-studio-page-title"><span>Homepage identity</span><h2>Design</h2><p>Build the masthead yourself on a clean Half Space canvas. Every approved figure stays independent and reusable.</p></div><div class="hs-studio-tool-grid">${toolCard("Composer","Open Masthead Composer","Drag, resize, crop, layer, dissolve, recolor, and create a separate mobile layout","masthead")}${toolCard("Library","Open Media Manager","Add more images for future masthead compositions","media")}</div>`; }
   function contentView() { return `<div class="hs-studio-page-title"><span>Editorial inventory</span><h2>Content</h2><p>Stories, diaries, transfer recommendations, and site sections.</p></div>${rows(contentItems(), "No editorial content has been created yet.")}`; }
   function rankingsView() { return `<div class="hs-studio-page-title"><span>Football database</span><h2>Rankings</h2><p>Open the existing ranking editor at the correct section.</p></div>${rows(rankingItems())}`; }
   function xisView() { return `<div class="hs-studio-page-title"><span>Teams and formations</span><h2>XIs</h2><p>Find any Club or Country XI without loading every detail first.</p></div>${rows(xiItems())}`; }
@@ -84,7 +85,7 @@
   function publishingView() { return `<div class="hs-studio-page-title"><span>From draft to live</span><h2>Publishing</h2><p>Review, schedule, notify, or recover before anything goes public.</p></div><div class="hs-studio-tool-grid">${toolCard("Review","Draft Comparison","Review every pending change","comparison")}${toolCard("Schedule","Scheduled Publishing","Drafts and timed releases","schedule")}${toolCard("Readers","Post Notification","Register a post and notify subscribers","notification")}${toolCard("Recovery","Backups","Create, download, import, or restore","backups")}</div>`; }
   function healthView() { return `<div class="hs-studio-page-title"><span>Diagnostics</span><h2>Site Health</h2><p>Run focused checks without crowding your daily toolbar.</p></div><div class="hs-studio-tool-grid">${toolCard("Content","Validation","Missing fields and unsafe states","validation")}${toolCard("URLs","Link Checker","Dead destinations and redirect loops","linkchecker")}${toolCard("Access","Accessibility","Labels, keyboard, contrast, and motion","a11y")}${toolCard("Speed","Performance","Page weight, timing, and heavy images","performance")}${toolCard("Failures","Error Log","Recorded browser and publishing errors","errorlog")}</div>`; }
   function body() {
-    return ({overview, content:contentView, rankings:rankingsView, xis:xisView, notebook:notebookView, tactics:tacticsView, media:mediaView, publishing:publishingView, health:healthView}[active] || overview)();
+    return ({overview, design:designView, content:contentView, rankings:rankingsView, xis:xisView, notebook:notebookView, tactics:tacticsView, media:mediaView, publishing:publishingView, health:healthView}[active] || overview)();
   }
   function render() {
     const modal = document.getElementById("hsStudio");
@@ -103,7 +104,7 @@
     comparison: () => window.HSDraftComparison?.open?.(), validation: () => window.HSContentValidation?.open?.(), linkchecker: () => window.HSLinkChecker?.open?.(),
     a11y: () => window.HSAccessibilityAudit?.open?.(), performance: () => window.HSPerformance?.open?.(), errorlog: () => window.HSErrorLog?.open?.(),
     settings: () => window.HSSettings?.open?.(), schedule: () => window.HSScheduledPublishing?.open?.(), notification: () => window.HSPublishing?.open?.(),
-    backups: () => window.HSBackups?.open?.(), media: () => window.HSMediaManager?.open?.(), tactics: () => window.HSTacticsBoard?.open?.(), notebook: () => window.HSNotebook?.open?.(),
+    backups: () => window.HSBackups?.open?.(), media: () => window.HSMediaManager?.open?.(), masthead: () => window.HSMastheadComposer?.open?.(), tactics: () => window.HSTacticsBoard?.open?.(), notebook: () => window.HSNotebook?.open?.(),
   };
   function ensureUI() {
     if (document.getElementById("hsStudio")) return;
