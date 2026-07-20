@@ -1004,7 +1004,7 @@
           "f",
         ];
         const LABELS = {
-          overall: "Overall",
+          overall: "Top 100",
           gk: "GKs",
           cb: "CBs",
           fb: "FBs",

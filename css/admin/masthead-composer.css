@@ -370,7 +370,7 @@
   z-index: 5000;
   opacity: var(--mc-wash-opacity);
   background: var(--mc-wash);
-  mix-blend-mode: color;
+  mix-blend-mode: normal;
 }
 
 .hs-mc-stage::after {

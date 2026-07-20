@@ -3,6 +3,7 @@
   const TABS = [
     ["Club", "club-xi"], ["Country", "country-xi"], ["Continent", "continent-xi"],
     ["Regional", "region-xi"],
+    ["Streets Won't Forget", "streets"],
     ["Free Build", "free-xi"],
   ];
   const CONTINENTS = ["Europe", "South America", "Africa", "North America", "Asia", "Oceania"];

@@ -1,6 +1,0 @@
-      @media (min-width: 769px) {
-        #centuryRankingsDropdown:hover #centuryRankingsMenu,
-        #centuryRankingsDropdown:focus-within #centuryRankingsMenu {
-          display: block !important;
-        }
-      }

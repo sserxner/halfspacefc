@@ -46,13 +46,23 @@ July 17, 2026. Start from the live/repository version in
    - optional posting of the rendered XI image plus an optional blurb to that exact page’s comments
    - never post automatically
 6. Complete XI destinations/data:
-   - Club, Country, Continental, Regional, Free Build, and Streets Won’t Forget audits
+   - Build an XI contains **Club**, **Country**, **Continental**, **Regional**,
+     **Free Build**, and **Streets Won’t Forget** subtabs
+   - remove Streets Won’t Forget from MISC and preserve its old URLs through redirects
+   - preserve its Premier League and World Cup versions, Editor XIs, reader builders,
+     comments, benches, player pools, and editable introductory copy during migration
+   - audit every Build an XI destination after the migration
    - Regional pages: owner-defined region name, included countries, and current/21st-century pools
    - Continental XI return under Build an XI
    - global formation placement editor must drive every use of a formation
    - continue checking fast opening, search switching, overlapping results, and Back behavior
 7. Complete player-card data tooling:
-   - verified autofill available for every ranked player, always as a reviewable draft
+   - automatically run AI-assisted verified autofill whenever a new player card is created
+   - populate every supported factual field the sources can verify, while leaving uncertain
+     or owner-opinion fields blank
+   - keep every AI-populated card as a private reviewable draft until Sam checks and
+     explicitly saves it; never publish AI-generated data automatically
+   - verified autofill also remains available on demand for every existing ranked player
    - career map, club dates, appearances, goals, available assists, team trophies by stint, career trophies, and individual awards
    - current club and calculated age for active players
    - ranking tiers clearly distinguish Present Day from 21st Century
@@ -64,6 +74,45 @@ July 17, 2026. Start from the live/repository version in
    - Notebook/media/tactics recovery
    - mobile/tablet/desktop layouts, performance, accessibility, backups, and deployment
    - resolve critical failures before final release QA
+9. Expand Transfers:
+   - rename **Transfer Recommendations** to **Transfers**
+   - add **Rumors**, **Recommendations**, and **Grades** as its three subtabs
+   - Transfer Grades need structured records for player, clubs, fee, window/date,
+     grade, verdict, and optional supporting article/media
+   - preserve existing Transfer Recommendation posts when migrating navigation
+10. Expand player-card international data:
+   - add senior national team, international caps, and international goals
+   - display caps and goals compactly as `Caps (Goals)`
+   - keep the section hidden when no international data exists
+   - include the fields in verified autofill as a reviewable draft, never an automatic publish
+   - simplify the ranking/list card to:
+     - `Name — Position`
+     - `Legacy Club(s) / Country`
+   - treat legacy clubs/country as concise owner-curated associations, not a full career list
+   - simplify the opened player profile to these sections:
+     - name and position
+     - club career map with stint years
+     - appearances, goals, and available assists for each club stint
+     - senior national-team appearances and goals
+     - total team titles, with a compact club/country breakdown
+     - only genuinely notable individual awards, curated by the owner
+     - Half Space View
+   - show **Age** and **Current Club** only for active/current-day players
+   - show **Player Comparisons** and **Next Move** only for active/current-day players
+   - combine “clubs that should be interested” into **Next Move** rather than storing
+     or displaying it as a duplicate section
+   - hide every empty or inapplicable section automatically
+11. Add Predictions and Betting:
+   - define Predictions as the editorial core
+   - decide whether Betting is a top-level destination or a Predictions subsection
+   - support picks, reasoning, event/date, result tracking, and an editable record
+   - complete legal, age, responsible-gambling, affiliate, and regional-compliance review
+     before publishing any betting or odds functionality
+12. Add reader support/donations:
+   - choose a payment/support provider
+   - add a restrained **Support Half Space** action to the footer, About/Contact,
+     and optionally Account rather than crowding the primary navigation
+   - make donation status, confirmation, privacy, and cancellation expectations clear
 
 ## Content Sam still needs to enter
 
@@ -71,12 +120,14 @@ July 17, 2026. Start from the live/repository version in
 
 - Finish/update Present Day player rankings and manager rankings.
 - Review every 21st Century player/manager ranking and tier.
-- Review verified autofill drafts for every ranked player before saving.
+- Review every automatically AI-populated player-card draft before saving.
 - Upload/select player photographs manually.
-- Fill optional current-player fields where relevant:
-  transfer value, player comparisons, interested clubs, suggested move, and next move.
-- Correct or complete career stints, dates, appearances, goals, assists, team trophies,
-  individual awards, current club, and active/retired status.
+- For active/current-day players, fill current club, birth date/age, player comparisons,
+  and the single consolidated **Next Move** field where relevant.
+- For every player, curate the concise Legacy Club(s)/Country shown in ranking lists.
+- Correct or complete career stints, dates, appearances, goals, available assists,
+  senior national-team appearances/goals, team trophies, genuinely notable individual
+  awards, and active/retired status.
 
 ### Editor XIs and reader pools
 

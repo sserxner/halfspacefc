@@ -1,15 +1,12 @@
-# Install this update
+# Half Space — Complete Replace All Package
 
-Copy everything inside this folder into:
+This is a complete site folder, not a partial patch.
 
-`/Users/sserxner/Documents/halfspacefc`
+1. Open this extracted folder.
+2. Select everything inside it.
+3. Copy the selected items into `/Users/sserxner/Documents/halfspacefc`.
+4. When Finder asks, choose **Replace All**.
+5. Open the site locally and check the rankings, Build an XI, Streets Won’t Forget, player cards, scrolling navigation, and Masthead Composer.
+6. When those checks pass, double-click `Deploy Half Space.command` from `/Users/sserxner/Documents/halfspacefc`.
 
-Choose **Replace** when Finder asks. Only the five updated Masthead Composer files are included.
-
-Then test locally in admin mode:
-
-1. Open **Studio → Design → Masthead Composer**.
-2. Choose **Edit masthead text** above the canvas.
-3. Edit the title and tagline.
-4. Test their size, position, spacing, color, and opacity.
-5. Switch between **Desktop** and **Mobile** and confirm each layout keeps its own settings.
+The package already includes the newest July 20 published content from GitHub. Do not paste an older `index.html` over it afterward.

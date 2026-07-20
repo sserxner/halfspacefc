@@ -34,7 +34,7 @@
     return items;
   }
   function rankingItems() {
-    const labels = {overall:"Overall",gk:"Goalkeepers",cb:"Centre Backs",fb:"Full Backs",cm:"Central Midfielders",am:"Attacking Midfielders",w:"Wingers",f:"Forwards",mgr:"Managers"};
+    const labels = {overall:"Top 100",gk:"Goalkeepers",cb:"Centre Backs",fb:"Full Backs",cm:"Central Midfielders",am:"Attacking Midfielders",w:"Wingers",f:"Forwards",mgr:"Managers"};
     return Object.entries(labels).map(([section, title]) => {
       const ranking = draft()[`ranking_${section}_century`] || published()[`ranking_${section}_century`] || {};
       const count = (ranking.tiers || []).reduce((sum, tier) => sum + (tier.entries || []).length, 0);

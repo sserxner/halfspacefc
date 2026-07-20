@@ -4,6 +4,7 @@
   const CONFIG_KEY = "masthead_composer_v1";
   const HISTORY_KEY = "masthead_composer_history_v1";
   const MEDIA_KEY = "media_library_v1";
+  const CONFIG_VERSION = 2;
   const BASE_IMAGE = "blank";
   const LEGACY_BASE_IMAGE = "assets/halfspace-masthead-v1.png";
   const BUILTIN_LIBRARY = [
@@ -51,6 +52,21 @@
     ink: { label: "Ink & gold", brightness: 68, contrast: 142, saturation: 34, sepia: 74, hue: -8, glow: 12 },
     memory: { label: "Warm memory", brightness: 90, contrast: 108, saturation: 78, sepia: 36, hue: -5, glow: 6 },
     ghost: { label: "Faded apparition", brightness: 76, contrast: 112, saturation: 48, sepia: 60, hue: -8, glow: 5 },
+  };
+  const LEGACY_AUTOMATIC_FINISH = {
+    finish: "house",
+    brightness: 82,
+    contrast: 118,
+    saturation: 72,
+    sepia: 64,
+    hue: -9,
+    glow: 9,
+  };
+  const LEGACY_AUTOMATIC_DISSOLVE = {
+    dissolveLeft: 4,
+    dissolveRight: 4,
+    dissolveTop: 2,
+    dissolveBottom: 18,
   };
   const ATMOSPHERES = {
     house: { label: "House green", color: "#0a2a18", opacity: 8 },
@@ -125,7 +141,7 @@
     renderedAt: "",
   });
   const defaultConfig = () => ({
-    version: 1,
+    version: CONFIG_VERSION,
     desktop: emptyLayout("desktop"),
     mobile: emptyLayout("mobile"),
     updatedAt: new Date().toISOString(),
@@ -133,6 +149,7 @@
   function normalizedConfig(value) {
     const base = defaultConfig();
     const input = value && typeof value === "object" ? value : {};
+    const migrateAutomaticEffects = (Number(input.version) || 1) < CONFIG_VERSION;
     ["desktop", "mobile"].forEach((mode) => {
       const incoming = input[mode] || {};
       base[mode] = Object.assign(base[mode], incoming);
@@ -140,23 +157,39 @@
         base[mode].base = BASE_IMAGE;
         if (incoming.base === LEGACY_BASE_IMAGE) base[mode].flattened = "";
       }
-      base[mode].layers = Array.isArray(base[mode].layers) ? base[mode].layers.map(normalizedLayer) : [];
+      base[mode].layers = Array.isArray(base[mode].layers)
+        ? base[mode].layers.map((layer) => normalizedLayer(layer, { migrateAutomaticEffects }))
+        : [];
     });
-    base.version = 1;
+    base.version = CONFIG_VERSION;
     base.updatedAt = input.updatedAt || base.updatedAt;
     return base;
   }
-  function normalizedLayer(value) {
+  function normalizedLayer(value, options = {}) {
     const input = value && typeof value === "object" ? value : {};
-    return Object.assign({
+    const layer = Object.assign({
       id: uid(), assetId: "", name: "Masthead figure",
       x: 42, y: 14, width: 16, height: 70, rotation: 0,
       fit: "contain", zoom: 100, focusX: 50, focusY: 50,
       opacity: 100, flipX: false, locked: false, hidden: false, lockAspect: true,
-      z: 1, finish: "house", blend: "normal",
-      brightness: 82, contrast: 118, saturation: 72, sepia: 64, hue: -9, glow: 9,
-      dissolveLeft: 4, dissolveRight: 4, dissolveTop: 2, dissolveBottom: 18,
+      z: 1, finish: "original", blend: "normal",
+      brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0, glow: 0,
+      dissolveLeft: 0, dissolveRight: 0, dissolveTop: 0, dissolveBottom: 0,
     }, input);
+    if (options.migrateAutomaticEffects) {
+      const legacyFinishWasUntouched = Object.entries(LEGACY_AUTOMATIC_FINISH)
+        .every(([field, expected]) => input[field] === undefined || input[field] === expected);
+      if (legacyFinishWasUntouched) Object.assign(layer, FINISHES.original, { finish: "original" });
+      const legacyDissolveWasUntouched = Object.entries(LEGACY_AUTOMATIC_DISSOLVE)
+        .every(([field, expected]) => input[field] === undefined || input[field] === expected);
+      if (legacyDissolveWasUntouched) {
+        layer.dissolveLeft = 0;
+        layer.dissolveRight = 0;
+        layer.dissolveTop = 0;
+        layer.dissolveBottom = 0;
+      }
+    }
+    return layer;
   }
   const layout = () => state.config[state.mode];
   const layers = () => layout().layers;
@@ -390,12 +423,12 @@
     const aspect = asset.width && asset.height ? asset.width / asset.height : 1;
     const width = state.mode === "mobile" ? 30 : 16;
     const height = clamp(width * (modeSize.width / modeSize.height) / Math.max(.2, aspect), 18, 86);
-    const finish = FINISHES.house;
+    const finish = FINISHES.original;
     const item = normalizedLayer({
       id: uid(), assetId: asset.id, name: asset.title || "Masthead figure",
       x: 50 - width / 2, y: 50 - height / 2, width, height,
       z: highestZ() + 1,
-      finish: "house",
+      finish: "original",
       brightness: finish.brightness, contrast: finish.contrast, saturation: finish.saturation,
       sepia: finish.sepia, hue: finish.hue, glow: finish.glow,
     });
@@ -425,7 +458,7 @@
       `hue-rotate(${clamp(layer.hue, -180, 180)}deg)`,
     ];
     const glow = clamp(layer.glow, 0, 40);
-    if (glow) filters.push(`drop-shadow(0 0 ${Math.max(1, glow / 3)}px rgba(228,177,31,${Math.min(.9, glow / 36)}))`);
+    if (glow) filters.push(`drop-shadow(0 0 ${Math.max(1, glow)}px rgba(228,177,31,${Math.min(.9, glow / 36)}))`);
     return filters.join(" ");
   }
   function renderStage() {
@@ -976,7 +1009,7 @@
     try {
       status(`Rendering the ${SIZE[state.mode].label.toLowerCase()} masthead…`);
       const canvas = await buildCanvas();
-      layout().flattened = canvas.toDataURL("image/webp", .84);
+      layout().flattened = canvas.toDataURL("image/webp", .98);
       layout().renderedAt = new Date().toISOString();
       if (!persistConfig()) return;
       applyPublicBanner();

@@ -65,7 +65,7 @@
           showCountryList("none");
         }
         if (
-          ["club-xi", "country-xi", "continent-xi", "region-xi", "free-xi"].includes(id)
+          ["club-xi", "country-xi", "continent-xi", "region-xi", "free-xi", "streets"].includes(id)
         )
           document
             .querySelector(".nav-tab-band .hs-xi-nav")

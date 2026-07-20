@@ -4,7 +4,7 @@
   const FOOTBALL_SECTIONS = ["overall", "gk", "cb", "fb", "cm", "am", "w", "f", "mgr"];
   const RANKING_ERAS = ["century", "now", "current"];
   const SECTION_LABELS = {
-    overall: "Overall",
+    overall: "Top 100",
     gk: "Goalkeepers",
     cb: "Centre Backs",
     fb: "Full Backs",

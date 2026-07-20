@@ -41,13 +41,38 @@ test("Step 40 unifies rankings and promotes the XI workspace", () => {
   assert.match(template, /Build an XI/);
   assert.doesNotMatch(template, />\s*Build a Club XI\s*</);
   assert.doesNotMatch(template, />\s*Build a Country XI\s*</);
-  assert.match(template, /data-misc-page="streets"/);
+  assert.doesNotMatch(template, /data-misc-page="streets"/);
+  assert.match(template, /Build an XI — Streets Won't Forget/);
+  assert.match(read("build-xi-hub.js"), /\["Streets Won't Forget", "streets"\]/);
+  assert.match(read("js/public/navigation-and-xis.js"), /"free-xi", "streets"/);
   assert.doesNotMatch(template, /id="centuryRankingsDropdown"/);
   assert.match(architecture, /showRankingsEra/);
   assert.match(architecture, /present-rankings/);
   assert.match(architecture, /"rankings"/);
   assert.match(read("src/components/present-rankings.html"), /data-rankings-era="century"/);
   assert.match(read("src/components/rankings.html"), /data-rankings-era="present"/);
+});
+
+test("navigation and ranking-position tabs remain available while scrolling", () => {
+  const masthead = read("css/features/halfspace-masthead.css");
+  assert.match(masthead, /body > nav[\s\S]*position:\s*fixed/);
+  assert.match(masthead, /#page-rankings #rankings-primary-tabs,[\s\S]*#page-present-rankings #present-primary-tabs[\s\S]*position:\s*sticky/);
+  assert.match(masthead, /--hs-persistent-nav-height/);
+  assert.match(masthead, /overflow-x:\s*auto/);
+});
+
+test("football player cards use compact summaries and international caps and goals", () => {
+  const features = read("features.js");
+  const cards = read("css/rankings/ranking-player-card-style.css");
+  assert.match(features, /legacyAssociations/);
+  assert.match(features, /Caps \(Goals\)/);
+  assert.match(features, /rpcInternationalCaps/);
+  assert.match(features, /rpcInternationalGoals/);
+  assert.match(features, /Total titles won/);
+  assert.match(features, /Notable Individual Awards/);
+  assert.match(features, /rank-summary-legacy/);
+  assert.match(cards, /\.rank-summary-main/);
+  assert.match(cards, /\.rank-profile-facts-compact/);
 });
 
 test("only Editor XIs link names to existing player cards", () => {
@@ -261,10 +286,8 @@ test("player cards support structured careers and owner-controlled current-playe
   assert.match(features, /const individualAwards =/);
   assert.match(features, /Career Map/);
   assert.match(features, /Current club/);
-  assert.match(features, /Half Space value/);
   assert.match(features, /Player Comps/);
-  assert.match(features, /Clubs That Should Be Interested/);
-  assert.match(features, /Suggested Next Move/);
+  assert.match(features, /Next Move/);
   assert.match(features, /rpcTransferValue/);
   assert.match(features, /rpcInterestedClubs/);
   assert.match(features, /rpcSuggestedMove/);
@@ -304,7 +327,7 @@ test("pilot career facts calculate age and identify league-only totals", () => {
   const features = read("features.js");
   assert.match(features, /const calculatedAge =/);
   assert.match(features, /card\.dateOfBirth/);
-  assert.match(features, /league apps/);
+  assert.match(features, /appearances.*apps/);
   assert.match(features, /Career team trophies/);
   assert.match(features, /rpcCareerTrophyTotal/);
 });
@@ -313,15 +336,15 @@ test("player cards derive subtle ranking and Editor XI distinctions", () => {
   const features = read("features.js");
   const links = read("xi-player-links.js");
   assert.match(features, /const rankingMemberships =/);
-  assert.match(features, /Present Day Top 100/);
-  assert.match(features, /21st Century/);
+  assert.match(features, /\$\{era\} Top 100 · #\$\{item\.rank\}/);
+  assert.match(features, /overall: "Top 100"/);
   assert.match(features, /profileTagsHTML/);
   assert.match(links, /function editorXIMemberships/);
   assert.match(links, /Editor’s.*XI/);
   assert.match(links, /memberships: editorXIMemberships/);
 });
 
-test("Build an XI is one navigation section with five focused subtabs", () => {
+test("Build an XI keeps Streets before Free Build with two internal versions", () => {
   const template = read("src/index.template.html");
   const component = read("src/components/build-xi-hub.html");
   const hub = read("build-xi-hub.js");
@@ -332,10 +355,18 @@ test("Build an XI is one navigation section with five focused subtabs", () => {
   assert.match(hub, /"Country", "country-xi"/);
   assert.match(hub, /"Continent", "continent-xi"/);
   assert.match(hub, /"Regional", "region-xi"/);
+  assert.match(hub, /"Streets Won't Forget", "streets"/);
   assert.match(hub, /"Free Build", "free-xi"/);
+  assert.ok(
+    hub.indexOf(`["Streets Won't Forget", "streets"]`) <
+      hub.indexOf(`["Free Build", "free-xi"]`),
+  );
   assert.match(component, /page-continent-xi/);
   assert.match(component, /page-region-xi/);
   assert.match(component, /page-free-xi/);
+  assert.match(read("src/components/streets-wont-forget.html"), /class="content-wide"/);
+  assert.match(read("src/components/streets-wont-forget.html"), /Premier League Version/);
+  assert.match(read("src/components/streets-wont-forget.html"), /World Cup Version/);
 });
 
 test("Free Build uses every player in the selected era's positional rankings", () => {
@@ -392,8 +423,8 @@ test("the career map is a sleek visual journey with per-stint stats and trophies
 
 test("blank player-card fields stay absent and legacy cards remain supported", () => {
   const features = read("features.js");
-  assert.match(features, /interestedClubs \?/);
-  assert.match(features, /suggestedMove \?/);
+  assert.match(features, /isCurrentPlayer && nextMove/);
+  assert.match(features, /profileFactsHTML\(c, isCurrentPlayer\)/);
   assert.match(features, /facts\.length/);
   assert.match(features, /!stints\.length && timeline/);
   assert.match(features, /!awards\.length && individualTitles\.length/);
@@ -459,7 +490,8 @@ test("reader XIs enforce valid selection and direct device-image saving", () => 
   assert.match(reader, /existingActions\.length === 1/);
   assert.match(reader, /function openInline\(container\)/);
   assert.match(reader, /Save image to device/);
-  assert.match(template, /data-misc-page="streets"/);
+  assert.doesNotMatch(template, /data-misc-page="streets"/);
+  assert.match(read("build-xi-hub.js"), /\["Streets Won't Forget", "streets"\]/);
   assert.match(template, /streets-wont-forget\.html/);
   assert.match(template, /reader-xi-polish\.css\?v=40\.9/);
   assert.match(reader, /image\/png/);
@@ -635,13 +667,37 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /Gold edge glow/);
   assert.match(composer, /drawBlankBase/);
   assert.match(composer, /drawBrandTitle/);
+  assert.match(composer, /data-mc-action="edit-text"/);
+  assert.match(composer, /data-mc-global-field="titleText"/);
+  assert.match(composer, /globalNumberField\("Size", "titleSize"/);
+  assert.match(composer, /data-mc-global-field="taglineText"/);
+  assert.match(composer, /globalNumberField\("Size", "taglineSize"/);
+  assert.match(composer, /titleTracking/);
+  assert.match(composer, /taglineTracking/);
   assert.match(composer, /media_library_v1/);
   assert.match(composer, /masthead_composer_history_v1/);
+  assert.match(composer, /const CONFIG_VERSION = 2/);
+  assert.match(composer, /finish: "original"/);
+  assert.match(composer, /brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0, glow: 0/);
+  assert.match(composer, /dissolveLeft: 0, dissolveRight: 0, dissolveTop: 0, dissolveBottom: 0/);
+  assert.match(composer, /LEGACY_AUTOMATIC_FINISH/);
+  assert.match(composer, /toDataURL\("image\/webp", \.98\)/);
   assert.match(mastheadStyles, /--hs-masthead-image/);
   assert.doesNotMatch(mastheadStyles, /halfspace-masthead-v1\.png/);
   assert.match(composerStyles, /\.hs-mc-stage-title/);
+  assert.match(composerStyles, /\.hs-mc-stage::before[\s\S]*mix-blend-mode: normal/);
+  assert.match(composerStyles, /\.hs-mc-color/);
   assert.match(studio, /\["design", "Design"\]/);
   assert.match(studio, /Open Masthead Composer/);
   assert.match(template, /masthead-composer\.css/);
   assert.match(template, /masthead-composer\.js/);
+});
+
+test("site and ranking navigation remain clickable while scrolling", () => {
+  const styles = read("css/features/halfspace-masthead.css");
+  assert.match(styles, /body > nav\s*\{[\s\S]*position: fixed !important/);
+  assert.match(styles, /#page-rankings #rankings-primary-tabs,[\s\S]*#page-present-rankings #present-primary-tabs\s*\{[\s\S]*position: sticky !important/);
+  assert.match(styles, /--hs-persistent-nav-height: 110px/);
+  assert.match(styles, /@media \(max-width: 768px\)[\s\S]*--hs-persistent-nav-height: 58px/);
+  assert.match(styles, /#page-rankings #rankings-primary-tabs \.sub-tab,[\s\S]*#page-present-rankings #present-primary-tabs \.sub-tab[\s\S]*white-space: nowrap !important/);
 });
