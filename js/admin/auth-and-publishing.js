@@ -186,7 +186,7 @@
         }
       }
 
-      function buildExportHTML() {
+      function buildExportHTML(contentData = siteData) {
         const exportRoot = document.documentElement.cloneNode(true);
         // Media Manager is admin chrome. Its image previews would otherwise
         // duplicate every uploaded image inside the exported HTML.
@@ -242,7 +242,7 @@
             const fresh =
               openTag +
               "window.__HALFSPACE_DATA__=" +
-              JSON.stringify(siteData) +
+              JSON.stringify(contentData) +
               ";" +
               closeTag;
             html =
@@ -384,7 +384,10 @@
             if (btn) btn.textContent = "⏳ Creating safety backup…";
             await window.HSBackups.create({ reason: "before-publish" });
           }
-          const html = buildExportHTML();
+          const publishData = JSON.parse(JSON.stringify(siteData));
+          publishData.__content_revision_v1 = new Date().toISOString();
+          publishData.__content_edit_clock_v1 = {};
+          const html = buildExportHTML(publishData);
           const encoded = await encodeBlobBase64(
             new Blob([html], { type: "text/html;charset=utf-8" }),
           );
@@ -442,6 +445,9 @@
             if (btn) btn.textContent = "⏳ Syncing latest version…";
           }
           if (putResp.ok) {
+            siteData = publishData;
+            localStorage.setItem("halfspace_data", JSON.stringify(siteData));
+            window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(publishData));
             if (btn) {
               btn.textContent = "✓ Saved! Live in ~30s";
               btn.style.background = "#2ea043";

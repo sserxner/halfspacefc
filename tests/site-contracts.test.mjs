@@ -124,6 +124,35 @@ test("publishing keeps safeguards, retry handling, and a pre-publish backup", ()
   assert.match(publishing, /cache: "no-store"/);
 });
 
+test("code updates cannot overwrite newer published content", () => {
+  const editor = read("js/admin/editor.js");
+  const publishing = read("js/admin/auth-and-publishing.js");
+  const installer = read("tools/install-update.sh");
+  const merger = read("tools/merge-content-block.mjs");
+  const verifier = read("tools/verify-content-block.mjs");
+  const installerMerger = read("tools/merge-content-block.py");
+  const installerVerifier = read("tools/verify-content-block.py");
+  assert.match(html, /__content_revision_v1/);
+  assert.match(editor, /CONTENT_CLOCK_KEY = "__content_edit_clock_v1"/);
+  assert.match(editor, /CONTENT_BACKUP_KEY = "halfspace_pre_sync_backup_v1"/);
+  assert.match(editor, /publishedBaselineChanged/);
+  assert.match(editor, /localMayOverride/);
+  assert.match(editor, /saveData\(\{ markChanges: false \}\)/);
+  assert.match(publishing, /publishData\.__content_revision_v1/);
+  assert.match(publishing, /publishData\.__content_edit_clock_v1 = \{\}/);
+  assert.match(installer, /git -C "\$target_root" fetch origin main/);
+  assert.match(installer, /show FETCH_HEAD:index\.html/);
+  assert.match(installer, /halfspacefc-update-backups/);
+  assert.match(installer, /merge-content-block\.py/);
+  assert.match(installer, /verify-content-block\.py/);
+  assert.doesNotMatch(installer, /rsync[^\n]+--delete/);
+  assert.match(merger, /const STRUCTURAL_KEYS = \["masthead_composer_v1"\]/);
+  assert.match(verifier, /Content verification failed/);
+  assert.match(installerMerger, /structural_keys = \["masthead_composer_v1"\]/);
+  assert.match(installerVerifier, /Content verification failed/);
+  assert.doesNotMatch(installer, /status=\$\?/);
+});
+
 test("search, media, profiles, and backups retain their storage contracts", () => {
   const search = read("command-palette.js");
   assert.match(search, /saveToGitHub/);
@@ -692,6 +721,8 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /const BASE_IMAGE = "blank"/);
   assert.match(composer, /Approved figures/);
   assert.match(composer, /approved_central_dribbler/);
+  assert.match(composer, /approved_arsenal_pair/);
+  assert.match(composer, /approved_leo_dribbler/);
   assert.match(composer, /approved_manager_left/);
   assert.match(composer, /approved_fourteen/);
   assert.match(composer, /Clean green-and-gold canvas \+ independent layers/);
@@ -710,7 +741,9 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /taglineTracking/);
   assert.match(composer, /media_library_v1/);
   assert.match(composer, /masthead_composer_history_v1/);
-  assert.match(composer, /const CONFIG_VERSION = 2/);
+  assert.match(composer, /const CONFIG_VERSION = 3/);
+  assert.match(composer, /Brazilian football archive/);
+  assert.match(composer, /applyArchiveLook/);
   assert.match(composer, /finish: "original"/);
   assert.match(composer, /brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0, glow: 0/);
   assert.match(composer, /dissolveLeft: 0, dissolveRight: 0, dissolveTop: 0, dissolveBottom: 0/);

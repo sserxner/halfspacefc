@@ -6,6 +6,24 @@
       let siteData = {};
 
       const DATA_KEY = "halfspace_data";
+      const CONTENT_REVISION_KEY = "__content_revision_v1";
+      const CONTENT_CLOCK_KEY = "__content_edit_clock_v1";
+      const CONTENT_BACKUP_KEY = "halfspace_pre_sync_backup_v1";
+
+      function cloneData(value) {
+        return value === undefined
+          ? undefined
+          : JSON.parse(JSON.stringify(value));
+      }
+
+      function sameData(left, right) {
+        if (left === right) return true;
+        try {
+          return JSON.stringify(left) === JSON.stringify(right);
+        } catch (error) {
+          return false;
+        }
+      }
 
       function escapeHTML(value) {
         return String(value ?? "")
@@ -25,13 +43,34 @@
         }
       }
 
-      function saveData() {
+      function saveData(options = {}) {
+        const baked = window.__HALFSPACE_DATA__ || {};
+        if (options.markChanges !== false) {
+          const clock = Object.assign(
+            {},
+            siteData[CONTENT_CLOCK_KEY] || {},
+          );
+          const onlyKey = options.changedKey;
+          const keys = onlyKey
+            ? [onlyKey]
+            : [...new Set([...Object.keys(siteData), ...Object.keys(baked)])];
+          keys.forEach((key) => {
+            if (key === CONTENT_REVISION_KEY || key === CONTENT_CLOCK_KEY)
+              return;
+            if (sameData(siteData[key], baked[key])) delete clock[key];
+            else clock[key] = Date.now();
+          });
+          siteData[CONTENT_CLOCK_KEY] = clock;
+          if (baked[CONTENT_REVISION_KEY]) {
+            siteData[CONTENT_REVISION_KEY] = baked[CONTENT_REVISION_KEY];
+          }
+        }
         localStorage.setItem(DATA_KEY, JSON.stringify(siteData));
       }
 
       function setData(key, value) {
         siteData[key] = value;
-        saveData();
+        saveData({ changedKey: key });
       }
 
       function getData(key, fallback) {
@@ -1006,16 +1045,65 @@
           // Admin data must not share nested object references with the baked
           // public baseline, otherwise an edit would also alter the version
           // Draft Comparison is meant to compare against.
-          const editableBaked = isAdminEntry
-            ? JSON.parse(JSON.stringify(baked))
-            : baked;
-          siteData = isAdminEntry
-            ? Object.assign({}, editableBaked, local)
-            : Object.assign({}, editableBaked);
+          const editableBaked = isAdminEntry ? cloneData(baked) : baked;
+          siteData = Object.assign({}, editableBaked);
 
           // Never let stale browser data override published content for readers.
-          // Local drafts remain untouched and are restored when #admin opens.
           if (!isAdminEntry) return;
+
+          const bakedRevision = String(baked[CONTENT_REVISION_KEY] || "");
+          const localRevision = String(local[CONTENT_REVISION_KEY] || "");
+          const localClock =
+            local[CONTENT_CLOCK_KEY] &&
+            typeof local[CONTENT_CLOCK_KEY] === "object"
+              ? local[CONTENT_CLOCK_KEY]
+              : {};
+          const publishedBaselineChanged =
+            Boolean(bakedRevision) && bakedRevision !== localRevision;
+          const privateLocalKeys = new Set(["notebook_pages_v1"]);
+          const localMayOverride = (key) =>
+            !publishedBaselineChanged ||
+            Boolean(localClock[key]) ||
+            privateLocalKeys.has(key) ||
+            !Object.prototype.hasOwnProperty.call(baked, key);
+
+          if (publishedBaselineChanged && Object.keys(local).length) {
+            // Keep a recovery copy before moving the browser onto a newer
+            // published baseline. This is intentionally separate from the
+            // active draft so stale content can never silently win again.
+            try {
+              localStorage.setItem(
+                CONTENT_BACKUP_KEY,
+                JSON.stringify({
+                  savedAt: new Date().toISOString(),
+                  fromRevision: localRevision || "legacy-browser-copy",
+                  toRevision: bakedRevision,
+                  data: local,
+                }),
+              );
+            } catch (backupError) {
+              console.warn("Half Space recovery backup was too large:", backupError);
+            }
+          }
+
+          Object.keys(local).forEach((key) => {
+            if (
+              key !== CONTENT_REVISION_KEY &&
+              key !== CONTENT_CLOCK_KEY &&
+              localMayOverride(key)
+            ) {
+              siteData[key] = cloneData(local[key]);
+            }
+          });
+          siteData[CONTENT_REVISION_KEY] = bakedRevision;
+          siteData[CONTENT_CLOCK_KEY] = Object.fromEntries(
+            Object.entries(localClock).filter(
+              ([key, timestamp]) =>
+                Boolean(timestamp) &&
+                Object.prototype.hasOwnProperty.call(local, key) &&
+                !sameData(local[key], baked[key]),
+            ),
+          );
 
           // Published media and shared player cards are additive. A localhost
           // draft from before the latest public save must not erase assets that
@@ -1030,15 +1118,19 @@
             });
             return [...merged.values()];
           };
-          siteData.media_library_v1 = mergeRecordsById(
-            baked.media_library_v1,
-            local.media_library_v1,
-          );
-          siteData.player_card_library_v1 = Object.assign(
-            {},
-            baked.player_card_library_v1 || {},
-            local.player_card_library_v1 || {},
-          );
+          if (localMayOverride("media_library_v1")) {
+            siteData.media_library_v1 = mergeRecordsById(
+              baked.media_library_v1,
+              local.media_library_v1,
+            );
+          }
+          if (localMayOverride("player_card_library_v1")) {
+            siteData.player_card_library_v1 = Object.assign(
+              {},
+              baked.player_card_library_v1 || {},
+              local.player_card_library_v1 || {},
+            );
+          }
 
           // Step 17 migrates legacy per-ranking cards into the shared library.
           // Until that migration runs, retain any published card that is absent
@@ -1083,65 +1175,7 @@
               );
             });
 
-          const isBlank = (value) =>
-            value === "" ||
-            value === null ||
-            value === undefined ||
-            (Array.isArray(value) && value.length === 0) ||
-            (value &&
-              typeof value === "object" &&
-              !Array.isArray(value) &&
-              Object.keys(value).length === 0);
-
-          // A legacy export could save empty XI/formation/manager keys into localStorage.
-          // Empty local values must never erase populated values baked into the published file.
-          Object.keys(baked).forEach((key) => {
-            const protectedContentKey =
-              key.startsWith("xi_") || key.startsWith("formation_");
-            if (
-              protectedContentKey &&
-              !isBlank(baked[key]) &&
-              isBlank(local[key])
-            ) {
-              siteData[key] = baked[key];
-            }
-          });
-
-          // Restore populated baked rankings when an older cached build saved these lists as empty.
-          [
-            "ranking_gk_century",
-            "ranking_cb_century",
-            "ranking_cm_century",
-            "ranking_am_century",
-          ].forEach((key) => {
-            const bakedRanking = baked[key];
-            const localRanking = local[key];
-            const countEntries = (ranking) =>
-              ((ranking && ranking.tiers) || []).reduce(
-                (total, tier) => total + ((tier || {}).entries || []).length,
-                0,
-              );
-            if (
-              countEntries(bakedRanking) > 0 &&
-              countEntries(localRanking) === 0
-            )
-              siteData[key] = bakedRanking;
-          });
-
-          // One-time migration for the July 2026 rankings merge. Older browser storage was
-          // overriding the updated Full Back, Central Midfield, and Forward lists baked into
-          // this file. Import these exact lists once, then allow future admin edits normally.
-          const rankingMergeVersion = "2026-07-14-all-rankings-v3";
-          if (local.__ranking_merge_version !== rankingMergeVersion) {
-            Object.keys(baked)
-              .filter((key) => key.startsWith("ranking_"))
-              .forEach((key) => {
-                siteData[key] = JSON.parse(JSON.stringify(baked[key]));
-              });
-            siteData.__ranking_merge_version = rankingMergeVersion;
-          }
-
-          saveData();
+          saveData({ markChanges: false });
         } catch (e) {
           console.error("Half Space data recovery:", e);
           siteData = Object.assign({}, baked);

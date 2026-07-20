@@ -4,7 +4,7 @@
   const CONFIG_KEY = "masthead_composer_v1";
   const HISTORY_KEY = "masthead_composer_history_v1";
   const MEDIA_KEY = "media_library_v1";
-  const CONFIG_VERSION = 2;
+  const CONFIG_VERSION = 3;
   const BASE_IMAGE = "blank";
   const LEGACY_BASE_IMAGE = "assets/halfspace-masthead-v1.png";
   const BUILTIN_LIBRARY = [
@@ -28,6 +28,8 @@
     ["approved_striker_right", "Ball strike — right", "striker-right.png", 1254, 1254],
     ["approved_white_ten", "White ten — ball strike", "white-ten-right.png", 1254, 1254],
     ["approved_fourteen", "Fourteen before the crowd", "fourteen-right.png", 1589, 989],
+    ["approved_arsenal_pair", "Two-player grass celebration", "arsenal-pair-reclining.png", 1727, 911],
+    ["approved_leo_dribbler", "Barcelona dribbler", "leo-dribbler.png", 380, 656],
   ].map(([id, title, file, width, height]) => ({
     id,
     title,
@@ -46,6 +48,7 @@
   };
   const FINISHES = {
     original: { label: "Original color", brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0, glow: 0 },
+    archive: { label: "Brazilian football archive", brightness: 76, contrast: 128, saturation: 46, sepia: 62, hue: -8, glow: 5 },
     house: { label: "Half Space house", brightness: 82, contrast: 118, saturation: 72, sepia: 64, hue: -9, glow: 9 },
     gold: { label: "Burnished gold", brightness: 78, contrast: 126, saturation: 82, sepia: 88, hue: -12, glow: 14 },
     emerald: { label: "Emerald & gold", brightness: 76, contrast: 120, saturation: 68, sepia: 52, hue: 15, glow: 8 },
@@ -69,6 +72,7 @@
     dissolveBottom: 18,
   };
   const ATMOSPHERES = {
+    footballArchive: { label: "Brazilian football archive", color: "#0b281e", opacity: 6 },
     house: { label: "House green", color: "#0a2a18", opacity: 8 },
     brazil: { label: "Brazil warmth", color: "#b68b14", opacity: 10 },
     emerald: { label: "Deep emerald", color: "#063522", opacity: 14 },
@@ -117,24 +121,24 @@
     baseFit: "cover",
     baseFocusX: 50,
     baseFocusY: 50,
-    atmosphere: "house",
-    atmosphereOpacity: ATMOSPHERES.house.opacity,
-    texture: "pitch",
-    textureStrength: 18,
-    vignette: 18,
+    atmosphere: "footballArchive",
+    atmosphereOpacity: ATMOSPHERES.footballArchive.opacity,
+    texture: "archive",
+    textureStrength: 24,
+    vignette: 26,
     titleText: "Half Space",
     titleSize: mode === "desktop" ? 26 : 20,
     titleX: 50,
     titleY: 72,
-    titleColor: "#eadcae",
+    titleColor: "#f2e8d2",
     titleOpacity: 100,
     titleTracking: -4,
     taglineText: "Rankings and Ramblings",
     taglineSize: mode === "desktop" ? 3.2 : 3.6,
     taglineX: 50,
     taglineY: mode === "desktop" ? 87 : 85,
-    taglineColor: "#ffffff",
-    taglineOpacity: 74,
+    taglineColor: "#d8c7a3",
+    taglineOpacity: 82,
     taglineTracking: 0,
     layers: [],
     flattened: "",
@@ -272,6 +276,7 @@
             <div class="hs-mc-canvas-toolbar">
               <div><strong id="hsMcCanvasLabel">Desktop composition</strong><small>Clean green-and-gold canvas + independent layers</small></div>
               <div>
+                <button type="button" data-mc-action="apply-archive">Apply archive look</button>
                 <button type="button" data-mc-action="edit-text">Edit masthead text</button>
                 <button type="button" data-mc-action="copy-layout">Copy other layout</button>
                 <button type="button" data-mc-action="download">Download image</button>
@@ -337,6 +342,7 @@
       close, undo, redo, save: saveDraft, render: renderAndUse, download: downloadImage,
       "choose-media": chooseMedia, paste: pasteButton, reset: resetLayout,
       "copy-layout": copyOtherLayout,
+      "apply-archive": applyArchiveLook,
       "edit-text": () => { state.selected = null; renderAll(); },
     };
     actions[action]?.();
@@ -347,6 +353,24 @@
     state.mode = mode;
     state.selected = null;
     renderAll();
+  }
+  function applyArchiveLook() {
+    pushUndo();
+    const current = layout();
+    current.atmosphere = "footballArchive";
+    current.atmosphereOpacity = ATMOSPHERES.footballArchive.opacity;
+    current.texture = "archive";
+    current.textureStrength = 24;
+    current.vignette = 26;
+    current.titleColor = "#f2e8d2";
+    current.taglineColor = "#d8c7a3";
+    current.taglineOpacity = 82;
+    current.layers.forEach((layer) => {
+      Object.assign(layer, FINISHES.archive, { finish: "archive" });
+    });
+    current.flattened = "";
+    renderAll();
+    status("Brazilian Football Archive applied. Figure placement and source images were not changed.", "success");
   }
   function copyOtherLayout() {
     const from = state.mode === "desktop" ? "mobile" : "desktop";
@@ -557,7 +581,7 @@
         <div class="hs-mc-section"><h4>Canvas finish</h4>
           <label class="hs-mc-select"><span>Atmosphere</span><select data-mc-global-field="atmosphere">${optionList(Object.entries(ATMOSPHERES).map(([id, value]) => [id, value.label]), current.atmosphere)}</select></label>
           ${globalNumberField("Color wash", "atmosphereOpacity", current.atmosphereOpacity, 0, 60, "%")}
-          <label class="hs-mc-select"><span>Flourish</span><select data-mc-global-field="texture">${optionList([["none","Clean"],["pitch","Fine pitch arcs"],["dust","Gold dust"],["grain","Archival grain"],["constellation","Memory lines"]], current.texture)}</select></label>
+          <label class="hs-mc-select"><span>Flourish</span><select data-mc-global-field="texture">${optionList([["none","Clean"],["archive","Archive grain + memory lines"],["pitch","Fine pitch arcs"],["dust","Gold dust"],["grain","Archival grain"],["constellation","Memory lines"]], current.texture)}</select></label>
           ${globalNumberField("Flourish strength", "textureStrength", current.textureStrength, 0, 100, "%")}
           ${globalNumberField("Vignette", "vignette", current.vignette, 0, 80, "%")}
         </div>
@@ -863,9 +887,9 @@
     context.fillRect(0, 0, width, height);
     context.restore();
     const strength = clamp(current.textureStrength, 0, 100) / 100;
-    if (current.texture === "pitch" || current.texture === "constellation") {
+    if (current.texture === "pitch" || current.texture === "constellation" || current.texture === "archive") {
       context.save();
-      context.strokeStyle = `rgba(207,160,30,${.16 * strength})`;
+      context.strokeStyle = `rgba(185,145,63,${(current.texture === "archive" ? .1 : .16) * strength})`;
       context.lineWidth = Math.max(1, width / 2200);
       context.beginPath();
       context.arc(width / 2, height / 2, height * .43, 0, Math.PI * 2);
@@ -874,14 +898,16 @@
       context.stroke();
       context.restore();
     }
-    if (current.texture === "dust" || current.texture === "grain") {
+    if (current.texture === "dust" || current.texture === "grain" || current.texture === "archive") {
       context.save();
       const count = Math.round(900 * strength);
       for (let index = 0; index < count; index += 1) {
         const x = ((index * 7919) % 10000) / 10000 * width;
         const y = ((index * 3571) % 10000) / 10000 * height;
-        const alpha = current.texture === "dust" ? .12 : .035;
-        context.fillStyle = `rgba(226,177,39,${alpha * strength})`;
+        const alpha = current.texture === "dust" ? .12 : current.texture === "archive" ? .024 : .035;
+        context.fillStyle = current.texture === "archive"
+          ? `rgba(242,232,210,${alpha * strength})`
+          : `rgba(226,177,39,${alpha * strength})`;
         context.fillRect(x, y, current.texture === "dust" ? 1.4 : 1, current.texture === "dust" ? 1.4 : 1);
       }
       context.restore();
@@ -897,16 +923,16 @@
   }
   function drawBlankBase(context, width, height) {
     const field = context.createLinearGradient(0, 0, width, height);
-    field.addColorStop(0, "#03170d");
-    field.addColorStop(.42, "#0a2d1a");
-    field.addColorStop(.72, "#0b321d");
-    field.addColorStop(1, "#04190f");
+    field.addColorStop(0, "#071813");
+    field.addColorStop(.42, "#0b281e");
+    field.addColorStop(.72, "#102f24");
+    field.addColorStop(1, "#071b15");
     context.fillStyle = field;
     context.fillRect(0, 0, width, height);
 
     const warmth = context.createRadialGradient(width * .5, height * .68, 0, width * .5, height * .68, width * .62);
-    warmth.addColorStop(0, "rgba(181,127,27,.16)");
-    warmth.addColorStop(.46, "rgba(86,67,15,.07)");
+    warmth.addColorStop(0, "rgba(185,145,63,.11)");
+    warmth.addColorStop(.46, "rgba(110,84,35,.045)");
     warmth.addColorStop(1, "rgba(0,0,0,0)");
     context.fillStyle = warmth;
     context.fillRect(0, 0, width, height);
