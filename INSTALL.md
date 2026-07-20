@@ -6,7 +6,11 @@ This is a complete site folder, not a partial patch.
 2. Select everything inside it.
 3. Copy the selected items into `/Users/sserxner/Documents/halfspacefc`.
 4. When Finder asks, choose **Replace All**.
-5. Open the site locally and check the rankings, Build an XI, Streets Won’t Forget, player cards, scrolling navigation, and Masthead Composer.
+5. Open the site locally and check the rankings, Build an XI, Streets Won’t Forget, player cards, scrolling navigation, Positions cards, and Masthead Composer.
 6. When those checks pass, double-click `Deploy Half Space.command` from `/Users/sserxner/Documents/halfspacefc`.
 
 The package already includes the newest July 20 published content from GitHub. Do not paste an older `index.html` over it afterward.
+
+This build also includes the same-row Free Build navigation, `F`/`W` Top 100 labels,
+editable Present Day Top 100 display positions, automatic private Verified Autofill
+for new player cards, and admin controls for adding the large Positions-page cards.

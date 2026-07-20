@@ -788,7 +788,12 @@
               let i = s.indexOf(":");
               return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 1)];
             }),
-            specificPosition = c.specificPosition || c.position || "",
+            specificPosition =
+              x.displayPosition ||
+              x.position ||
+              c.specificPosition ||
+              c.position ||
+              "",
             positionMeaningURL = /^(https?:\/\/|\/)/i.test(c.positionMeaningUrl || "")
               ? c.positionMeaningUrl
               : "",
@@ -862,6 +867,13 @@
           const c = sharedCard(x),
             m = document.createElement("div"),
             verifiedDraft = window.HSVerifiedPlayerDrafts?.get?.(x.name);
+          const hasExistingCard = Object.values(c || {}).some((value) =>
+            Array.isArray(value)
+              ? value.length
+              : value && typeof value === "object"
+                ? Object.keys(value).length
+                : String(value || "").trim(),
+          );
           m.id = "rankCardEditor";
           m.style.cssText =
             "position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100001;display:flex;padding:1rem;overflow:auto";
@@ -887,6 +899,7 @@
             <div><label>Career team trophies</label><input id="rpcCareerTrophyTotal" value="${esc(c.careerTrophyTotal || "")}" placeholder="Verified career total"></div>
             <div><label>Your transfer value</label><input id="rpcTransferValue" value="${esc(c.transferValue || "")}" placeholder="Left blank for you"></div>
             <div class="full rank-editor-section-title">Visual career map</div>
+            <div class="full"><label>Career-map rows — Club | Years | Apps | Goals | Assists | Trophies separated by semicolons</label><textarea id="rpcCareerStints" placeholder="Barcelona | 2004–2021 | 520 | 474 |  | La Liga ×10; Champions League ×4">${esc(stintLines)}</textarea></div>
             <div class="full"><label>Legacy teams timeline — used only until structured career-map rows are added</label><textarea id="rpcTeamsTimeline">${esc(c.teamsTimeline || c.teams || x.detail || "")}</textarea></div>
             <div class="full rank-editor-section-title">Honours and existing card details</div>
             <div class="full"><label>Individual awards: Award | Club or country | Year</label><textarea id="rpcAwards" placeholder="Ballon d'Or | Barcelona | 2019">${esc(awardLines)}</textarea></div>
@@ -909,7 +922,8 @@
           let appliedVerifiedDraft = null;
           const loadVerifiedDraft = (draft) => {
             appliedVerifiedDraft = draft;
-            rpcNationality.value = draft.nationality || rpcNationality.value;
+            rpcNationality.value =
+              draft.nationalTeam || draft.nationality || rpcNationality.value;
             rpcInternationalCaps.value = draft.internationalCaps || rpcInternationalCaps.value;
             rpcInternationalGoals.value = draft.internationalGoals || rpcInternationalGoals.value;
             rpcYears.value = draft.years || rpcYears.value;
@@ -925,20 +939,34 @@
             button.textContent = "Draft loaded — review below";
             button.disabled = true;
           };
-          if (verifiedDraft) rpcApplyVerified.onclick = () => loadVerifiedDraft(verifiedDraft);
-          else rpcPrepareVerified.onclick = async () => {
-            rpcPrepareVerified.disabled = true;
-            rpcPrepareVerified.textContent = "Preparing…";
+          const prepareVerifiedDraft = async () => {
+            const prepareButton = document.getElementById("rpcPrepareVerified");
+            if (!prepareButton) return;
+            prepareButton.disabled = true;
+            prepareButton.textContent = "Preparing…";
             rpcVerifiedStatus.textContent = "Checking Wikipedia and Wikidata. Nothing will be saved automatically.";
             try {
-              const prepared = await window.HSVerifiedPlayerDrafts.prepare(x.name);
+              const prepared = await (window.HSVerifiedPlayerDrafts.queue?.(x.name) || window.HSVerifiedPlayerDrafts.prepare(x.name));
               loadVerifiedDraft(prepared);
             } catch (error) {
-              rpcPrepareVerified.disabled = false;
-              rpcPrepareVerified.textContent = "Try again";
+              prepareButton.disabled = false;
+              prepareButton.textContent = "Try again";
               rpcVerifiedStatus.textContent = `Could not prepare this player: ${error.message}`;
             }
           };
+          if (verifiedDraft) {
+            rpcApplyVerified.onclick = () => loadVerifiedDraft(verifiedDraft);
+            if (!hasExistingCard) {
+              rpcVerifiedStatus.textContent = "Private verified draft found. Loading factual fields automatically; nothing is saved or published until you review and click Save reusable card.";
+              setTimeout(() => loadVerifiedDraft(verifiedDraft), 0);
+            }
+          } else {
+            rpcPrepareVerified.onclick = prepareVerifiedDraft;
+            if (!hasExistingCard) {
+              rpcVerifiedStatus.textContent = "Preparing a private verified draft automatically for this new player card. Nothing will be saved or published until you review it.";
+              setTimeout(prepareVerifiedDraft, 0);
+            }
+          }
           rpcSave.onclick = () => {
             let d = rankGet(k),
               z = d.tiers[t].entries[e];
@@ -1053,8 +1081,8 @@
           fb: "Full-back",
           cm: "CM",
           am: "AM / 10",
-          w: "Winger",
-          f: "Forward",
+          w: "W",
+          f: "F",
         };
         const esc = (v) =>
           String(v ?? "").replace(
@@ -1075,6 +1103,8 @@
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "");
         function overallPosition(entry, key, card) {
+          if (key === "overall_now" && (entry?.displayPosition || entry?.position))
+            return entry.displayPosition || entry.position;
           if (card.specificPosition || card.position)
             return card.specificPosition || card.position;
           const era = key.endsWith("_now") ? "now" : "century";

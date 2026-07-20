@@ -491,6 +491,12 @@
         modal.style.cssText =
           "position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;";
         const xiVal = (entry.xi || []).join(", ");
+        const displayPositionField =
+          key === "overall_now"
+            ? `<div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Display position — Present Day Top 100</label>
+        <input id="me_position" type="text" value="${(entry.displayPosition || entry.position || "").replace(/"/g, "&quot;")}" placeholder="RW, left-sided No. 8, false 9…" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
+        <div style="font-size:.7rem;color:var(--gray-400);margin-top:.28rem;line-height:1.45;">Controls the position printed beside this name in the Present Day Top 100. It does not move the player between the position-ranking pages.</div></div>`
+            : "";
         modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:500px;font-family:var(--sans);margin:auto;">
     <h3 style="font-family:var(--serif);font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;color:var(--accent);">${ei === -1 ? "Add" : "Edit"} entry</h3>
     <div style="display:flex;flex-direction:column;gap:0.9rem;">
@@ -501,6 +507,7 @@
         </div>
         <input id="me_name" type="text" value="${(entry.name || "").replace(/"/g, "&quot;")}" placeholder="Messi (ARG) — FW" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;">
       </div>
+      ${displayPositionField}
       <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Club / Era</label>
         <input id="me_detail" type="text" value="${(entry.detail || "").replace(/"/g, "&quot;")}" placeholder="Barcelona · 2004–present" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--gray-200);border-radius:3px;font-size:0.9rem;font-family:var(--sans);outline:none;"></div>
       <div><label style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);display:block;margin-bottom:0.3rem;">Note</label>
@@ -527,6 +534,8 @@
         const name = document.getElementById("me_name").value.trim();
         const detail = document.getElementById("me_detail").value.trim();
         const note = document.getElementById("me_note").value.trim();
+        const displayPosition =
+          document.getElementById("me_position")?.value.trim() || "";
         const xiRaw = document.getElementById("me_xi").value.trim();
         const xi = xiRaw
           ? xiRaw
@@ -540,12 +549,17 @@
         }
         const d = rankGet(key);
         if (!d.tiers[ti]) d.tiers[ti] = { name: "", entries: [] };
-        const entry = { name, detail, note, xi };
+        const previous =
+          ei === -1 ? {} : d.tiers[ti].entries[ei] || {};
+        const entry = { ...previous, name, detail, note, xi };
+        if (key === "overall_now") entry.displayPosition = displayPosition;
         if (ei === -1) d.tiers[ti].entries.push(entry);
         else d.tiers[ti].entries[ei] = entry;
         rankSet(key, d);
         document.getElementById("adminModal").remove();
         rankRender(key.split("_")[0]);
+        if (ei === -1)
+          window.HSVerifiedPlayerDrafts?.queue?.(name).catch(() => {});
       }
 
       // ---- TIER LEGEND ----

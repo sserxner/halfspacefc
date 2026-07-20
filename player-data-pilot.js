@@ -71,6 +71,28 @@
   };
 
   const keyFor = (name) => String(name || "").toLowerCase().trim().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const PRIVATE_DRAFT_CACHE_KEY = "hs_verified_player_drafts_private_v2";
+  const pendingDrafts = new Map();
+  function readPrivateDraftCache() {
+    try {
+      const value = JSON.parse(localStorage.getItem(PRIVATE_DRAFT_CACHE_KEY) || "{}");
+      return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    } catch (_) {
+      return {};
+    }
+  }
+  function savePrivateDraft(name, record) {
+    const key = keyFor(name);
+    if (!key || !record) return;
+    records[key] = record;
+    try {
+      const cache = readPrivateDraftCache();
+      cache[key] = record;
+      localStorage.setItem(PRIVATE_DRAFT_CACHE_KEY, JSON.stringify(cache));
+    } catch (_) {
+      // The in-memory private draft still works when browser storage is full.
+    }
+  }
   const nameTokens = (name) => keyFor(name).split("-").filter((token) => token.length > 1 && !["jr","ii","iii"].includes(token));
   const clean = (value) => String(value || "").replace(/\[[^\]]*]/g, "").replace(/\s+/g, " ").trim();
   const number = (value) => {
@@ -162,6 +184,43 @@
       if (match) fields[match[1].toLowerCase()] = plainWiki(match[2]);
     });
     return fields;
+  }
+  function internationalFromWikitext(wikitext) {
+    const fields = infoboxFields(wikitext), rows = [];
+    for (let index = 1; index <= 30; index++) {
+      const team = fields[`nationalteam${index}`];
+      if (!team) continue;
+      const caps = String(fields[`nationalcaps${index}`] || "").match(/\d[\d,]*/)?.[0]?.replace(/,/g, "") || "";
+      const goals = String(fields[`nationalgoals${index}`] || "").match(/-?\d[\d,]*/)?.[0]?.replace(/,/g, "") || "";
+      rows.push({ team, caps, goals, years: fields[`nationalyears${index}`] || "" });
+    }
+    const senior = rows.filter((row) => !/(?:\bu[- ]?\d{2}\b|under[- ]?\d{2}|olympic|youth)/i.test(row.team));
+    const candidates = senior.length ? senior : rows;
+    return candidates.sort((a, b) => (Number(b.caps) || 0) - (Number(a.caps) || 0))[0] || {};
+  }
+
+  function countTitle(title) {
+    const value = clean(title);
+    if (!value || /runner-?up|second place|third place|bronze|silver/i.test(value))
+      return 0;
+    const multiplier = value.match(/[×x]\s*(\d+)/i);
+    if (multiplier) return Number(multiplier[1]) || 0;
+    const details = value.includes(":") ? value.split(":").slice(1).join(":") : value;
+    const years = details.match(/\b(?:19|20)\d{2}(?:[–—/-]\d{2,4})?\b/g);
+    return years?.length || 1;
+  }
+
+  function careerTeamTitleTotal(stints, teamTitles) {
+    return [
+      ...stints.flatMap((stint) => stint.trophies || []),
+      ...String(teamTitles || "").split("\n").filter(Boolean),
+    ].reduce((sum, title) => sum + countTitle(title), 0);
+  }
+
+  function notableIndividualAwards(awards) {
+    const important = /ballon d|best fifa|fifa world player|fifa world cup golden|uefa.*player|golden (?:ball|boot|shoe|glove)|player of the year|footballer of the year|african footballer|south american footballer|asian footballer|pfa players|fwa footballer|yashin trophy|kopa trophy|world soccer/i;
+    const excluded = /team of the|nominee|runner-?up|third place|shortlist/i;
+    return awards.filter((award) => important.test(award.name || "") && !excluded.test(award.name || "")).slice(0, 18);
   }
   function careerRowsFromWikitext(wikitext) {
     const fields = infoboxFields(wikitext), rows = [];
@@ -261,44 +320,69 @@
     if (!stints.length) stints.push(...careerRows(documentNode));
     const awards = honoursFromWikitext(wikitext, stints);
     if (!awards.length) awards.push(...honours(documentNode, stints));
+    const teamTitles = (awards.teamTitles || []).join("\n");
+    const notableAwards = notableIndividualAwards(awards);
+    const international = internationalFromWikitext(wikitext);
+    const trophyTotal = careerTeamTitleTotal(stints, teamTitles);
     const firstYear = stints.map((item) => item.years.match(/\d{4}/)?.[0]).filter(Boolean).sort()[0] || "";
     const active = labels[clubId] || infoboxFields(wikitext).currentclub || "";
     const record = {
       currentClub: active,
       dateOfBirth: claimDate(claims, "P569"),
       nationality: labels[countryId] || "",
+      nationalTeam: international.team || labels[countryId] || "",
+      internationalCaps: international.caps || "",
+      internationalGoals: international.goals || "",
       years: firstYear ? `${firstYear}—` : "",
-      careerTrophyTotal: "",
+      careerTrophyTotal: trophyTotal ? String(trophyTotal) : "",
       careerStints: stints,
-      teamTitles: (awards.teamTitles || []).join("\n"),
-      individualAwards: awards,
+      teamTitles,
+      individualAwards: notableAwards,
       dataAsOf: new Date().toISOString().slice(0, 10),
       sources: [{label:`${parsed.parse?.title || name} — Wikipedia`,url:page.fullurl || `https://en.wikipedia.org/?curid=${page.pageid}`}],
       statsNote: "Club years, league appearances and league goals are prepared from Wikipedia’s football biography record, with career-statistics tables as a fallback. Honours are mapped from the cited page when identifiable. Assists and uncertain fields remain blank. Review every row before saving.",
-      reviewWarnings: stints.length ? [] : ["Career-statistics rows could not be structured automatically; add or verify them manually."],
+      reviewWarnings: [
+        ...(stints.length ? [] : ["Career-statistics rows could not be structured automatically; add or verify them manually."]),
+        ...(trophyTotal ? ["The team-title total is calculated from the structured honours listed below; verify it before saving."] : []),
+      ],
     };
-    records[keyFor(name)] = record;
+    savePrivateDraft(name, record);
     return JSON.parse(JSON.stringify(record));
+  }
+
+  function getDraft(name) {
+    const key = keyFor(name);
+    const aliases = {
+      messi: "lionel-messi",
+      "l-messi": "lionel-messi",
+      ronaldo: "cristiano-ronaldo",
+      "c-ronaldo": "cristiano-ronaldo",
+      cristiano: "cristiano-ronaldo",
+      neuer: "manuel-neuer",
+      "m-neuer": "manuel-neuer",
+    };
+    const surname = key.split("-").at(-1);
+    const cache = readPrivateDraftCache();
+    const resolved = aliases[key] || aliases[surname] || key;
+    const record = cache[key] || cache[resolved] || records[key] || records[resolved];
+    return record ? JSON.parse(JSON.stringify(record)) : null;
+  }
+
+  function queue(name) {
+    const key = keyFor(name);
+    const existing = getDraft(name);
+    if (existing) return Promise.resolve(existing);
+    if (pendingDrafts.has(key)) return pendingDrafts.get(key);
+    const job = prepare(name).finally(() => pendingDrafts.delete(key));
+    pendingDrafts.set(key, job);
+    return job;
   }
 
   window.HSVerifiedPlayerDrafts = {
     version: "step-40-verified-autofill-all-ranked-players",
-    get(name) {
-      const key = String(name || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      const aliases = {
-        messi: "lionel-messi",
-        "l-messi": "lionel-messi",
-        ronaldo: "cristiano-ronaldo",
-        "c-ronaldo": "cristiano-ronaldo",
-        cristiano: "cristiano-ronaldo",
-        neuer: "manuel-neuer",
-        "m-neuer": "manuel-neuer",
-      };
-      const surname = key.split("-").at(-1);
-      const record = records[key] || records[aliases[key]] || records[aliases[surname]];
-      return record ? JSON.parse(JSON.stringify(record)) : null;
-    },
+    get: getDraft,
     prepare,
+    queue,
     availableFor() { return true; },
   };
 })();

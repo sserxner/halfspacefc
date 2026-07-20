@@ -157,7 +157,7 @@
 
 // halfspace-position-subtypes
 (function () {
-        const POSITION_PARENTS = [
+        const DEFAULT_POSITION_PARENTS = [
           { key: "gk", code: "GK", name: "Goalkeeper" },
           { key: "cb", code: "CB", name: "Centre Back" },
           { key: "fb", code: "FB", name: "Full Back" },
@@ -167,13 +167,32 @@
           { key: "f", code: "F", name: "Forward" },
         ];
 
+        function getPositionParents() {
+          const stored = getData("position_parent_cards_v1", null);
+          if (!Array.isArray(stored) || !stored.length)
+            return DEFAULT_POSITION_PARENTS.map((parent) => ({ ...parent }));
+          return stored
+            .filter((parent) => parent && parent.key && parent.code)
+            .map((parent) => ({
+              key: String(parent.key),
+              code: String(parent.code),
+              name: String(parent.name || parent.code),
+            }));
+        }
+
+        function savePositionParents(parents) {
+          setData("position_parent_cards_v1", parents);
+          renderPositions();
+        }
+
         function getPositionSubtypeData() {
           const stored = getData("position_subtypes_v2", null);
           const base = {};
-          POSITION_PARENTS.forEach((p) => (base[p.key] = []));
+          const parents = getPositionParents();
+          parents.forEach((p) => (base[p.key] = []));
           if (!stored || typeof stored !== "object" || Array.isArray(stored))
             return base;
-          POSITION_PARENTS.forEach((p) => {
+          parents.forEach((p) => {
             if (Array.isArray(stored[p.key]))
               base[p.key] = stored[p.key].map((x) => ({
                 name: String((x && x.name) || ""),
@@ -192,12 +211,14 @@
           const grid = document.getElementById("positionsGrid");
           if (!grid) return;
           const data = getPositionSubtypeData();
-          grid.innerHTML = `<div class="positions-parent-grid">${POSITION_PARENTS.map(
+          const parents = getPositionParents();
+          grid.innerHTML = `<div class="positions-parent-grid">${parents.map(
             (parent) => {
               const items = data[parent.key] || [];
               return `<section class="position-parent-card">
         <div class="position-parent-head">
           <div><div class="position-parent-code">${escapeHTML(parent.code)}</div><div class="position-parent-name">${escapeHTML(parent.name)}</div></div>
+          ${adminMode ? `<div class="position-parent-actions"><button class="rk-btn" onclick="editPositionParent('${parent.key}')">Edit card</button><button class="rk-btn" onclick="movePositionParent('${parent.key}',-1)">←</button><button class="rk-btn" onclick="movePositionParent('${parent.key}',1)">→</button><button class="rk-btn rk-del" onclick="deletePositionParent('${parent.key}')">Delete</button></div>` : ""}
         </div>
         <div class="position-subtype-list">
           ${
@@ -219,12 +240,85 @@
         ${adminMode ? `<button class="admin-add-btn position-add-btn" onclick="editPositionSubtype('${parent.key}',-1)">+ Add sub-position</button>` : ""}
       </section>`;
             },
-          ).join("")}</div>`;
+          ).join("")}</div>${adminMode ? `<button class="admin-add-btn position-parent-add-btn" onclick="editPositionParent('')">+ Add large position card</button>` : ""}`;
+        };
+
+        window.editPositionParent = function (parentKey) {
+          if (!adminMode) return;
+          const parents = getPositionParents();
+          const current =
+            parents.find((parent) => parent.key === parentKey) ||
+            { key: "", code: "", name: "" };
+          document.getElementById("positionParentModal")?.remove();
+          const modal = document.createElement("div");
+          modal.id = "positionParentModal";
+          modal.style.cssText =
+            "position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;";
+          modal.innerHTML = `<div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:540px;font-family:var(--sans);">
+      <h3 style="font-family:var(--serif);font-size:1.35rem;color:var(--accent);margin-bottom:.25rem;">${parentKey ? "Edit" : "Add"} large position card</h3>
+      <p style="font-size:.8rem;color:var(--gray-400);margin-bottom:1rem;">This is a main Positions-page card. You can add its sub-positions after saving it.</p>
+      <div class="form-group"><label class="form-label">Short code</label><input id="positionParentCode" value="${escapeHTML(current.code)}" placeholder="DM" style="padding:.65rem;border:1px solid var(--gray-200);border-radius:3px;"></div>
+      <div class="form-group" style="margin-top:.85rem;"><label class="form-label">Card name</label><input id="positionParentName" value="${escapeHTML(current.name)}" placeholder="Defensive Midfielder" style="padding:.65rem;border:1px solid var(--gray-200);border-radius:3px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:.6rem;margin-top:1rem;"><button class="xi-mode-tab" onclick="document.getElementById('positionParentModal').remove()">Cancel</button><button class="xi-mode-tab active" onclick="savePositionParent('${parentKey}')">Save card</button></div>
+    </div>`;
+          document.body.appendChild(modal);
+          setTimeout(() => document.getElementById("positionParentCode")?.focus(), 0);
+        };
+
+        window.savePositionParent = function (parentKey) {
+          const code = document.getElementById("positionParentCode")?.value.trim();
+          const name = document.getElementById("positionParentName")?.value.trim();
+          if (!code || !name) {
+            alert("Enter both a short code and a card name.");
+            return;
+          }
+          const parents = getPositionParents();
+          const existingIndex = parents.findIndex((parent) => parent.key === parentKey);
+          if (existingIndex >= 0) {
+            parents[existingIndex] = { ...parents[existingIndex], code, name };
+          } else {
+            const baseKey =
+              code.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") ||
+              "position";
+            let key = baseKey,
+              suffix = 2;
+            while (parents.some((parent) => parent.key === key))
+              key = `${baseKey}-${suffix++}`;
+            parents.push({ key, code, name });
+            const data = getPositionSubtypeData();
+            data[key] = [];
+            setData("position_subtypes_v2", data);
+          }
+          document.getElementById("positionParentModal")?.remove();
+          savePositionParents(parents);
+        };
+
+        window.deletePositionParent = function (parentKey) {
+          if (!adminMode) return;
+          const parents = getPositionParents();
+          const parent = parents.find((item) => item.key === parentKey);
+          if (!parent || !confirm(`Delete the ${parent.name} card and all of its sub-positions?`))
+            return;
+          const next = parents.filter((item) => item.key !== parentKey);
+          const data = getPositionSubtypeData();
+          delete data[parentKey];
+          setData("position_subtypes_v2", data);
+          savePositionParents(next);
+        };
+
+        window.movePositionParent = function (parentKey, direction) {
+          if (!adminMode) return;
+          const parents = getPositionParents();
+          const index = parents.findIndex((parent) => parent.key === parentKey);
+          const target = index + direction;
+          if (index < 0 || target < 0 || target >= parents.length) return;
+          [parents[index], parents[target]] = [parents[target], parents[index]];
+          savePositionParents(parents);
         };
 
         window.editPositionSubtype = function (parentKey, index) {
           if (!adminMode) return;
-          const parent = POSITION_PARENTS.find((p) => p.key === parentKey);
+          const parent = getPositionParents().find((p) => p.key === parentKey);
           if (!parent) return;
           const data = getPositionSubtypeData();
           const current =

@@ -321,6 +321,16 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /prop=text\|wikitext\|revid/);
   assert.match(features, /Prepare verified autofill/);
   assert.match(features, /Review every field before saving/);
+  assert.match(features, /Preparing a private verified draft automatically/);
+  assert.match(features, /nothing is saved or published until you review/i);
+  assert.match(features, /id="rpcCareerStints"/);
+  assert.match(pilot, /hs_verified_player_drafts_private_v2/);
+  assert.match(pilot, /function queue\(name\)/);
+  assert.match(pilot, /function internationalFromWikitext/);
+  assert.match(pilot, /internationalCaps/);
+  assert.match(pilot, /internationalGoals/);
+  assert.match(pilot, /function careerTeamTitleTotal/);
+  assert.match(pilot, /function notableIndividualAwards/);
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
@@ -367,6 +377,30 @@ test("Build an XI keeps Streets before Free Build with two internal versions", (
   assert.match(read("src/components/streets-wont-forget.html"), /class="content-wide"/);
   assert.match(read("src/components/streets-wont-forget.html"), /Premier League Version/);
   assert.match(read("src/components/streets-wont-forget.html"), /World Cup Version/);
+  assert.match(read("css/features/build-xi-hub.css"), /grid-template-columns:\s*repeat\(6/);
+});
+
+test("Present Day Top 100 has explicit display-name and position editing", () => {
+  const editor = read("js/admin/editor.js");
+  const features = read("features.js");
+  assert.match(editor, /Display position — Present Day Top 100/);
+  assert.match(editor, /id="me_position"/);
+  assert.match(editor, /entry\.displayPosition = displayPosition/);
+  assert.match(editor, /const entry = \{ \.\.\.previous, name, detail, note, xi \}/);
+  assert.match(features, /entry\?\.displayPosition \|\| entry\?\.position/);
+  assert.match(features, /w: "W"/);
+  assert.match(features, /f: "F"/);
+});
+
+test("Positions admin can manage the large cards as well as sub-positions", () => {
+  const app = read("app.js");
+  assert.match(app, /position_parent_cards_v1/);
+  assert.match(app, /\+ Add large position card/);
+  assert.match(app, /window\.editPositionParent/);
+  assert.match(app, /window\.savePositionParent/);
+  assert.match(app, /window\.deletePositionParent/);
+  assert.match(app, /window\.movePositionParent/);
+  assert.match(app, /\+ Add sub-position/);
 });
 
 test("Free Build uses every player in the selected era's positional rankings", () => {

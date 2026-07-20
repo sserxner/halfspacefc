@@ -405,14 +405,20 @@
     if (candidate.hasCard) {
       window.HSPlayerCards?.save?.(candidate.name, candidate.card);
     }
-    destination.entries.push({
+    const reusedEntry = {
       name: candidate.name,
       detail: candidate.detail || candidate.entry?.detail || "",
       note: "",
       xi: [],
-    });
+    };
+    if (key === "overall_now")
+      reusedEntry.displayPosition =
+        candidate.entry?.displayPosition || candidate.entry?.position || "";
+    destination.entries.push(reusedEntry);
     setRanking(key, ranking);
     renderRanking(key);
+    if (!candidate.hasCard)
+      window.HSVerifiedPlayerDrafts?.queue?.(candidate.name).catch(() => {});
     return true;
   }
 
