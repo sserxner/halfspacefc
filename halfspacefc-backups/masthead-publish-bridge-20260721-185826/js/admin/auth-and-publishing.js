@@ -384,7 +384,6 @@
             if (btn) btn.textContent = "⏳ Creating safety backup…";
             await window.HSBackups.create({ reason: "before-publish" });
           }
-          window.HSMastheadComposer?.prepareForPublish?.();
           const publishData = JSON.parse(JSON.stringify(siteData));
           publishData.__content_revision_v1 = new Date().toISOString();
           publishData.__content_edit_clock_v1 = {};

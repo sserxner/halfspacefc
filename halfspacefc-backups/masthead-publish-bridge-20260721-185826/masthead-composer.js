@@ -127,18 +127,10 @@
   const clamp = (value, min, max) => Math.min(max, Math.max(min, Number(value) || 0));
   const uid = () => `masthead_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
   const adminActive = () => !!(window.adminMode || document.body.classList.contains("admin-active"));
-  const previewActive = () => !!(
-    document.body.classList.contains("hs-preview-mode") ||
-    document.body.classList.contains("preview-mode") ||
-    document.body.classList.contains("admin-preview") ||
-    window.HSPreview?.isActive?.()
-  );
   const readKey = (key, fallback) => {
     if (typeof getData === "function") return getData(key, fallback);
     return window.HSData?.getDraft?.()?.[key] ?? window.__HALFSPACE_DATA__?.[key] ?? fallback;
   };
-  const rawDraftConfig = () => readKey(CONFIG_KEY, null);
-  const rawPublishedConfig = () => window.__HALFSPACE_DATA__?.[CONFIG_KEY] || null;
   const writeKey = (key, value) => {
     if (typeof setData !== "function") throw new Error("Site storage is unavailable.");
     setData(key, value);
@@ -1212,44 +1204,18 @@
   }
 
   function publicConfig() {
-    const draft = rawDraftConfig();
-    const published = rawPublishedConfig();
-    if ((adminActive() || previewActive()) && draft) return normalizedConfig(draft);
-    return normalizedConfig(published || draft);
+    if (adminActive()) return normalizedConfig(readKey(CONFIG_KEY, null));
+    return normalizedConfig(window.__HALFSPACE_DATA__?.[CONFIG_KEY]);
   }
-
-  function mastheadTargets() {
-    const targets = Array.from(document.querySelectorAll("#page-home .hero, .hero, [data-hs-masthead-target]"));
-    const seen = new Set();
-    return targets.filter((target) => {
-      if (!target || seen.has(target)) return false;
-      seen.add(target);
-      return target.closest("#page-home") || target.matches("[data-hs-masthead-target]") || target.classList.contains("hero");
-    });
-  }
-
   function applyPublicBanner() {
-    const heroes = mastheadTargets();
-    if (!heroes.length) return;
+    const hero = document.querySelector("#page-home .hero");
+    if (!hero) return;
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
     const flattened = config[mode]?.flattened || (mode === "mobile" ? config.desktop?.flattened : "");
-    heroes.forEach((hero) => {
-      hero.classList.toggle("hs-masthead-composed", Boolean(flattened));
-      if (flattened) hero.style.setProperty("--hs-masthead-image", `url(${JSON.stringify(flattened)})`);
-      else hero.style.removeProperty("--hs-masthead-image");
-    });
-  }
-
-  function prepareForPublish() {
-    const draft = rawDraftConfig();
-    if (!draft) return false;
-    const config = normalizedConfig(draft);
-    writeKey(CONFIG_KEY, clone(config));
-    window.__HALFSPACE_DATA__ = window.__HALFSPACE_DATA__ || {};
-    window.__HALFSPACE_DATA__[CONFIG_KEY] = clone(config);
-    applyPublicBanner();
-    return true;
+    hero.classList.toggle("hs-masthead-composed", Boolean(flattened));
+    if (flattened) hero.style.setProperty("--hs-masthead-image", `url(${JSON.stringify(flattened)})`);
+    else hero.style.removeProperty("--hs-masthead-image");
   }
 
   function open(options) {
@@ -1282,12 +1248,9 @@
     applyPublicBanner();
     const mediaQuery = window.matchMedia("(max-width: 700px)");
     mediaQuery.addEventListener?.("change", applyPublicBanner);
-    window.addEventListener("halfspace:preview-change", applyPublicBanner);
-    window.addEventListener("halfspace:data-change", applyPublicBanner);
-    setTimeout(applyPublicBanner, 250);
     window.addEventListener("halfspace:media-change", () => { if (state.open) renderAll(); });
   }
 
-  window.HSMastheadComposer = { open, close, apply: applyPublicBanner, addAsset, prepareForPublish };
+  window.HSMastheadComposer = { open, close, apply: applyPublicBanner, addAsset };
   document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initialize) : initialize();
 })();
