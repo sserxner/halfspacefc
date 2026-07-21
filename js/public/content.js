@@ -152,6 +152,52 @@
       // ================================================================
       // MATCHDAY DIARY
       // ================================================================
+      function escapeEditorial(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c]);
+      }
+
+      function editorialHTML(value) {
+        const text = String(value || "").replace(/\r\n/g, "\n").trim();
+        if (!text) return "";
+        const inline = (part) =>
+          escapeEditorial(part).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        return text
+          .split(/\n{2,}/)
+          .map((block) => {
+            const clean = block.trim();
+            if (!clean) return "";
+            if (clean.startsWith("## "))
+              return '<h3 class="diary-subhead">' + inline(clean.slice(3)) + "</h3>";
+            if (clean.startsWith("> "))
+              return '<blockquote class="diary-quote">' + inline(clean.replace(/^>\s?/gm, "")).replace(/\n/g, "<br>") + "</blockquote>";
+            return '<p>' + inline(clean).replace(/\n/g, "<br>") + "</p>";
+          })
+          .join("");
+      }
+
+      function diaryStatusControls(entry, index) {
+        if (!adminMode) return "";
+        return (
+          '<button class="admin-edit-btn" onclick="editDiaryEntry(' +
+          index +
+          ')">Edit</button>' +
+          '<button class="admin-edit-btn" onclick="toggleDiaryPublish(' +
+          index +
+          ')">' +
+          (entry.published === false ? "Publish" : "Unpublish") +
+          "</button>" +
+          '<button class="admin-edit-btn" style="background:#c0392b" onclick="deleteDiaryEntry(' +
+          index +
+          ')">✕</button>'
+        );
+      }
+
       function renderDiary() {
         const grid = document.getElementById("diaryGrid");
         if (!grid) return;
@@ -177,25 +223,18 @@
                 '<div class="diary-entry" data-content-index="' + i + '">' +
                 '<div class="diary-entry-header">' +
                 '<span class="diary-entry-title">' +
-                (e.title || "Untitled") +
+                escapeEditorial(e.title || "Untitled") +
                 "</span>" +
                 '<span class="diary-entry-meta">' +
-                [e.date, e.fixture, e.competition].filter(Boolean).join(" · ") +
+                escapeEditorial([e.date, e.fixture, e.competition].filter(Boolean).join(" · ")) +
                 "</span>" +
-                (adminMode
-                  ? '<button class="admin-edit-btn" onclick="editDiaryEntry(' +
-                    i +
-                    ')">Edit</button>' +
-                    '<button class="admin-edit-btn" style="background:#c0392b" onclick="deleteDiaryEntry(' +
-                    i +
-                    ')">✕</button>'
-                  : "") +
+                diaryStatusControls(e, i) +
                 "</div>" +
                 '<div class="diary-entry-body">' +
-                (e.body || "") +
+                editorialHTML(e.body || "") +
                 "</div>" +
                 (e.rating
-                  ? '<div class="diary-rating">' + e.rating + "/10</div>"
+                  ? '<div class="diary-rating">' + escapeEditorial(e.rating) + "/10</div>"
                   : "") +
                 "</div>",
             )
@@ -223,6 +262,15 @@
           rating,
           published: false,
         });
+        setData("diary_entries", entries);
+        renderDiary();
+      }
+      function toggleDiaryPublish(idx) {
+        const entries = getData("diary_entries", []);
+        if (!entries[idx]) return;
+        entries[idx].published = entries[idx].published === false;
+        delete entries[idx].publishAt;
+        delete entries[idx].publishTimezone;
         setData("diary_entries", entries);
         renderDiary();
       }
@@ -443,4 +491,3 @@
           el.oninput = null;
         });
       }
-

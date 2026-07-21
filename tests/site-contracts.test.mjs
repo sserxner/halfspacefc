@@ -80,6 +80,37 @@ test("adding an existing Present Day player refreshes the visible ranking", () =
   assert.match(editor, /if \(addExistingPlayer\(key, candidate, Number\(tier\.value\)\)\) modal\.remove\(\)/);
 });
 
+test("Present Day rankings use the full ranking editor controls", () => {
+  const app = read("app.js");
+  assert.match(app, /rank-card-trigger/);
+  assert.match(app, /data-rank-key/);
+  assert.match(app, /data-tier-index/);
+  assert.match(app, /data-entry-index/);
+  assert.match(app, /rankEditCard/);
+  assert.match(app, /rankMoveTier/);
+  assert.match(app, /rankDeleteTier/);
+  assert.match(app, /rank-tier-toggle/);
+  assert.match(app, /window\.HSRankingEditor\?\.decorate/);
+});
+
+test("Transfers are split into recs, rumors, and grades", () => {
+  const app = read("app.js");
+  const transfers = read("components/transfer-recommendations.html");
+  const sourceTransfers = read("src/components/transfer-recommendations.html");
+  const template = read("src/index.template.html");
+  assert.match(transfers, /section-title">Transfers/);
+  assert.match(sourceTransfers, /section-title">Transfers/);
+  assert.match(transfers, /data-transfer-tab="recs"/);
+  assert.match(transfers, /data-transfer-tab="rumors"/);
+  assert.match(transfers, /data-transfer-tab="grades"/);
+  assert.match(sourceTransfers, /data-transfer-tab="grades"[\s\S]*data-transfer-tab="recs"[\s\S]*data-transfer-tab="rumors"/);
+  assert.match(app, /const TRANSFER_TABS/);
+  assert.match(app, /window\.showTransferTab/);
+  assert.match(app, /normalizeTransferType\(x\.type\) === activeTransferTab/);
+  assert.match(app, /Transfers ·/);
+  assert.match(template, /showPage\('transfers'\)[\s\S]*Transfers/);
+});
+
 test("football player cards use compact summaries and international caps and goals", () => {
   const features = read("features.js");
   const cards = read("css/rankings/ranking-player-card-style.css");
@@ -775,12 +806,18 @@ test("Tactics Board saves editable drafts and embeds read-only diagrams in edito
   assert.match(template, /tactics-board\.js/);
 });
 
-test("Diaries and Transfer Recommendations use a full editorial composer", () => {
+test("Diaries and Transfers use a full editorial composer", () => {
   const composer = read("editorial-composer.js");
   const styles = read("css/features/editorial-composer.css");
   const template = read("src/index.template.html");
+  const content = read("js/public/content.js");
   assert.match(composer, /Write the full post here/);
   assert.match(composer, /Live preview/);
+  assert.match(composer, /data-compose-publish/);
+  assert.match(composer, /data-compose-published/);
+  assert.match(composer, /data-compose-insert="subhead"/);
+  assert.match(composer, /blank line = new paragraph/);
+  assert.match(composer, /formattedBody/);
   assert.match(composer, /mediaEmbeds/);
   assert.match(composer, /tacticsBoardEmbeds/);
   assert.match(composer, /data-compose-video/);
@@ -793,9 +830,26 @@ test("Diaries and Transfer Recommendations use a full editorial composer", () =>
   assert.match(composer, /data-board-setting="placement"/);
   assert.match(composer, /window\.addDiaryEntry/);
   assert.match(composer, /window\.editTransferRecommendation/);
+  assert.match(content, /function editorialHTML/);
+  assert.match(content, /diary-subhead/);
+  assert.match(content, /toggleDiaryPublish/);
   assert.match(styles, /\.hs-compose-body textarea/);
+  assert.match(styles, /\.hs-compose-format/);
+  assert.match(styles, /\.diary-entry-body p/);
   assert.match(styles, /min-height:390px/);
   assert.match(template, /editorial-composer\.js/);
+});
+
+test("admin has direct homepage and headline access", () => {
+  const template = read("src/index.template.html");
+  const studio = read("studio.js");
+  const manager = read("content-manager.js");
+  assert.match(template, /hsHomeToolbarButton/);
+  assert.match(template, /showPage\('home'\)/);
+  assert.match(studio, /Homepage/);
+  assert.match(studio, /Edit headlines/);
+  assert.match(studio, /window\.showPage\?\.\("home"\)/);
+  assert.match(manager, /transfers:\s*"Transfers"/);
 });
 
 test("Notebook stays private while supporting recovery and deliberate conversion", () => {

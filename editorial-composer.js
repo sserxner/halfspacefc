@@ -28,6 +28,18 @@
     if (type === "transfer") value.formation ||= "4-3-3";
     return value;
   }
+  function formattedBody(value) {
+    const text = String(value || "").replace(/\r\n/g, "\n").trim();
+    if (!text) return "";
+    const inline = (part) => esc(part).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    return text.split(/\n{2,}/).map((block) => {
+      const clean = block.trim();
+      if (!clean) return "";
+      if (clean.startsWith("## ")) return `<h3>${inline(clean.slice(3))}</h3>`;
+      if (clean.startsWith("> ")) return `<blockquote>${inline(clean.replace(/^>\s?/gm, "")).replace(/\n/g, "<br>")}</blockquote>`;
+      return `<p>${inline(clean).replace(/\n/g, "<br>")}</p>`;
+    }).join("");
+  }
   function field(label, key, wide = false) {
     const value = state.record[key] || "";
     return `<label class="${wide ? "wide" : ""}"><span>${esc(label)}</span><input data-compose-field="${esc(key)}" value="${esc(value)}"></label>`;
@@ -52,7 +64,7 @@
     const beforeBoards = state.record.tacticsBoardEmbeds.filter((item) => item.placement === "before").map(boardFigure).join("");
     const afterBoards = state.record.tacticsBoardEmbeds.filter((item) => item.placement !== "before").map(boardFigure).join("");
     const heading = state.type === "diary" ? state.record.title : `${state.record.club || ""} — ${state.record.title || ""}`;
-    return `<article class="hs-compose-preview"><h2>${esc(heading || "Untitled")}</h2><p class="meta">${esc([state.record.date,state.record.fixture,state.record.competition].filter(Boolean).join(" · "))}</p>${beforeMedia}${beforeBoards}<div class="body">${esc(state.record.body || "").replace(/\n/g,"<br>")}</div>${afterMedia}${afterBoards}</article>`;
+    return `<article class="hs-compose-preview"><h2>${esc(heading || "Untitled")}</h2><p class="meta">${esc([state.record.date,state.record.fixture,state.record.competition].filter(Boolean).join(" · "))}</p>${beforeMedia}${beforeBoards}<div class="body">${formattedBody(state.record.body || "")}</div>${afterMedia}${afterBoards}</article>`;
   }
   function mediaFigure(item) {
     const content = item.type === "video"
@@ -82,7 +94,7 @@
     if (document.getElementById("hsEditorialComposer")) return;
     const root = document.createElement("div");
     root.id = "hsEditorialComposer"; root.className = "hs-compose-overlay";
-    root.innerHTML = `<section class="hs-compose-shell" role="dialog" aria-modal="true" aria-label="Editorial editor"><header><div><span>Half Space Studio</span><h2></h2></div><button data-compose-close aria-label="Close">×</button></header><div class="hs-compose-layout"><main><div class="hs-compose-fields"></div><label class="hs-compose-body"><span>Writing</span><textarea data-compose-field="body" placeholder="Write the full post here…"></textarea></label><div class="hs-compose-add"><button data-compose-media>+ Add image or meme</button><button data-compose-video>+ Embed video</button><select data-compose-board-select></select><button data-compose-board>+ Embed board</button><button data-compose-new-board>Create new board</button></div><section><h3>Media and tactics placement</h3><div class="hs-compose-assets"></div></section></main><aside><div class="hs-compose-preview-head"><h3>Live preview</h3><div><button data-preview-size="desktop" class="active">Desktop</button><button data-preview-size="mobile">Phone</button></div></div><div class="hs-compose-preview-wrap"></div></aside></div><footer><span>Saved as a private draft until you publish changes.</span><button data-compose-close>Cancel</button><button class="primary" data-compose-save>Save draft</button></footer></section>`;
+    root.innerHTML = `<section class="hs-compose-shell" role="dialog" aria-modal="true" aria-label="Editorial editor"><header><div><span>Half Space Studio</span><h2></h2></div><button data-compose-close aria-label="Close">×</button></header><div class="hs-compose-layout"><main><div class="hs-compose-fields"></div><div class="hs-compose-status"><label><input type="checkbox" data-compose-published> Published on site</label><small>Unchecked means private draft. Checked means it can appear publicly after Publish Changes.</small></div><label class="hs-compose-body"><span>Writing</span><textarea data-compose-field="body" placeholder="Write the full post here…"></textarea></label><div class="hs-compose-format"><button data-compose-insert="paragraph">Paragraph break</button><button data-compose-insert="subhead">Subhead</button><button data-compose-insert="quote">Quote</button><button data-compose-insert="bold">Bold text</button></div><p class="hs-compose-help">Formatting: blank line = new paragraph, ## = subhead, > = quote, **text** = bold.</p><div class="hs-compose-add"><button data-compose-media>+ Add image or meme</button><button data-compose-video>+ Embed video</button><select data-compose-board-select></select><button data-compose-board>+ Embed board</button><button data-compose-new-board>Create new board</button></div><section><h3>Media and tactics placement</h3><div class="hs-compose-assets"></div></section></main><aside><div class="hs-compose-preview-head"><h3>Live preview</h3><div><button data-preview-size="desktop" class="active">Desktop</button><button data-preview-size="mobile">Phone</button></div></div><div class="hs-compose-preview-wrap"></div></aside></div><footer><span>Drafts stay private. Published items still require Publish Changes to go live.</span><button data-compose-close>Cancel</button><button data-compose-save>Save draft</button><button class="primary" data-compose-publish>Save as published</button></footer></section>`;
     document.body.appendChild(root);
     root.addEventListener("click", click);
     root.addEventListener("input", input);
@@ -96,6 +108,7 @@
       ? `${field("Title","title",true)}${field("Date","date")}${field("Fixture","fixture")}${field("Competition","competition")}${field("Rating /10","rating")}`
       : `${field("Club","club")}${field("Title","title",true)}${field("Date","date")}`;
     root.querySelector('[data-compose-field="body"]').value = state.record.body || "";
+    root.querySelector("[data-compose-published]").checked = state.record.published !== false;
     renderAssets(); renderPreview();
   }
   function input(event) {
@@ -108,13 +121,16 @@
     const index = Number(event.target.dataset.index);
     if (event.target.dataset.mediaSetting) state.record.mediaEmbeds[index][event.target.dataset.mediaSetting] = event.target.value;
     if (event.target.dataset.boardSetting) state.record.tacticsBoardEmbeds[index][event.target.dataset.boardSetting] = event.target.value;
+    if (event.target.matches("[data-compose-published]")) state.record.published = event.target.checked;
     renderPreview();
   }
   function click(event) {
     const button = event.target.closest("button");
     if (!button) return;
     if (button.matches("[data-compose-close]")) return close();
-    if (button.matches("[data-compose-save]")) return save();
+    if (button.matches("[data-compose-save]")) return save(false);
+    if (button.matches("[data-compose-publish]")) return save(true);
+    if (button.dataset.composeInsert) return insertFormatting(button.dataset.composeInsert);
     if (button.matches("[data-compose-media]")) return window.HSMediaManager?.open?.({onChoose(asset) {
       state.record.mediaEmbeds.push({src:asset.src, alt:asset.alt || "", caption:asset.title || "", credit:"", size:"wide", align:"center", placement:"after"});
       window.HSMediaManager.close(); renderAssets(); renderPreview();
@@ -155,9 +171,32 @@
     document.body.classList.remove("hs-compose-open");
     state = null;
   }
-  function save() {
+  function insertFormatting(kind) {
+    const textarea = document.querySelector('[data-compose-field="body"]');
+    if (!textarea || !state) return;
+    const snippets = {
+      paragraph: "\n\n",
+      subhead: "\n\n## Subhead\n\n",
+      quote: "\n\n> Quote here\n\n",
+      bold: "**bold text**",
+    };
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    const next = textarea.value.slice(0, start) + snippets[kind] + textarea.value.slice(end);
+    textarea.value = next;
+    state.record.body = next;
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + snippets[kind].length;
+    renderPreview();
+  }
+  function save(publish = false) {
     const c = config(state.type), records = read(c.key, []);
     state.record.tacticsBoardIds = state.record.tacticsBoardEmbeds.map((item) => item.id);
+    state.record.published = publish ? true : state.record.published === false ? false : Boolean(document.querySelector("[data-compose-published]")?.checked);
+    if (state.record.published) {
+      delete state.record.publishAt;
+      delete state.record.publishTimezone;
+    }
     state.record.updatedAt = Date.now();
     if (state.index < 0) { state.record.id ||= `${state.type}_${Date.now()}`; records.unshift(state.record); }
     else records[state.index] = state.record;

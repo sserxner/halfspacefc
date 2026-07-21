@@ -8,7 +8,7 @@
   const PAGE_LABELS = {
     home: "Home",
     diary: "Matchday Diary",
-    transfers: "Transfer Recommendations",
+    transfers: "Transfers",
     "present-rankings": "Present Rankings",
     rankings: "21st Century Rankings",
     "club-xi": "Club XIs",

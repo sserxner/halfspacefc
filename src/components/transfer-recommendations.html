@@ -1,9 +1,14 @@
-    <!-- TRANSFER RECOMMENDATIONS -->
+    <!-- TRANSFERS -->
     <div class="page" id="page-transfers">
       <div class="content-wide">
         <div class="section-header">
-          <span class="section-title">Transfer Recommendations</span><span class="section-sub">Summer-window plans and proposed depth charts</span>
+          <span class="section-title">Transfers</span><span class="section-sub">Grades, rumors, recommendations, and proposed depth charts</span>
         </div>
-        <div id="transferRecommendations"><div class="empty-state"><p>No transfer recommendations yet.</p></div></div>
+        <div class="sub-tabs transfer-tabs" id="transferTabs">
+          <button class="sub-tab" data-transfer-tab="grades" onclick="showTransferTab('grades')">Grades</button>
+          <button class="sub-tab active" data-transfer-tab="recs" onclick="showTransferTab('recs')">Recs</button>
+          <button class="sub-tab" data-transfer-tab="rumors" onclick="showTransferTab('rumors')">Rumors</button>
+        </div>
+        <div id="transferRecommendations"><div class="empty-state"><p>No transfer items yet.</p></div></div>
       </div>
     </div>

@@ -1129,11 +1129,17 @@
             html += '<div class="ranking-blurb">' + esc(data.blurb) + "</div>";
           (data.tiers || []).forEach((tier, ti) => {
             html +=
-              '<div class="tier-label"><span class="tier-label-name">' +
+              '<div class="tier-label rank-tier-toggle" role="button" tabindex="0" aria-expanded="true" onclick="rankToggleTier(\'' +
+              key +
+              "'," +
+              ti +
+              ')"><span class="rank-tier-heading"><span class="rank-tier-chevron">▼</span><span class="tier-label-name">' +
               esc(tier.name || "Tier " + (ti + 1)) +
-              "</span>" +
+              '</span><span class="rank-tier-count">' +
+              ((tier.entries || []).length) +
+              "</span></span>" +
               (adminMode
-                ? '<span class="tier-admin-btns"><button class="rk-btn" onclick="rankRenameTier(\'' +
+                ? '<span class="tier-admin-btns" onclick="event.stopPropagation()"><button class="rk-btn" onclick="rankRenameTier(\'' +
                   key +
                   "'," +
                   ti +
@@ -1143,10 +1149,39 @@
                   ti +
                   ')">✕</button></span>'
                 : "") +
-              "</div>";
+              '</div><div class="rank-tier-entries">';
             (tier.entries || []).forEach((e, ei) => {
+              const tierSel =
+                adminMode && (data.tiers || []).length > 1
+                  ? '<select class="rk-tier-sel" onchange="rankMoveTier(\'' +
+                    key +
+                    "'," +
+                    ti +
+                    "," +
+                    ei +
+                    ',parseInt(this.value))">' +
+                    (data.tiers || [])
+                      .map(
+                        (t, ti2) =>
+                          '<option value="' +
+                          ti2 +
+                          '" ' +
+                          (ti2 === ti ? "selected" : "") +
+                          ">" +
+                          esc(t.name || "Tier " + (ti2 + 1)) +
+                          "</option>",
+                      )
+                      .join("") +
+                    "</select>"
+                  : "";
               html +=
-                '<div class="ranking-row"><span class="ranking-num">' +
+                '<div class="ranking-row rank-card-trigger" data-rank-key="' +
+                key +
+                '" data-tier-index="' +
+                ti +
+                '" data-entry-index="' +
+                ei +
+                '" tabindex="0" role="button"><span class="ranking-num">' +
                 rank++ +
                 '</span><span class="ranking-body"><span class="ranking-name">' +
                 esc(e.name) +
@@ -1179,16 +1214,25 @@
                     ti +
                     "," +
                     ei +
-                    ')">Edit</button><button class="rk-btn rk-del" onclick="rankDelete(\'' +
+                    ')">Edit ranking entry</button><button class="rk-btn" onclick="event.stopPropagation();rankEditCard(\'' +
                     key +
                     "'," +
                     ti +
                     "," +
                     ei +
-                    ')">✕</button></span>'
+                    ')">Edit player card</button><button class="rk-btn rk-del" onclick="rankDelete(\'' +
+                    key +
+                    "'," +
+                    ti +
+                    "," +
+                    ei +
+                    ')">✕</button>' +
+                    tierSel +
+                    "</span>"
                   : "") +
                 "</div>";
             });
+            html += "</div>";
           });
           if (rank === 1)
             html =
@@ -1201,6 +1245,8 @@
               key +
               "')\">+ Add tier</button></div>";
           target.innerHTML = html;
+          if (typeof window.HSRankingEditor?.decorate === "function")
+            setTimeout(() => window.HSRankingEditor.decorate(), 0);
         }
         window.showPresentRanking = function (sec) {
           activePresent = sec;
@@ -1251,21 +1297,55 @@
         function transferData() {
           return getData("transfer_recommendations_v1", []) || [];
         }
+        const TRANSFER_TABS = {
+          recs: "Recs",
+          rumors: "Rumors",
+          grades: "Grades",
+        };
+        let activeTransferTab = "recs";
+        function normalizeTransferType(type) {
+          return TRANSFER_TABS[type] ? type : "recs";
+        }
+        function transferTypeLabel(type) {
+          return TRANSFER_TABS[normalizeTransferType(type)];
+        }
         function saveTransfers(a) {
           setData("transfer_recommendations_v1", a);
           renderTransfers();
         }
+        window.showTransferTab = function (type) {
+          activeTransferTab = normalizeTransferType(type);
+          document
+            .querySelectorAll("#transferTabs .sub-tab")
+            .forEach((button) =>
+              button.classList.toggle(
+                "active",
+                button.dataset.transferTab === activeTransferTab,
+              ),
+            );
+          renderTransfers();
+        };
         window.addTransferRecommendation = function () {
+          const type =
+            prompt("Type: recs, rumors, or grades", activeTransferTab) ||
+            activeTransferTab;
           const club = prompt("Club:");
           if (!club || !club.trim()) return;
           const title =
-            prompt("Recommendation title:", "Summer Window Plan") ||
-            "Summer Window Plan";
+            prompt(
+              "Title:",
+              normalizeTransferType(type) === "grades"
+                ? "Transfer Grade"
+                : normalizeTransferType(type) === "rumors"
+                  ? "Rumor Watch"
+                  : "Summer Window Plan",
+            ) || "Transfer Note";
           const date = prompt("Date:", "") || "";
-          const body = prompt("Your recommendations:", "") || "";
+          const body = prompt("Body:", "") || "";
           const a = transferData();
           a.push({
             id: "tr_" + Date.now(),
+            type: normalizeTransferType(type),
             club: club.trim(),
             title,
             date,
@@ -1279,10 +1359,14 @@
           const a = transferData(),
             x = a[i];
           if (!x) return;
+          x.type = normalizeTransferType(
+            prompt("Type: recs, rumors, or grades", normalizeTransferType(x.type)) ||
+              x.type,
+          );
           x.club = prompt("Club:", x.club) || x.club;
           x.title = prompt("Title:", x.title) || x.title;
           x.date = prompt("Date:", x.date) || "";
-          const b = prompt("Recommendations:", x.body);
+          const b = prompt("Body:", x.body);
           if (b !== null) x.body = b;
           saveTransfers(a);
         };
@@ -1295,22 +1379,33 @@
         window.renderTransfers = function () {
           const root = document.getElementById("transferRecommendations");
           if (!root) return;
+          document
+            .querySelectorAll("#transferTabs .sub-tab")
+            .forEach((button) =>
+              button.classList.toggle(
+                "active",
+                button.dataset.transferTab === activeTransferTab,
+              ),
+            );
           const a = transferData();
           const visible = a
             .map((x, i) => ({ x, i }))
             .filter(
               ({ x }) =>
-                adminMode ||
-                (window.hsContentIsLive
-                  ? window.hsContentIsLive(x)
-                  : x.published !== false),
+                normalizeTransferType(x.type) === activeTransferTab &&
+                (adminMode ||
+                  (window.hsContentIsLive
+                    ? window.hsContentIsLive(x)
+                    : x.published !== false)),
             );
           root.innerHTML =
             (visible.length
               ? visible
                   .map(
                     ({ x, i }) =>
-                      '<article class="transfer-entry" data-content-index="' + i + '"><div class="transfer-entry-head"><div><div class="transfer-entry-title">' +
+                      '<article class="transfer-entry" data-content-index="' + i + '"><div class="transfer-entry-head"><div><div class="transfer-entry-kicker">' +
+                      transferTypeLabel(x.type) +
+                      '</div><div class="transfer-entry-title">' +
                       esc(x.club) +
                       " — " +
                       esc(x.title) +
@@ -1331,9 +1426,13 @@
                       '"></div></article>',
                   )
                   .join("")
-              : '<div class="empty-state"><p>No transfer recommendations yet.</p></div>') +
+              : '<div class="empty-state"><p>No ' +
+                transferTypeLabel(activeTransferTab).toLowerCase() +
+                " yet.</p></div>") +
             (adminMode
-              ? '<button class="admin-add-btn" onclick="addTransferRecommendation()">+ Add transfer recommendation</button>'
+              ? '<button class="admin-add-btn" onclick="addTransferRecommendation()">+ Add ' +
+                transferTypeLabel(activeTransferTab).toLowerCase() +
+                " item</button>"
               : "");
           visible.forEach(({ x, i }) => {
             const c = document.getElementById("transfer-depth-" + i);
@@ -1443,8 +1542,11 @@
             if ([e.club, e.title, e.body].join(" ").toLowerCase().includes(q))
               hits.push({
                 name: e.club + " — " + e.title,
-                meta: "Transfer Recommendations",
-                go: () => showPage("transfers"),
+                meta: "Transfers · " + transferTypeLabel(e.type),
+                go: () => {
+                  showPage("transfers");
+                  showTransferTab(normalizeTransferType(e.type));
+                },
               });
           });
           (getData("blog_posts", []) || []).forEach((e) => {
