@@ -1,0 +1,314 @@
+#page-home .content {
+  width: min(1640px, calc(100vw - 56px)) !important;
+  max-width: none !important;
+}
+
+.hs-home-admin-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1fr) minmax(190px, 240px) auto;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(196, 153, 40, 0.32);
+  border-radius: 18px;
+  padding: 0.9rem;
+  background: #fff8db;
+}
+
+.hs-home-admin-panel strong,
+.hs-home-admin-panel span {
+  display: block;
+}
+
+.hs-home-admin-panel span {
+  color: rgba(22, 47, 31, 0.68);
+  font-size: 0.86rem;
+}
+
+.hs-home-admin-panel select,
+.hs-home-admin-panel button {
+  border: 1px solid rgba(16, 42, 28, 0.18);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-weight: 800;
+}
+
+.hs-home-admin-panel button {
+  background: #1d5c38;
+  color: #fff8d8;
+  cursor: pointer;
+}
+
+.hs-home-reading-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: clamp(1.1rem, 2.2vw, 2rem);
+  align-items: start;
+  justify-content: center;
+}
+
+.hs-home-lead-story {
+  border-top: 7px solid #1d5c38;
+  border-inline: 1px solid rgba(16, 42, 28, 0.1);
+  border-bottom: 1px solid rgba(16, 42, 28, 0.1);
+  border-radius: 10px;
+  padding: clamp(1.8rem, 3.2vw, 3.45rem) clamp(1.6rem, 4.2vw, 4.4rem);
+  background: linear-gradient(180deg, #fffdf7, #fbf6eb);
+  box-shadow: 0 26px 90px rgba(15, 37, 24, 0.08);
+}
+
+.hs-home-kicker {
+  margin: 0 0 0.4rem;
+  color: #a67912;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+}
+
+.hs-home-lead-story h2 {
+  margin: 0;
+  max-width: 14ch;
+  color: #111;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: clamp(2.8rem, 5.8vw, 5.65rem);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+}
+
+.hs-home-meta {
+  margin: 0.85rem 0 1.3rem;
+  color: rgba(20, 41, 29, 0.68);
+  font-weight: 800;
+}
+
+.hs-home-body {
+  max-width: 98ch;
+  margin-top: clamp(1.4rem, 2vw, 2.2rem);
+  color: #26372c;
+  font-family: var(--hs-home-story-font, "Averia Serif Libre", Georgia, serif);
+  font-size: clamp(1.02rem, 1.04vw, 1.16rem);
+  font-weight: 520;
+  line-height: 1.66;
+}
+
+.hs-home-body p {
+  max-width: none;
+  margin: 0 0 1.28rem;
+}
+
+.hs-home-body h3 {
+  margin: 1.8rem 0 0.6rem;
+  color: #1c5735;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1.6rem;
+}
+
+.hs-home-body blockquote {
+  margin: 1.4rem 0;
+  border-left: 4px solid #d0a51f;
+  padding: 0.8rem 1rem;
+  background: rgba(245, 208, 0, 0.08);
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1.2rem;
+}
+
+.hs-home-latest-rail {
+  position: sticky;
+  top: 5.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 42, 28, 0.16);
+  background: #0b2b18;
+  color: #fff8d8;
+  padding: 0;
+  box-shadow: 0 16px 38px rgba(15, 37, 24, 0.12);
+  overflow: hidden;
+}
+
+.hs-home-latest-rail h3 {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  background: #f5d000;
+  font-family: Inter, system-ui, sans-serif;
+  color: #0b2b18;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hs-home-latest-rail button {
+  display: grid;
+  width: 100%;
+  gap: 0.2rem;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hs-home-latest-rail button span {
+  color: #f5d000;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+
+.hs-home-latest-rail button strong {
+  color: #fff8d8;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.hs-home-latest-rail button small {
+  color: rgba(255, 248, 216, 0.58);
+  font-weight: 700;
+}
+
+.hs-polished-trophies .rank-profile-awards,
+.hs-polished-awards .rank-profile-awards {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.hs-polished-trophies .rank-profile-award-group,
+.hs-polished-awards .rank-profile-award-group {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffaf0, #f9f0df);
+  border: 1px solid rgba(196, 153, 40, 0.2);
+  padding: 0.85rem 1rem;
+}
+
+.hs-polished-trophies .rank-profile-title-breakdown summary {
+  cursor: pointer;
+  color: #1d5c38;
+  font-weight: 900;
+}
+
+.hs-polished-trophies .rank-profile-award-group strong {
+  display: block;
+  color: #1d5c38;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.hs-polished-trophies .rank-profile-award-group details {
+  margin-top: 0.45rem;
+  color: rgba(20, 41, 29, 0.68);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.hs-polished-trophies .rank-profile-award-group details summary {
+  width: fit-content;
+  cursor: pointer;
+  color: #9a7600;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hs-polished-trophies .rank-profile-award-group.hs-title-summary-card {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.78rem 0.95rem;
+}
+
+.hs-polished-trophies .rank-profile-award-group.hs-title-summary-card strong {
+  font-size: 1rem;
+}
+
+.hs-polished-trophies .rank-profile-award-group.hs-title-summary-card details span {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgba(20, 41, 29, 0.66);
+}
+
+@media (max-width: 900px) {
+  .hs-home-reading-layout,
+  .hs-home-admin-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .hs-home-latest-rail {
+    position: static;
+  }
+}
+
+/* Batch 2 V3: homepage reads like a proper front-page article, not a skinny card. */
+.hs-home-reading-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  justify-content: center;
+}
+
+.hs-home-lead-story {
+  max-width: 1260px;
+  margin: 0 auto;
+}
+
+.hs-home-body {
+  max-width: 98ch;
+  margin-inline: auto;
+}
+
+.hs-home-body p {
+  max-width: none;
+}
+
+/* Batch 2 V5: the homepage uses the writing-system feature card, so widen that too. */
+#page-home .hs-home-feature .hs-writing-card {
+  width: 100%;
+  max-width: 1260px;
+  padding: clamp(2rem, 3vw, 3.4rem) clamp(2rem, 4vw, 4.6rem);
+}
+
+#page-home .hs-home-feature .hs-writing-card h2 {
+  max-width: 16ch;
+  font-size: clamp(2.8rem, 4.8vw, 5rem);
+  line-height: 0.96;
+}
+
+#page-home .hs-home-feature .hs-writing-body {
+  max-width: 98ch;
+  margin-inline: 0;
+  font-size: clamp(1.02rem, 1.04vw, 1.16rem);
+  font-weight: 520;
+  line-height: 1.66;
+}
+
+#page-home .hs-home-feature .hs-writing-body p {
+  max-width: none;
+}
+
+.hs-betting-tracker {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hs-betting-tracker div {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(245, 208, 0, 0.18);
+  background:
+    radial-gradient(circle at 85% 20%, rgba(245, 208, 0, 0.16), transparent 32%),
+    linear-gradient(135deg, #092515, #16472b 62%, #102f1e);
+}
+
+.hs-betting-tracker div::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -45% 35%;
+  height: 120px;
+  border-radius: 999px;
+  background: rgba(245, 208, 0, 0.08);
+  transform: rotate(-12deg);
+}
+
+@media (max-width: 980px) {
+  .hs-home-reading-layout {
+    grid-template-columns: 1fr;
+  }
+}

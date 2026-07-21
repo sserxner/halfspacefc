@@ -91,6 +91,7 @@
       plural: "Betting Corner",
       empty: "No betting pieces yet.",
       fields: [
+        ["betType", "Bet type", "select:weekly=Games of the Week,season=Season-long bet"],
         ["title", "Title", "text"],
         ["date", "Date", "date"],
         ["league", "League", "select:pl=Premier League,ucl=Champions League"],
@@ -162,7 +163,7 @@
         : entry.title || cfg.singular;
     const kicker =
       type === "betting"
-        ? `${leagueLabel(entry.league)}${entry.round ? ` · ${entry.round}` : ""}`
+        ? `${entry.betType === "season" ? "Season-long bet" : "Games of the Week"} · ${leagueLabel(entry.league)}${entry.round ? ` · ${entry.round}` : ""}`
         : type === "diary"
           ? [entry.competition, entry.matchweek || entry.fixture].filter(Boolean).join(" · ")
           : type === "transfer"
@@ -321,8 +322,8 @@
     const profit = items.reduce((sum, item) => sum + (parseFloat(String(item.entry.profit || "").replace(/[^0-9.-]/g, "")) || 0), 0);
     return `<section class="hs-betting-tracker">
       <div><span>Record</span><strong>${wins}-${losses}${pushes ? `-${pushes}` : ""}</strong></div>
-      <div><span>Open picks</span><strong>${items.filter((item) => !item.entry.result || item.entry.result === "pending").length}</strong></div>
-      <div><span>Tracked P/L</span><strong>${profit > 0 ? "+" : ""}${profit}</strong></div>
+      <div><span>Season-long bets</span><strong>${items.filter((item) => item.entry.betType === "season" || /season|future|long|award|over|under/i.test([item.entry.round,item.entry.pick,item.entry.title].filter(Boolean).join(" "))).length}</strong></div>
+      <div><span>Profit / Loss</span><strong>${profit > 0 ? "+" : ""}${profit}</strong></div>
     </section>`;
   }
 
@@ -420,6 +421,7 @@
             date: nowDate(),
             type: type === "transfer" ? state.transfer : undefined,
             league: type === "betting" ? state.betting : undefined,
+            betType: type === "betting" ? "weekly" : undefined,
             result: type === "betting" ? "pending" : undefined,
             published: false,
           };
@@ -451,8 +453,9 @@
 
   function editorClick(event) {
     const button = event.target.closest("button");
-    if (!button || !editor) return;
+    if (!button) return;
     if (button.matches("[data-write-close]")) return closeEditor();
+    if (!editor) return;
     if (button.dataset.insert) return insert(button.dataset.insert);
     if (button.dataset.writeSave) return saveEditor(button.dataset.writeSave === "publish");
   }

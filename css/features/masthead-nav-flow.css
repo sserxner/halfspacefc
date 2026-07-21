@@ -1,0 +1,61 @@
+/* Batch 2 V3: masthead first, navigation/search below, then collapse on scroll. */
+body.hs-is-home > .hero.hs-floating-masthead {
+  display: grid;
+  max-height: 420px;
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+  transition:
+    max-height 260ms ease,
+    opacity 220ms ease,
+    transform 260ms ease,
+    padding 260ms ease;
+}
+
+body:not(.hs-is-home) > .hero.hs-floating-masthead {
+  display: none !important;
+}
+
+body.hs-is-home.hs-masthead-collapsed > .hero.hs-floating-masthead {
+  max-height: 0;
+  opacity: 0;
+  padding-block: 0 !important;
+  transform: translateY(-18px);
+}
+
+body > nav {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5000 !important;
+  box-shadow: 0 10px 30px rgba(8, 24, 14, 0.1);
+}
+
+body > nav .nav-logo-bar {
+  min-height: 64px;
+}
+
+body > nav .nav-tab-band {
+  top: auto !important;
+}
+
+body.hs-is-home > nav {
+  margin-top: 0;
+}
+
+body.hs-is-home.hs-masthead-collapsed > nav .nav-logo-bar {
+  min-height: 54px;
+}
+
+body.hs-is-home.hs-masthead-collapsed > nav .nav-logo {
+  letter-spacing: 0.18em;
+}
+
+@media (max-width: 760px) {
+  body.hs-is-home > .hero.hs-floating-masthead {
+    max-height: 310px;
+  }
+
+  body > nav .nav-logo-bar {
+    min-height: 58px;
+  }
+}
