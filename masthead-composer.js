@@ -338,13 +338,33 @@
     root.addEventListener("mousedown", (event) => { if (event.target === root) close(); });
     root.addEventListener("click", (event) => {
       const modeButton = event.target.closest("[data-mc-mode]");
-      if (modeButton) switchMode(modeButton.dataset.mcMode);
+      if (modeButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        switchMode(modeButton.dataset.mcMode);
+        return;
+      }
       const action = event.target.closest("[data-mc-action]")?.dataset.mcAction;
-      if (action) invoke(action);
+      if (action) {
+        event.preventDefault();
+        event.stopPropagation();
+        invoke(action);
+        return;
+      }
       const add = event.target.closest("[data-mc-add]");
-      if (add) addAsset(add.dataset.mcAdd);
+      if (add) {
+        event.preventDefault();
+        event.stopPropagation();
+        addAsset(add.dataset.mcAdd);
+        return;
+      }
       const layerButton = event.target.closest("[data-mc-select-layer]");
-      if (layerButton) { state.selected = layerButton.dataset.mcSelectLayer; renderAll(); }
+      if (layerButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        state.selected = layerButton.dataset.mcSelectLayer;
+        renderAll();
+      }
     });
     root.querySelector("#hsMcSearch").addEventListener("input", (event) => {
       state.query = event.target.value;
@@ -1169,11 +1189,17 @@
   }
 
   function publicConfig() {
-    if (adminActive()) return normalizedConfig(readKey(CONFIG_KEY, null));
+    if (adminActive()) {
+      return normalizedConfig(
+        readKey(CONFIG_KEY, null) ||
+        window.HSData?.getDraft?.()?.[CONFIG_KEY] ||
+        window.getData?.(CONFIG_KEY),
+      );
+    }
     return normalizedConfig(window.__HALFSPACE_DATA__?.[CONFIG_KEY]);
   }
   function applyPublicBanner() {
-    const hero = document.querySelector("#page-home .hero");
+    const hero = document.querySelector("#page-home .hero, body > .hero.hs-floating-masthead");
     if (!hero) return;
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
