@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 import { html, read, root, assertIncludes } from "./helpers/site-fixture.mjs";
 
 test("primary pages and navigation controls remain available", () => {
@@ -93,6 +94,55 @@ test("football player cards use compact summaries and international caps and goa
   assert.match(cards, /\.rank-profile-facts-compact/);
 });
 
+test("verified player data omits development teams and keeps only Sam's major award categories", () => {
+  const source = read("player-data-pilot.js");
+  const sandbox = {
+    window: {},
+    localStorage: { getItem() { return null; }, setItem() {} },
+  };
+  vm.runInNewContext(source, sandbox);
+  const api = sandbox.window.HSVerifiedPlayerDrafts;
+  assert.ok(api, "Verified-player API did not initialize");
+  ["Barcelona B", "Bayern Munich II", "Real Madrid Castilla", "Juventus Next Gen", "Ajax U21", "Jong Ajax", "AC Milan Primavera"].forEach((team) =>
+    assert.equal(api.isReserveOrDevelopmentTeam(team), true, `${team} should be omitted`),
+  );
+  ["Barcelona", "Bayern Munich", "Juventus", "Ajax", "B36 Tórshavn"].forEach((team) =>
+    assert.equal(api.isReserveOrDevelopmentTeam(team), false, `${team} should remain`),
+  );
+  [
+    "Ballon d'Or ×8",
+    "European Golden Shoe ×4",
+    "Premier League Player of the Season",
+    "PFA Players' Player of the Year",
+    "German Footballer of the Year",
+    "FIFA World Cup Golden Ball",
+    "UEFA European Championship Player of the Tournament",
+    "Copa América Best Player",
+  ].forEach((name) => assert.equal(api.isMajorIndividualAward({ name }), true, `${name} should remain`));
+  [
+    "The Best FIFA Men's Player",
+    "UEFA Men's Player of the Year",
+    "FIFA World Cup Golden Glove",
+    "PFA Young Player of the Year",
+    "UEFA Team of the Year",
+    "Kopa Trophy",
+    "African Footballer of the Year",
+  ].forEach((name) => assert.equal(api.isMajorIndividualAward({ name }), false, `${name} should be omitted`));
+  const cleaned = api.sanitizeCareerStints([{ club: "Barcelona B" }, { club: "Barcelona" }]);
+  assert.deepEqual(Array.from(cleaned, (item) => item.club), ["Barcelona"]);
+});
+
+test("existing worked player cards receive the same factual cleanup without rewriting editorial fields", () => {
+  const features = read("features.js");
+  assert.match(features, /function cleanExistingPlayerCards\(\)/);
+  assert.match(features, /playerCardCleanupVersion/);
+  assert.match(features, /clean\.careerStints = careerStints\(clean\)/);
+  assert.match(features, /clean\.individualAwards = individualAwards\(clean\)/);
+  assert.match(features, /cleanExistingPlayerCards\(\)/);
+  assert.match(features, /blurb: rpcBlurb\.value\.trim\(\)/);
+  assert.match(features, /comparisons: rpcComparisons\.value\.trim\(\)/);
+});
+
 test("only Editor XIs link names to existing player cards", () => {
   const links = read("xi-player-links.js");
   const reader = read("reader-xi.js");
@@ -140,6 +190,27 @@ test("publishing keeps safeguards, retry handling, and a pre-publish backup", ()
   assert.match(publishing, /reason: "before-publish"/);
   assert.match(publishing, /status !== 409/);
   assert.match(publishing, /cache: "no-store"/);
+});
+
+test("admin saves avoid browser storage quota failures", () => {
+  const editor = read("js/admin/editor.js");
+  const autosave = read("autosave.js");
+  const errorLog = read("error-log.js");
+  const publishing = read("js/admin/auth-and-publishing.js");
+  const template = read("src/index.template.html");
+  assert.match(editor, /createLocalDraftForStorage/);
+  assert.match(editor, /compactMediaDraft/);
+  assert.match(editor, /pruneBrowserStorage/);
+  assert.match(editor, /storeLocalDraft\(createLocalDraftForStorage\(baked\)\)/);
+  assert.match(autosave, /MAX_AUTOSAVE_CHARS = 1200000/);
+  assert.match(autosave, /clearBulkyStorage/);
+  assert.match(autosave, /lastQuotaWarning/);
+  assert.match(errorLog, /MAX_ENTRIES = 60/);
+  assert.match(errorLog, /QUOTA_COOLDOWN = 60000/);
+  assert.match(publishing, /saveData\(\{ markChanges: false \}\)/);
+  assert.doesNotMatch(publishing, /localStorage\.setItem\("halfspace_data",\s*JSON\.stringify\(siteData\)\)/);
+  assert.match(template, /js\/admin\/editor\.js\?v=40\.16/);
+  assert.match(template, /autosave\.js\?v=16\.3/);
 });
 
 test("code updates cannot overwrite newer published content", () => {
@@ -348,9 +419,9 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /lionel-messi/);
   assert.match(pilot, /cristiano-ronaldo/);
   assert.match(pilot, /manuel-neuer/);
-  assert.match(features, /Verified data draft available/);
-  assert.match(features, /Load verified draft/);
-  assert.match(features, /does not save or publish/);
+  assert.match(features, /Verified data ready/);
+  assert.match(features, /Load verified data/);
+  assert.match(features, /nothing publishes until you save/);
   assert.match(features, /appliedVerifiedDraft/);
   assert.match(pilot, /async function prepare\(name\)/);
   assert.match(pilot, /availableFor\(\) \{ return true/);
@@ -366,7 +437,7 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /clubs\$\{index\}/);
   assert.match(pilot, /caps\$\{index\}/);
   assert.match(pilot, /prop=text\|wikitext\|revid/);
-  assert.match(features, /Prepare verified autofill/);
+  assert.match(features, /Preparing verified data/);
   assert.match(features, /Review every field before saving/);
   assert.match(features, /Preparing a private verified draft automatically/);
   assert.match(features, /nothing is saved or published until you review/i);
@@ -376,8 +447,8 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /function internationalFromWikitext/);
   assert.match(pilot, /internationalCaps/);
   assert.match(pilot, /internationalGoals/);
-  assert.match(pilot, /internationalTitles/);
-  assert.match(pilot, /DATA_SCHEMA_VERSION = 3/);
+	  assert.match(pilot, /internationalTitles/);
+	  assert.match(pilot, /DATA_SCHEMA_VERSION = 4/);
   assert.match(pilot, /isInternationalGroup/);
   assert.match(pilot, /function careerTeamTitleTotal/);
   assert.match(pilot, /function notableIndividualAwards/);
@@ -385,18 +456,19 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
 
 test("player-card autofill separates international honours and preserves owner-entered facts", () => {
   const features = read("features.js");
-  const pilot = read("player-data-pilot.js");
-  assert.match(features, /id="rpcInternationalTitles"/);
-  assert.match(features, /International Titles/);
-  assert.match(features, /internationalTitles: parts\(rpcInternationalTitles\.value\)/);
-  assert.match(features, /rpcInternationalCaps\.value = rpcInternationalCaps\.value \|\| draft\.internationalCaps/);
-  assert.match(features, /rpcCareerStints\.value = rpcCareerStints\.value \|\|/);
+	  const pilot = read("player-data-pilot.js");
+	  assert.match(features, /id="rpcInternationalTitles"/);
+	  assert.match(features, /International Titles/);
+	  assert.match(features, /internationalTitles: titleParts\(rpcInternationalTitles\.value\)/);
+	  assert.match(features, /rpcInternationalCaps\.value = rpcInternationalCaps\.value \|\| draft\.internationalCaps/);
+	  assert.match(features, /if \(!existingStints\.length\) rpcCareerStints\.value = formatStintLines\(preparedStints\)/);
+	  assert.match(features, /rpcCareerStints\.value = formatStintLines\(mergedStints\)/);
   assert.match(features, /verifiedSchemaVersion: VERIFIED_SCHEMA_VERSION/);
   assert.match(features, /needsVerifiedFacts/);
   assert.doesNotMatch(features, /if \(!hasExistingCard\)/);
   assert.match(pilot, /const internationalTitles = \[\]/);
   assert.match(pilot, /careerTeamTitleTotal\(stints, teamTitles, internationalTitles\)/);
-  assert.match(pilot, /record\?\.schemaVersion === DATA_SCHEMA_VERSION/);
+  assert.match(pilot, /cachedRecord\?\.schemaVersion === DATA_SCHEMA_VERSION/);
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
@@ -526,10 +598,13 @@ test("team titles are consolidated into a counted expandable breakdown", () => {
   assert.match(features, /Total Team Titles/);
   assert.match(features, /View Club and International Titles/);
   assert.match(features, /teamHonoursHTML\(c, stints, teamTitles\)/);
-  assert.match(features, /parts\(stint\.trophies\)/);
-  assert.match(features, /parts\(card\.internationalTitles\)/);
-  assert.match(features, /Where and when/);
-});
+  assert.match(features, /titleParts\(stint\.trophies\)/);
+  assert.match(features, /titleParts\(card\.internationalTitles\)/);
+	  assert.match(features, /title\.years\.join\(", "\)/);
+	  assert.match(features, /const yearText = datedSuffix\?\.\[2\] \|\| ""/);
+	  assert.match(features, /countMatch \? Number\(countMatch\[1\]\) : years\.length \|\| 1/);
+	  assert.match(features, /Club \/ country/);
+	});
 
 test("blank player-card fields stay absent and legacy cards remain supported", () => {
   const features = read("features.js");
@@ -538,7 +613,7 @@ test("blank player-card fields stay absent and legacy cards remain supported", (
   assert.match(features, /facts\.length/);
   assert.match(features, /!stints\.length && timeline/);
   assert.match(features, /!awards\.length && individualTitles\.length/);
-  assert.match(features, /Saved once and reused everywhere this player appears/);
+  assert.match(features, /Add the photo, quickly review the prepared facts, and save/);
 });
 
 test("admin rankings clearly open the new player-card editor", () => {

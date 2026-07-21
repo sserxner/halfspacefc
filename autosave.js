@@ -5,12 +5,14 @@
   const DATA_KEY = "halfspace_data";
   const SAVE_DELAY = 1500;
   const WATCH_INTERVAL = 500;
+  const MAX_AUTOSAVE_CHARS = 1200000;
 
   let saveTimer = null;
   let lastSavedSnapshot = "";
   let lastObservedSnapshot = "";
   let restoring = false;
   let paused = false;
+  let lastQuotaWarning = 0;
 
   function isAdminActive() {
     return document.body.classList.contains("admin-active");
@@ -90,6 +92,20 @@
     }
   }
 
+  function isQuotaError(error) {
+    return (
+      error?.name === "QuotaExceededError" ||
+      error?.code === 22 ||
+      /quota/i.test(String(error?.message || error))
+    );
+  }
+
+  function clearBulkyStorage() {
+    ["hs_error_log_v1", "halfspace_pre_sync_backup_v1", "masthead_composer_history_v1", "hs_verified_player_drafts_private_v2"].forEach((key) => {
+      try { localStorage.removeItem(key); } catch (error) {}
+    });
+  }
+
   function saveDraft() {
     if (restoring || paused || !isAdminActive()) return;
 
@@ -97,13 +113,25 @@
       const snapshot = createSnapshot();
       if (!snapshot || snapshot === lastSavedSnapshot) return;
 
-      localStorage.setItem(
-        AUTOSAVE_KEY,
-        JSON.stringify({
-          siteData: JSON.parse(snapshot),
-          timestamp: Date.now(),
-        }),
-      );
+      if (snapshot.length > MAX_AUTOSAVE_CHARS) {
+        localStorage.removeItem(AUTOSAVE_KEY);
+        lastSavedSnapshot = snapshot;
+        lastObservedSnapshot = snapshot;
+        setStatus("Saved locally", "#3cb371");
+        return;
+      }
+
+      const payload = JSON.stringify({
+        siteData: JSON.parse(snapshot),
+        timestamp: Date.now(),
+      });
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, payload);
+      } catch (storageError) {
+        if (!isQuotaError(storageError)) throw storageError;
+        clearBulkyStorage();
+        localStorage.setItem(AUTOSAVE_KEY, payload);
+      }
 
       lastSavedSnapshot = snapshot;
       lastObservedSnapshot = snapshot;
@@ -116,7 +144,11 @@
       setStatus(`Saved ${time}`, "#3cb371");
     } catch (error) {
       console.error("Autosave failed:", error);
-      window.HSErrorLog?.record?.("Publishing", "Autosave failed", error?.stack || String(error));
+      const now = Date.now();
+      if (!isQuotaError(error) || now - lastQuotaWarning > 60000) {
+        lastQuotaWarning = now;
+        window.HSErrorLog?.record?.("Publishing", "Autosave failed", error?.stack || String(error));
+      }
       setStatus("Save failed", "#cc4444");
     }
   }
@@ -195,15 +227,16 @@
 
       restoring = true;
 
-      const currentData = JSON.parse(localStorage.getItem(DATA_KEY) || "{}");
-      const hydrated = hydrateData(saved.siteData, currentData);
-      localStorage.setItem(DATA_KEY, JSON.stringify(hydrated));
+	      const currentData = JSON.parse(localStorage.getItem(DATA_KEY) || "{}");
+	      const hydrated = hydrateData(saved.siteData, currentData);
 
-      if (typeof siteData !== "undefined") {
-        siteData = hydrated;
-      }
+	      if (typeof siteData !== "undefined") {
+	        siteData = hydrated;
+	      }
+	      if (typeof saveData === "function") saveData({ markChanges: false });
+	      else localStorage.setItem(DATA_KEY, JSON.stringify(hydrated));
 
-      localStorage.removeItem(AUTOSAVE_KEY);
+	      localStorage.removeItem(AUTOSAVE_KEY);
       sessionStorage.setItem("halfspace_draft_restored", "1");
       window.location.reload();
     } catch (error) {

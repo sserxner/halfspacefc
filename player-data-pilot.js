@@ -1,5 +1,5 @@
 (function () {
-  const DATA_SCHEMA_VERSION = 3;
+  const DATA_SCHEMA_VERSION = 4;
   const records = {
     "lionel-messi": {
       currentClub: "Inter Miami",
@@ -96,6 +96,51 @@
   }
   const nameTokens = (name) => keyFor(name).split("-").filter((token) => token.length > 1 && !["jr","ii","iii"].includes(token));
   const clean = (value) => String(value || "").replace(/\[[^\]]*]/g, "").replace(/\s+/g, " ").trim();
+  const normalized = (value) => clean(value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[’']/g, "'");
+  function isReserveOrDevelopmentTeam(value) {
+    const team = normalized(value).replace(/[._/()-]+/g, " ").replace(/\s+/g, " ").trim();
+    if (!team) return false;
+    return /(?:^|\s)(?:b|ii|u\s*\d{2}|under\s*\d{2}|reserves?|reserve team|academy|youth|primavera|juvenil|jong)(?:\s|$)/i.test(team) ||
+      /\b(?:castilla|barcelona atletic|juventus next gen|milan futuro)\b/i.test(team);
+  }
+  function isMajorIndividualAward(award) {
+    const title = normalized(award?.name ?? award).replace(/[^a-z0-9' -]+/g, " ").replace(/\s+/g, " ").trim();
+    if (!title || /\b(?:young|youth|under[- ]?\d{2}|team of the|squad of the|nominee|shortlist|runner up|second place|third place|bronze|silver)\b/.test(title)) return false;
+    if (/ballon d[' ]?or/.test(title)) return true;
+    if (/\bgolden (?:boot|shoe)s?\b/.test(title)) return true;
+
+    const majorTournament = /\b(?:fifa )?world cup\b|\buefa euro(?:pean championship)?\b|\beuropean championship\b|\bcopa america\b/.test(title);
+    const tournamentMvp = /\b(?:player of the tournament|best player|golden ball|most valuable player|mvp)\b/.test(title);
+    if (majorTournament && tournamentMvp) return true;
+
+    const leagueContext = /\b(?:premier league|la liga|serie a|bundesliga|ligue 1|eredivisie|primeira liga|major league soccer|mls|saudi pro league|super lig|russian premier league|pfa players?' player|fwa footballer|football writers|unfp ligue 1|gran gala del calcio|landon donovan mvp)\b/.test(title);
+    const leagueAward = /\b(?:player|footballer) of the (?:year|season)\b|\bmost valuable player\b|\bmvp\b/.test(title);
+    if (leagueContext && leagueAward) return true;
+
+    const countryContext = /\b(?:algerian|argentine|argentinian|australian|austrian|belgian|brazilian|bulgarian|cameroonian|canadian|chilean|colombian|croatian|czech|danish|dutch|ecuadorian|egyptian|english|french|german|ghanaian|greek|hungarian|icelandic|irish|italian|ivorian|jamaican|japanese|korean|mexican|moroccan|nigerian|norwegian|polish|portuguese|romanian|russian|scottish|senegalese|serbian|slovak|slovenian|spanish|swedish|swiss|turkish|ukrainian|uruguayan|welsh|yugoslav)\b/.test(title);
+    return countryContext && /\b(?:player|footballer) of the year\b/.test(title);
+  }
+  const sanitizeCareerStints = (stints) => (Array.isArray(stints) ? stints : [])
+    .filter((stint) => stint && typeof stint === "object" && !isReserveOrDevelopmentTeam(stint.club));
+  const sanitizeIndividualAwards = (awards) => (Array.isArray(awards) ? awards : [])
+    .filter((award) => award && typeof award === "object" && isMajorIndividualAward(award))
+    .filter((award, index, list) => {
+      const signature = [normalized(award.name), normalized(award.club), normalized(award.year)].join("|");
+      return list.findIndex((candidate) => [normalized(candidate.name), normalized(candidate.club), normalized(candidate.year)].join("|") === signature) === index;
+    })
+    .slice(0, 24);
+  function sanitizeDraftRecord(record) {
+    if (!record || typeof record !== "object") return null;
+    const sanitized = JSON.parse(JSON.stringify(record));
+    sanitized.careerStints = sanitizeCareerStints(sanitized.careerStints);
+    sanitized.individualAwards = sanitizeIndividualAwards(sanitized.individualAwards);
+    sanitized.schemaVersion = DATA_SCHEMA_VERSION;
+    return sanitized;
+  }
   const number = (value) => {
     const match = clean(value).replace(/,/g, "").match(/^\d+$/);
     return match ? Number(match[0]) : null;
@@ -220,9 +265,7 @@
   }
 
   function notableIndividualAwards(awards) {
-    const important = /ballon d|best fifa|fifa world player|fifa world cup golden|uefa.*player|golden (?:ball|boot|shoe|glove)|player of the year|footballer of the year|african footballer|south american footballer|asian footballer|pfa players|fwa footballer|yashin trophy|kopa trophy|world soccer/i;
-    const excluded = /team of the|nominee|runner-?up|third place|shortlist/i;
-    return awards.filter((award) => important.test(award.name || "") && !excluded.test(award.name || "")).slice(0, 18);
+    return sanitizeIndividualAwards(awards);
   }
   function careerRowsFromWikitext(wikitext) {
     const fields = infoboxFields(wikitext), rows = [];
@@ -233,7 +276,7 @@
       const goals = String(fields[`goals${index}`] || "").match(/-?\d[\d,]*/)?.[0]?.replace(/,/g, "") || "";
       rows.push({club,years,appearances:caps,goals,assists:"",trophies:[]});
     }
-    return rows;
+    return sanitizeCareerStints(rows);
   }
   function honoursFromWikitext(wikitext, stints, nationalTeam) {
     const text = String(wikitext || "");
@@ -277,7 +320,7 @@
         individual = /individual|personal/i.test(group);
         return;
       }
-      if (!/^\s*\*/.test(line)) return;
+      if (!/^\s*\*/.test(line) || isReserveOrDevelopmentTeam(group)) return;
       const honor = plainWiki(line.replace(/^\s*\*+\s*/, ""));
       if (!honor) return;
       if (individual) awards.push({name:honor,club:"",year:""});
@@ -305,6 +348,7 @@
       if (/^H[34]$/.test(node.tagName)) group = clean(node.textContent);
       if (!node.matches("ul,div")) continue;
       node.querySelectorAll(":scope > li").forEach((li) => {
+        if (isReserveOrDevelopmentTeam(group)) return;
         const text = clean(li.textContent);
         if (!text) return;
         if (/individual/i.test(group)) awards.push({name:text,club:"",year:""});
@@ -328,7 +372,7 @@
     const countryId = claimId(claims, "P27"), clubId = currentClubId(claims);
     const labels = await resolveLabels([countryId, clubId]);
     const stints = careerRowsFromWikitext(wikitext);
-    if (!stints.length) stints.push(...careerRows(documentNode));
+    if (!stints.length) stints.push(...sanitizeCareerStints(careerRows(documentNode)));
     const international = internationalFromWikitext(wikitext);
     const nationalTeam = international.team || labels[countryId] || "";
     const awards = honoursFromWikitext(wikitext, stints, nationalTeam);
@@ -355,14 +399,14 @@
       schemaVersion: DATA_SCHEMA_VERSION,
       dataAsOf: new Date().toISOString().slice(0, 10),
       sources: [{label:`${parsed.parse?.title || name} — Wikipedia`,url:page.fullurl || `https://en.wikipedia.org/?curid=${page.pageid}`}],
-      statsNote: "Club years, league appearances and league goals are prepared from Wikipedia’s football biography record, with career-statistics tables as a fallback. Honours are mapped from the cited page when identifiable. Assists and uncertain fields remain blank. Review every row before saving.",
+      statsNote: "Senior-club years, league appearances and league goals are prepared from Wikipedia’s football biography record. Reserve, youth and B-team stops are omitted. Individual awards are limited to Ballon d’Or, league or country Player of the Year, Golden Boot/Shoe and World Cup, Euros or Copa América Player of the Tournament honours. Assists and uncertain fields remain blank.",
       reviewWarnings: [
         ...(stints.length ? [] : ["Career-statistics rows could not be structured automatically; add or verify them manually."]),
-        ...(trophyTotal ? ["The team-title total is calculated from the structured honours listed below; verify it before saving."] : []),
       ],
     };
-    savePrivateDraft(name, record);
-    return JSON.parse(JSON.stringify(record));
+    const sanitizedRecord = sanitizeDraftRecord(record);
+    savePrivateDraft(name, sanitizedRecord);
+    return JSON.parse(JSON.stringify(sanitizedRecord));
   }
 
   function getDraft(name) {
@@ -379,8 +423,13 @@
     const surname = key.split("-").at(-1);
     const cache = readPrivateDraftCache();
     const resolved = aliases[key] || aliases[surname] || key;
-    const record = cache[key] || cache[resolved] || records[key] || records[resolved];
-    return record?.schemaVersion === DATA_SCHEMA_VERSION ? JSON.parse(JSON.stringify(record)) : null;
+    const cachedRecord = cache[key] || cache[resolved];
+    if (cachedRecord?.schemaVersion === DATA_SCHEMA_VERSION)
+      return JSON.parse(JSON.stringify(sanitizeDraftRecord(cachedRecord)));
+    const bundledRecord = records[key] || records[resolved];
+    return bundledRecord?.schemaVersion === DATA_SCHEMA_VERSION
+      ? JSON.parse(JSON.stringify(sanitizeDraftRecord(bundledRecord)))
+      : null;
   }
 
   function queue(name) {
@@ -394,10 +443,14 @@
   }
 
   window.HSVerifiedPlayerDrafts = {
-    version: "step-40-verified-autofill-international-v3",
+    version: "step-40-verified-autofill-major-awards-v4",
     get: getDraft,
     prepare,
     queue,
+    isReserveOrDevelopmentTeam,
+    isMajorIndividualAward,
+    sanitizeCareerStints,
+    sanitizeIndividualAwards,
     availableFor() { return true; },
   };
 })();

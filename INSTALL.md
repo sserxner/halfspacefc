@@ -11,6 +11,8 @@ This is a complete site folder, not a partial patch.
 
 The package already includes the newest July 20 published content from GitHub. Do not paste an older `index.html` over it afterward.
 
+This build also fixes the browser-storage save failure by saving only your local draft changes instead of duplicating the whole published site, media library, and masthead data inside Chrome.
+
 This build also includes the same-row Free Build navigation, `F`/`W` Top 100 labels,
 editable Present Day Top 100 display positions, automatic private Verified Autofill
 for new player cards, and admin controls for adding the large Positions-page cards.

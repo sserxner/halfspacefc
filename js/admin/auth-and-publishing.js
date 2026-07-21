@@ -444,11 +444,12 @@
             if (putResp.ok || putResp.status !== 409) break;
             if (btn) btn.textContent = "⏳ Syncing latest version…";
           }
-          if (putResp.ok) {
-            siteData = publishData;
-            localStorage.setItem("halfspace_data", JSON.stringify(siteData));
-            window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(publishData));
-            if (btn) {
+	          if (putResp.ok) {
+	            siteData = publishData;
+	            window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(publishData));
+	            if (typeof saveData === "function") saveData({ markChanges: false });
+	            else localStorage.removeItem("halfspace_data");
+	            if (btn) {
               btn.textContent = "✓ Saved! Live in ~30s";
               btn.style.background = "#2ea043";
             }

@@ -582,12 +582,12 @@
         };
         const sharedCard = (entry) => {
           const saved = cardLibrary()[playerKey(entry?.name)];
-          return saved && typeof saved === "object" ? saved : entry?.card || {};
+          return sanitizePlayerCard(saved && typeof saved === "object" ? saved : entry?.card || {});
         };
         function saveSharedCard(name, card) {
           const id = playerKey(name);
           if (!id) return;
-          const clean = JSON.parse(JSON.stringify(card || {}));
+          const clean = sanitizePlayerCard(card, true);
           const library = cardLibrary();
           library[id] = clean;
           setData(CARD_LIBRARY_KEY, library);
@@ -634,6 +634,7 @@
           });
           if (changed) setData(CARD_LIBRARY_KEY, library);
           rankingsToSave.forEach(([key, ranking]) => rankSet(key, ranking));
+          cleanExistingPlayerCards();
         }
         const globalRank = (k, t, e) => {
           let n = 1,
@@ -646,10 +647,79 @@
             .split(/\n|,/)
             .map((x) => x.trim())
             .filter(Boolean);
+        const titleParts = (value) => (Array.isArray(value) ? value : String(value || "").split(/\n|;/))
+          .map((title) => String(title || "").trim())
+          .filter(Boolean);
         const cleanList = (value) =>
           Array.isArray(value) ? value.filter((item) => item && typeof item === "object") : [];
-        const careerStints = (card) => cleanList(card.careerStints);
-        const individualAwards = (card) => cleanList(card.individualAwards);
+        const PLAYER_CARD_CLEANUP_VERSION = 1;
+        const normalizedFact = (value) => String(value || "")
+          .normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[’']/g, "'")
+          .replace(/\s+/g, " ")
+          .trim();
+        const isReserveOrDevelopmentTeam = (value) => {
+          if (window.HSVerifiedPlayerDrafts?.isReserveOrDevelopmentTeam)
+            return window.HSVerifiedPlayerDrafts.isReserveOrDevelopmentTeam(value);
+          const team = normalizedFact(value).replace(/[._/()-]+/g, " ").replace(/\s+/g, " ").trim();
+          return /(?:^|\s)(?:b|ii|u\s*\d{2}|under\s*\d{2}|reserves?|reserve team|academy|youth|primavera|juvenil|jong)(?:\s|$)/i.test(team) ||
+            /\b(?:castilla|barcelona atletic|juventus next gen|milan futuro)\b/i.test(team);
+        };
+        const isMajorIndividualAward = (award) => {
+          if (window.HSVerifiedPlayerDrafts?.isMajorIndividualAward)
+            return window.HSVerifiedPlayerDrafts.isMajorIndividualAward(award);
+          const title = normalizedFact(award?.name ?? award).replace(/[^a-z0-9' -]+/g, " ").replace(/\s+/g, " ").trim();
+          if (!title || /\b(?:young|youth|under[- ]?\d{2}|team of the|squad of the|nominee|shortlist|runner up|second place|third place|bronze|silver)\b/.test(title)) return false;
+          if (/ballon d[' ]?or/.test(title) || /\bgolden (?:boot|shoe)s?\b/.test(title)) return true;
+          const majorTournament = /\b(?:fifa )?world cup\b|\buefa euro(?:pean championship)?\b|\beuropean championship\b|\bcopa america\b/.test(title);
+          if (majorTournament && /\b(?:player of the tournament|best player|golden ball|most valuable player|mvp)\b/.test(title)) return true;
+          const leagueContext = /\b(?:premier league|la liga|serie a|bundesliga|ligue 1|eredivisie|primeira liga|major league soccer|mls|saudi pro league|super lig|russian premier league|pfa players?' player|fwa footballer|football writers|unfp ligue 1|gran gala del calcio|landon donovan mvp)\b/.test(title);
+          if (leagueContext && /\b(?:player|footballer) of the (?:year|season)\b|\bmost valuable player\b|\bmvp\b/.test(title)) return true;
+          const countryContext = /\b(?:algerian|argentine|argentinian|australian|austrian|belgian|brazilian|bulgarian|cameroonian|canadian|chilean|colombian|croatian|czech|danish|dutch|ecuadorian|egyptian|english|french|german|ghanaian|greek|hungarian|icelandic|irish|italian|ivorian|jamaican|japanese|korean|mexican|moroccan|nigerian|norwegian|polish|portuguese|romanian|russian|scottish|senegalese|serbian|slovak|slovenian|spanish|swedish|swiss|turkish|ukrainian|uruguayan|welsh|yugoslav)\b/.test(title);
+          return countryContext && /\b(?:player|footballer) of the year\b/.test(title);
+        };
+        const careerStints = (card) => cleanList(card.careerStints)
+          .filter((stint) => !isReserveOrDevelopmentTeam(stint.club));
+        const individualAwards = (card) => cleanList(card.individualAwards)
+          .filter(isMajorIndividualAward)
+          .filter((award, index, list) => {
+            const signature = [normalizedFact(award.name), normalizedFact(award.club), normalizedFact(award.year)].join("|");
+            return list.findIndex((candidate) => [normalizedFact(candidate.name), normalizedFact(candidate.club), normalizedFact(candidate.year)].join("|") === signature) === index;
+          });
+        const legacyIndividualAwards = (card) => String(card.individualTitles || "")
+          .split(/\n|;/)
+          .map((title) => title.trim())
+          .filter(Boolean)
+          .filter(isMajorIndividualAward);
+        function sanitizePlayerCard(card, markClean = false) {
+          const clean = JSON.parse(JSON.stringify(card || {}));
+          clean.careerStints = careerStints(clean);
+          clean.individualAwards = individualAwards(clean);
+          if (Object.prototype.hasOwnProperty.call(clean, "individualTitles"))
+            clean.individualTitles = legacyIndividualAwards(clean).join("\n");
+          if (markClean) clean.playerCardCleanupVersion = PLAYER_CARD_CLEANUP_VERSION;
+          return clean;
+        }
+        function cleanExistingPlayerCards() {
+          if (!document.body.classList.contains("admin-active")) return;
+          const library = cardLibrary();
+          let changed = false;
+          Object.keys(library).forEach((id) => {
+            const current = library[id];
+            if (!current || typeof current !== "object" || Number(current.playerCardCleanupVersion || 0) >= PLAYER_CARD_CLEANUP_VERSION) return;
+            const cleaned = sanitizePlayerCard(current, true);
+            if (JSON.stringify(cleaned) !== JSON.stringify(current)) {
+              library[id] = cleaned;
+              changed = true;
+            }
+          });
+          if (changed) {
+            setData(CARD_LIBRARY_KEY, library);
+            window.HSAutosave?.schedule?.();
+          }
+        }
         const SECTION_LABELS = {
           overall: "Top 100",
           gk: "Goalkeepers",
@@ -741,32 +811,41 @@
             facts.push(["Caps (Goals)", `${caps || "—"} (${goals || "—"})`]);
           return `<section class="rank-profile-section"><div class="rank-profile-label">International</div>${facts.length ? `<div class="rank-profile-facts rank-profile-facts-compact">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>` : ""}</section>`;
         };
-        const teamHonoursHTML = (card, stints, legacyTitles) => {
-          const grouped = new Map();
-          const addTitle = (rawTitle, detail = "") => {
-            const raw = String(rawTitle || "").trim();
-            const match = raw.match(/\s*[×x]\s*(\d+)\s*$/i);
-            const name = raw.replace(/\s*[×x]\s*\d+\s*$/i, "").trim();
-            if (!name) return;
-            const group = grouped.get(name.toLowerCase()) || { name, count: 0, details: [] };
-            group.count += match ? Number(match[1]) : 1;
+	        const teamHonoursHTML = (card, stints, legacyTitles) => {
+	          const grouped = new Map();
+	          const addTitle = (rawTitle, detail = "") => {
+	            const raw = String(rawTitle || "").trim();
+	            const countMatch = raw.match(/[×x]\s*(\d+)/i) || raw.match(/\((\d+)\)\s*(?=[:—-]|$)/);
+	            const datedSuffix = raw.match(/^(.*?)(?:\s*[:—]\s*)((?:(?:19|20)\d{2}(?:[–—/-]\d{2,4})?(?:\s*[,;]\s*)?)+)\s*$/);
+	            const yearText = datedSuffix?.[2] || "";
+	            const years = [...yearText.matchAll(/\b(?:19|20)\d{2}(?:[–—/-]\d{2,4})?\b/g)].map((year) => year[0]);
+	            const name = (datedSuffix?.[1] || raw)
+	              .replace(/\s*[×x]\s*\d+\s*$/i, "")
+	              .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
+	              .trim();
+	            if (!name) return;
+	            const group = grouped.get(name.toLowerCase()) || { name, count: 0, years: [], details: [] };
+	            group.count += countMatch ? Number(countMatch[1]) : years.length || 1;
+            years.forEach((year) => {
+              if (!group.years.includes(year)) group.years.push(year);
+            });
             if (detail && !group.details.includes(detail)) group.details.push(detail);
             grouped.set(name.toLowerCase(), group);
           };
           stints.forEach((stint) =>
-            parts(stint.trophies).forEach((title) =>
-              addTitle(title, [stint.club, stint.years].filter(Boolean).join(" · ")),
+            titleParts(stint.trophies).forEach((title) =>
+              addTitle(title, stint.club || ""),
             ),
           );
           legacyTitles.forEach((title) => addTitle(title));
-          parts(card.internationalTitles).forEach((title) =>
+          titleParts(card.internationalTitles).forEach((title) =>
             addTitle(title, card.nationalTeam || card.nationality || "International"),
           );
           const titles = [...grouped.values()];
           const calculatedTotal = titles.reduce((sum, title) => sum + title.count, 0);
           const total = String(card.careerTrophyTotal || calculatedTotal || "").trim();
           if (!total && !titles.length) return "";
-          return `<section class="rank-profile-section"><div class="rank-profile-label">Total Team Titles</div>${total ? `<div class="rank-profile-title-total"><span>Total titles won</span><strong>${esc(total)}</strong></div>` : ""}${titles.length ? `<details class="rank-profile-title-breakdown"><summary>View Club and International Titles</summary><div class="rank-profile-awards">${titles.map((title) => `<article class="rank-profile-award-group"><strong>${esc(title.name)}${title.count > 1 ? ` ×${title.count}` : ""}</strong>${title.details.length ? `<details><summary>Where and when</summary><div>${title.details.map((detail) => `<span>${esc(detail)}</span>`).join("")}</div></details>` : ""}</article>`).join("")}</div></details>` : ""}</section>`;
+          return `<section class="rank-profile-section"><div class="rank-profile-label">Total Team Titles</div>${total ? `<div class="rank-profile-title-total"><span>Total titles won</span><strong>${esc(total)}</strong></div>` : ""}${titles.length ? `<details class="rank-profile-title-breakdown"><summary>View Club and International Titles</summary><div class="rank-profile-awards">${titles.map((title) => `<article class="rank-profile-award-group"><strong>${esc(title.name)}${title.count > 1 ? ` ×${title.count}` : ""}${title.years.length ? ` — ${esc(title.years.join(", "))}` : ""}</strong>${title.details.length ? `<details><summary>Club / country</summary><div>${title.details.map((detail) => `<span>${esc(detail)}</span>`).join("")}</div></details>` : ""}</article>`).join("")}</div></details>` : ""}</section>`;
         };
         const awardsHTML = (awards) => {
           if (!awards.length) return "";
@@ -803,8 +882,8 @@
           const x = entryAt(k, t, e);
           if (!x) return;
           const c = sharedCard(x),
-            teamTitles = parts(c.teamTitles || c.honors),
-            individualTitles = parts(c.individualTitles),
+            teamTitles = titleParts(c.teamTitles || c.honors),
+            individualTitles = legacyIndividualAwards(c),
             stats = parts(c.stats).map((s) => {
               let i = s.indexOf(":");
               return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 1)];
@@ -836,7 +915,7 @@
               c.transferValue ||
               c.internationalCaps ||
               c.internationalGoals ||
-              parts(c.internationalTitles).length ||
+              titleParts(c.internationalTitles).length ||
               interestedClubs ||
               suggestedMove,
             );
@@ -889,18 +968,34 @@
           const c = sharedCard(x),
             m = document.createElement("div"),
             verifiedDraft = window.HSVerifiedPlayerDrafts?.get?.(x.name);
-          const VERIFIED_SCHEMA_VERSION = 3;
+          const VERIFIED_SCHEMA_VERSION = 4;
           const needsVerifiedFacts = Number(c.verifiedSchemaVersion || 0) < VERIFIED_SCHEMA_VERSION;
+          const parseStintLines = (value) => String(value || "")
+            .split("\n")
+            .map((line) => line.split("|").map((item) => item.trim()))
+            .filter((row) => row[0])
+            .map(([club, years, appearances, goals, assists, trophies]) => ({
+              club, years, appearances, goals, assists, trophies: titleParts(trophies),
+            }))
+            .filter((stint) => !isReserveOrDevelopmentTeam(stint.club));
+          const formatStintLines = (stints) => careerStints({ careerStints: stints })
+            .map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, titleParts(stint.trophies).join("; ")].map((value) => value || "").join(" | "))
+            .join("\n");
+          const parseAwardLines = (value) => String(value || "")
+            .split("\n")
+            .map((line) => line.split("|").map((item) => item.trim()))
+            .filter((row) => row[0])
+            .map(([name, club, year]) => ({ name, club, year }))
+            .filter(isMajorIndividualAward);
+          const formatAwardLines = (awards) => individualAwards({ individualAwards: awards })
+            .map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | "))
+            .join("\n");
           m.id = "rankCardEditor";
           m.style.cssText =
             "position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100001;display:flex;padding:1rem;overflow:auto";
-          const stintLines = careerStints(c)
-            .map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | "))
-            .join("\n");
-          const awardLines = individualAwards(c)
-            .map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | "))
-            .join("\n");
-          m.innerHTML = `<div class="rank-card-editor-shell"><h3>Player Card — ${esc(x.name || "")}</h3><p>Saved once and reused everywhere this player appears. Blank optional fields stay completely hidden.</p><section class="rank-verified-draft"><div><strong>${verifiedDraft ? "Verified data draft available" : "Prepare verified autofill"}</strong><span id="rpcVerifiedStatus">${verifiedDraft ? `Reviewed through ${esc(verifiedDraft.dataAsOf || "")}. Loading it fills factual fields only and does not save or publish.` : "Available for every ranked player. Wikipedia and Wikidata facts are prepared into a private draft for your review."}</span></div><button type="button" id="${verifiedDraft ? "rpcApplyVerified" : "rpcPrepareVerified"}" class="rk-btn">${verifiedDraft ? "Load verified draft" : "Prepare draft"}</button><small id="rpcVerifiedSources">${(verifiedDraft?.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ")}</small></section><div class="rank-card-editor-grid">
+          const stintLines = formatStintLines(careerStints(c));
+          const awardLines = formatAwardLines(individualAwards(c));
+          m.innerHTML = `<div class="rank-card-editor-shell"><h3>Player Card — ${esc(x.name || "")}</h3><p>Add the photo, quickly review the prepared facts, and save. Reserve/B teams and non-major individual awards are removed automatically; your writing and scouting fields remain yours.</p><section class="rank-verified-draft"><div><strong>${verifiedDraft ? "Verified data ready" : "Preparing verified data"}</strong><span id="rpcVerifiedStatus">${verifiedDraft ? `Prepared through ${esc(verifiedDraft.dataAsOf || "")}. Blank factual fields load automatically; nothing publishes until you save and use Publish Changes.` : "Available for every ranked player. Wikipedia and Wikidata facts are prepared privately while this editor is open."}</span></div><button type="button" id="${verifiedDraft ? "rpcApplyVerified" : "rpcPrepareVerified"}" class="rk-btn">${verifiedDraft ? "Load verified data" : "Prepare data"}</button><small id="rpcVerifiedSources">${(verifiedDraft?.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ")}</small></section><div class="rank-card-editor-grid">
             <div class="full rank-editor-section-title">Core profile</div>
             <div class="full"><label>Image URL or repository path — you control this</label><input id="rpcImage" value="${esc(c.image || "")}"></div>
             <div><label>Specific position</label><input id="rpcSpecificPosition" value="${esc(c.specificPosition || c.position || "")}" placeholder="Left-sided No. 8"></div>
@@ -908,7 +1003,7 @@
             <div><label>Country / national team</label><input id="rpcNationality" value="${esc(c.nationalTeam || c.nationality || "")}"></div>
             <div><label>International caps</label><input id="rpcInternationalCaps" inputmode="numeric" value="${esc(c.internationalCaps || "")}"></div>
             <div><label>International goals</label><input id="rpcInternationalGoals" inputmode="numeric" value="${esc(c.internationalGoals || "")}"></div>
-            <div class="full"><label>International titles — one per line</label><textarea id="rpcInternationalTitles" placeholder="FIFA World Cup: 2022&#10;Copa América: 2021, 2024">${esc(parts(c.internationalTitles).join("\n"))}</textarea></div>
+            <div class="full"><label>International titles — one per line</label><textarea id="rpcInternationalTitles" placeholder="FIFA World Cup: 2022&#10;Copa América: 2021, 2024">${esc(titleParts(c.internationalTitles).join("\n"))}</textarea></div>
             <div><label>Legacy clubs / country — list-card summary</label><input id="rpcLegacyAssociations" value="${esc(c.legacyAssociations || "")}" placeholder="Barcelona / Argentina"></div>
             <div><label>Career years</label><input id="rpcYears" value="${esc(c.years || "")}" placeholder="2006—"></div>
             <div><label>Current club — active players only</label><input id="rpcCurrentClub" value="${esc(c.currentClub || "")}"></div>
@@ -920,10 +1015,10 @@
             <div class="full"><label>Career-map rows — Club | Years | Apps | Goals | Assists | Trophies separated by semicolons</label><textarea id="rpcCareerStints" placeholder="Barcelona | 2004–2021 | 520 | 474 |  | La Liga ×10; Champions League ×4">${esc(stintLines)}</textarea></div>
             <div class="full"><label>Legacy teams timeline — used only until structured career-map rows are added</label><textarea id="rpcTeamsTimeline">${esc(c.teamsTimeline || c.teams || x.detail || "")}</textarea></div>
             <div class="full rank-editor-section-title">Honours and existing card details</div>
-            <div class="full"><label>Individual awards: Award | Club or country | Year</label><textarea id="rpcAwards" placeholder="Ballon d'Or | Barcelona | 2019">${esc(awardLines)}</textarea></div>
+            <div class="full"><label>Major individual awards only: Award | Club or country | Year</label><textarea id="rpcAwards" placeholder="Ballon d'Or | Barcelona | 2019">${esc(awardLines)}</textarea><small>Kept automatically: Ballon d’Or; league or country Player of the Year; Golden Boot/Shoe; World Cup, Euros or Copa América Player of the Tournament.</small></div>
             <div class="full"><label>Stats — Label: Value, one per line</label><textarea id="rpcStats">${esc(c.stats || "")}</textarea></div>
             <div class="full"><label>Additional team titles — one per line; combined with career and international titles</label><textarea id="rpcTeamTitles">${esc(c.teamTitles || c.honors || "")}</textarea></div>
-            <div class="full"><label>Legacy individual titles</label><textarea id="rpcIndividualTitles">${esc(c.individualTitles || "")}</textarea></div>
+            <div class="full"><label>Older major individual awards</label><textarea id="rpcIndividualTitles">${esc(legacyIndividualAwards(c).join("\n"))}</textarea></div>
             <div class="full rank-editor-section-title">Your editorial fields — AI leaves these blank</div>
             <div class="full"><label>Half Space view</label><textarea id="rpcBlurb" placeholder="Your writing; hidden when blank">${esc(c.blurb || c.assessment || "")}</textarea></div>
             <div class="full"><label>Player comparisons</label><textarea id="rpcComparisons" placeholder="Your comparisons; hidden when blank">${esc(c.comparisons || c.comps || "")}</textarea></div>
@@ -943,14 +1038,33 @@
             rpcNationality.value = rpcNationality.value || draft.nationalTeam || draft.nationality || "";
             rpcInternationalCaps.value = rpcInternationalCaps.value || draft.internationalCaps || "";
             rpcInternationalGoals.value = rpcInternationalGoals.value || draft.internationalGoals || "";
-            rpcInternationalTitles.value = rpcInternationalTitles.value || parts(draft.internationalTitles).join("\n");
+            rpcInternationalTitles.value = rpcInternationalTitles.value || titleParts(draft.internationalTitles).join("\n");
             rpcYears.value = rpcYears.value || draft.years || "";
             rpcCurrentClub.value = rpcCurrentClub.value || draft.currentClub || "";
             rpcDateOfBirth.value = rpcDateOfBirth.value || draft.dateOfBirth || "";
             rpcCareerTrophyTotal.value = rpcCareerTrophyTotal.value || draft.careerTrophyTotal || "";
-            rpcCareerStints.value = rpcCareerStints.value || (draft.careerStints || []).map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | ")).join("\n");
+            const preparedStints = careerStints(draft);
+            const existingStints = parseStintLines(rpcCareerStints.value);
+            if (!existingStints.length) rpcCareerStints.value = formatStintLines(preparedStints);
+            else if (preparedStints.length) {
+              const preparedByClub = new Map(preparedStints.map((stint) => [playerKey(stint.club), stint]));
+              const mergedStints = existingStints.map((stint) => {
+                const prepared = preparedByClub.get(playerKey(stint.club));
+                if (!prepared) return stint;
+                preparedByClub.delete(playerKey(stint.club));
+                return {
+                  ...stint,
+                  trophies: titleParts(prepared.trophies).length ? titleParts(prepared.trophies) : stint.trophies,
+                };
+              });
+              mergedStints.push(...preparedByClub.values());
+              rpcCareerStints.value = formatStintLines(mergedStints);
+            }
             rpcTeamTitles.value = rpcTeamTitles.value || draft.teamTitles || "";
-            rpcAwards.value = rpcAwards.value || (draft.individualAwards || []).map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | ")).join("\n");
+            rpcAwards.value = formatAwardLines([
+              ...parseAwardLines(rpcAwards.value),
+              ...individualAwards(draft),
+            ]);
             rpcVerifiedStatus.textContent = `${draft.reviewWarnings?.length ? `${draft.reviewWarnings.join(" ")} ` : ""}Draft loaded below. Review every field before saving.`;
             rpcVerifiedSources.innerHTML = (draft.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ");
             const button = document.getElementById("rpcApplyVerified") || document.getElementById("rpcPrepareVerified");
@@ -988,19 +1102,8 @@
           rpcSave.onclick = () => {
             let d = rankGet(k),
               z = d.tiers[t].entries[e];
-            const parsedStints = rpcCareerStints.value
-              .split("\n")
-              .map((line) => line.split("|").map((value) => value.trim()))
-              .filter((row) => row[0])
-              .map(([club, years, appearances, goals, assists, trophies]) => ({
-                club, years, appearances, goals, assists,
-                trophies: parts(String(trophies || "").replace(/;/g, "\n")),
-              }));
-            const parsedAwards = rpcAwards.value
-              .split("\n")
-              .map((line) => line.split("|").map((value) => value.trim()))
-              .filter((row) => row[0])
-              .map(([name, club, year]) => ({ name, club, year }));
+            const parsedStints = parseStintLines(rpcCareerStints.value);
+            const parsedAwards = parseAwardLines(rpcAwards.value);
             z.card = {
               image: rpcImage.value.trim(),
               specificPosition: rpcSpecificPosition.value.trim(),
@@ -1010,7 +1113,7 @@
               nationalTeam: rpcNationality.value.trim(),
               internationalCaps: rpcInternationalCaps.value.trim(),
               internationalGoals: rpcInternationalGoals.value.trim(),
-              internationalTitles: parts(rpcInternationalTitles.value),
+              internationalTitles: titleParts(rpcInternationalTitles.value),
               legacyAssociations: rpcLegacyAssociations.value.trim(),
               years: rpcYears.value.trim(),
               currentClub: rpcCurrentClub.value.trim(),
@@ -1024,7 +1127,12 @@
               stats: rpcStats.value.trim(),
               teamTitles: rpcTeamTitles.value.trim(),
               honors: rpcTeamTitles.value.trim(),
-              individualTitles: rpcIndividualTitles.value.trim(),
+              individualTitles: rpcIndividualTitles.value
+                .split(/\n|;/)
+                .map((title) => title.trim())
+                .filter(Boolean)
+                .filter(isMajorIndividualAward)
+                .join("\n"),
               individualAwards: parsedAwards,
               blurb: rpcBlurb.value.trim(),
               assessment: rpcBlurb.value.trim(),
@@ -1036,6 +1144,7 @@
               dataSources: appliedVerifiedDraft?.sources || c.dataSources || [],
               statsNote: appliedVerifiedDraft?.statsNote || c.statsNote || "",
               verifiedSchemaVersion: VERIFIED_SCHEMA_VERSION,
+              playerCardCleanupVersion: PLAYER_CARD_CLEANUP_VERSION,
             };
             rankSet(k, d);
             saveSharedCard(z.name, z.card);

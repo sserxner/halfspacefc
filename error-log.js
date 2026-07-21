@@ -2,7 +2,9 @@
   "use strict";
 
   const STORE_KEY = "hs_error_log_v1";
-  const MAX_ENTRIES = 200;
+  const MAX_ENTRIES = 60;
+  const QUOTA_COOLDOWN = 60000;
+  let lastQuotaEntryAt = 0;
 
   function isAdmin() {
     return (
@@ -40,13 +42,19 @@
       try {
         localStorage.setItem(
           STORE_KEY,
-          JSON.stringify(entries.slice(-Math.floor(MAX_ENTRIES / 2))),
+          JSON.stringify(entries.slice(-10)),
         );
       } catch {}
     }
   }
 
   function record(area, message, detail = "") {
+    const combined = `${message}\n${detail}`;
+    if (/quota/i.test(combined)) {
+      const now = Date.now();
+      if (now - lastQuotaEntryAt < QUOTA_COOLDOWN) return null;
+      lastQuotaEntryAt = now;
+    }
     const entry = {
       time: new Date().toISOString(),
       area: String(area || "General"),

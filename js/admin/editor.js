@@ -9,6 +9,13 @@
       const CONTENT_REVISION_KEY = "__content_revision_v1";
       const CONTENT_CLOCK_KEY = "__content_edit_clock_v1";
       const CONTENT_BACKUP_KEY = "halfspace_pre_sync_backup_v1";
+      const STORAGE_PRUNE_KEYS = [
+        "halfspace_autosave",
+        "hs_error_log_v1",
+        "halfspace_pre_sync_backup_v1",
+        "hs_verified_player_drafts_private_v2",
+        "masthead_composer_history_v1",
+      ];
 
       function cloneData(value) {
         return value === undefined
@@ -22,6 +29,72 @@
           return JSON.stringify(left) === JSON.stringify(right);
         } catch (error) {
           return false;
+        }
+      }
+
+      function isQuotaError(error) {
+        return (
+          error?.name === "QuotaExceededError" ||
+          error?.code === 22 ||
+          /quota/i.test(String(error?.message || error))
+        );
+      }
+
+      function pruneBrowserStorage() {
+        STORAGE_PRUNE_KEYS.forEach((key) => {
+          try {
+            localStorage.removeItem(key);
+          } catch (error) {}
+        });
+      }
+
+      function compactMediaDraft(draftMedia, publishedMedia) {
+        const publishedById = new Map(
+          (Array.isArray(publishedMedia) ? publishedMedia : [])
+            .filter((asset) => asset?.id)
+            .map((asset) => [asset.id, asset]),
+        );
+        return (Array.isArray(draftMedia) ? draftMedia : []).filter((asset) => {
+          if (!asset?.id) return false;
+          const publishedAsset = publishedById.get(asset.id);
+          return !publishedAsset || !sameData(asset, publishedAsset);
+        });
+      }
+
+      function createLocalDraftForStorage(baked) {
+        const clock =
+          siteData[CONTENT_CLOCK_KEY] && typeof siteData[CONTENT_CLOCK_KEY] === "object"
+            ? siteData[CONTENT_CLOCK_KEY]
+            : {};
+        const draft = {
+          [CONTENT_REVISION_KEY]: siteData[CONTENT_REVISION_KEY] || baked[CONTENT_REVISION_KEY] || "",
+          [CONTENT_CLOCK_KEY]: clock,
+        };
+        const privateKeys = new Set(["notebook_pages_v1"]);
+        Object.keys(siteData).forEach((key) => {
+          if (key === CONTENT_REVISION_KEY || key === CONTENT_CLOCK_KEY) return;
+          const isChanged = Boolean(clock[key]);
+          const isPrivate = privateKeys.has(key);
+          const isNew = !Object.prototype.hasOwnProperty.call(baked, key);
+          if (!isChanged && !isPrivate && !isNew) return;
+          if (key === "media_library_v1") {
+            const mediaDraft = compactMediaDraft(siteData[key], baked[key]);
+            if (mediaDraft.length || isChanged) draft[key] = mediaDraft;
+            return;
+          }
+          draft[key] = siteData[key];
+        });
+        return draft;
+      }
+
+      function storeLocalDraft(value) {
+        const payload = JSON.stringify(value);
+        try {
+          localStorage.setItem(DATA_KEY, payload);
+        } catch (error) {
+          if (!isQuotaError(error)) throw error;
+          pruneBrowserStorage();
+          localStorage.setItem(DATA_KEY, payload);
         }
       }
 
@@ -65,7 +138,12 @@
             siteData[CONTENT_REVISION_KEY] = baked[CONTENT_REVISION_KEY];
           }
         }
-        localStorage.setItem(DATA_KEY, JSON.stringify(siteData));
+        try {
+          storeLocalDraft(createLocalDraftForStorage(baked));
+        } catch (error) {
+          window.HSErrorLog?.record?.("Publishing", "Save failed", error?.stack || String(error));
+          throw error;
+        }
       }
 
       function setData(key, value) {
