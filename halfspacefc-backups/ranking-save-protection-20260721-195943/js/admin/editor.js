@@ -61,31 +61,6 @@
         });
       }
 
-      function compactMastheadDraft(value) {
-        const draft = cloneData(value);
-        if (!draft || typeof draft !== "object") return draft;
-        ["desktop", "mobile"].forEach((mode) => {
-          if (!draft[mode] || typeof draft[mode] !== "object") return;
-          // Flattened masthead renders are enormous data URLs. Keep them live in
-          // memory for preview/publish, but do not let them crowd ranking edits
-          // out of the browser draft cache.
-          if (String(draft[mode].flattened || "").startsWith("data:image/")) {
-            draft[mode].flattened = "";
-          }
-        });
-        return draft;
-      }
-
-      function protectDraftForStorage(draft) {
-        const protectedDraft = cloneData(draft) || {};
-        if (protectedDraft.masthead_composer_v1) {
-          protectedDraft.masthead_composer_v1 = compactMastheadDraft(
-            protectedDraft.masthead_composer_v1,
-          );
-        }
-        return protectedDraft;
-      }
-
       function createLocalDraftForStorage(baked) {
         const clock =
           siteData[CONTENT_CLOCK_KEY] && typeof siteData[CONTENT_CLOCK_KEY] === "object"
@@ -107,35 +82,19 @@
             if (mediaDraft.length || isChanged) draft[key] = mediaDraft;
             return;
           }
-          if (key === "masthead_composer_v1") {
-            draft[key] = compactMastheadDraft(siteData[key]);
-            return;
-          }
           draft[key] = siteData[key];
         });
         return draft;
       }
 
       function storeLocalDraft(value) {
-        const payload = JSON.stringify(protectDraftForStorage(value));
+        const payload = JSON.stringify(value);
         try {
           localStorage.setItem(DATA_KEY, payload);
         } catch (error) {
           if (!isQuotaError(error)) throw error;
           pruneBrowserStorage();
-          try {
-            localStorage.setItem(DATA_KEY, payload);
-          } catch (secondError) {
-            if (!isQuotaError(secondError)) throw secondError;
-            const emergency = protectDraftForStorage(value);
-            delete emergency.masthead_composer_v1;
-            localStorage.setItem(DATA_KEY, JSON.stringify(emergency));
-            window.HSErrorLog?.record?.(
-              "Publishing",
-              "Saved content draft after dropping oversized masthead render from local cache",
-              "Your rankings/content were preserved. Re-render the masthead before publishing it again if needed.",
-            );
-          }
+          localStorage.setItem(DATA_KEY, payload);
         }
       }
 
