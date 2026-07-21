@@ -72,13 +72,40 @@
     dissolveBottom: 18,
   };
   const ATMOSPHERES = {
-    footballArchive: { label: "Brazilian football archive", color: "#0b281e", opacity: 6 },
+    footballArchive: { label: "Brazilian football archive", color: "#123a25", opacity: 10 },
     house: { label: "House green", color: "#0a2a18", opacity: 8 },
-    brazil: { label: "Brazil warmth", color: "#b68b14", opacity: 10 },
-    emerald: { label: "Deep emerald", color: "#063522", opacity: 14 },
+    brazil: { label: "Brazil warmth", color: "#b68b14", opacity: 12 },
+    emerald: { label: "Deep emerald", color: "#063522", opacity: 16 },
     midnight: { label: "Midnight pitch", color: "#02110a", opacity: 20 },
     archive: { label: "Archive warmth", color: "#7c4f17", opacity: 12 },
     clean: { label: "No color wash", color: "#000000", opacity: 0 },
+  };
+  const COVER_PRESETS = {
+    custom: {
+      label: "Custom — your current settings",
+      atmosphere: "footballArchive", atmosphereOpacity: 10, texture: "archive",
+      textureStrength: 34, vignette: 34, atmosphereDepth: 62, spotlight: 48, edgeMist: 46, pitchLines: 34,
+    },
+    classicBrazil: {
+      label: "Classic Brazil — warm emerald",
+      atmosphere: "footballArchive", atmosphereOpacity: 10, texture: "archive",
+      textureStrength: 34, vignette: 34, atmosphereDepth: 62, spotlight: 48, edgeMist: 46, pitchLines: 34,
+    },
+    maracanaNight: {
+      label: "Maracanã night — darker",
+      atmosphere: "midnight", atmosphereOpacity: 16, texture: "archive",
+      textureStrength: 42, vignette: 48, atmosphereDepth: 76, spotlight: 38, edgeMist: 54, pitchLines: 28,
+    },
+    goldMemory: {
+      label: "Gold memory — brighter",
+      atmosphere: "brazil", atmosphereOpacity: 14, texture: "dust",
+      textureStrength: 36, vignette: 30, atmosphereDepth: 48, spotlight: 58, edgeMist: 38, pitchLines: 24,
+    },
+    deepEmerald: {
+      label: "Deep emerald — minimal",
+      atmosphere: "emerald", atmosphereOpacity: 12, texture: "pitch",
+      textureStrength: 20, vignette: 42, atmosphereDepth: 68, spotlight: 28, edgeMist: 34, pitchLines: 42,
+    },
   };
 
   const state = {
@@ -123,9 +150,14 @@
     baseFocusY: 50,
     atmosphere: "footballArchive",
     atmosphereOpacity: ATMOSPHERES.footballArchive.opacity,
+    coverPreset: "classicBrazil",
+    atmosphereDepth: 62,
+    spotlight: 48,
+    edgeMist: 46,
+    pitchLines: 34,
     texture: "archive",
-    textureStrength: 24,
-    vignette: 26,
+    textureStrength: 34,
+    vignette: 34,
     titleText: "Half Space",
     titleSize: mode === "desktop" ? 26 : 20,
     titleX: 50,
@@ -499,6 +531,10 @@
     stage.style.setProperty("--mc-wash-opacity", clamp(current.atmosphereOpacity, 0, 60) / 100);
     stage.style.setProperty("--mc-vignette", clamp(current.vignette, 0, 80) / 100);
     stage.style.setProperty("--mc-texture", clamp(current.textureStrength, 0, 100) / 100);
+    stage.style.setProperty("--mc-depth", clamp(current.atmosphereDepth, 0, 100) / 100);
+    stage.style.setProperty("--mc-spotlight", clamp(current.spotlight, 0, 100) / 100);
+    stage.style.setProperty("--mc-edge-mist", clamp(current.edgeMist, 0, 100) / 100);
+    stage.style.setProperty("--mc-pitch-lines", clamp(current.pitchLines, 0, 100) / 100);
     stage.dataset.texture = current.texture || "none";
     stage.innerHTML = [...layers()].sort((a, b) => (a.z || 0) - (b.z || 0)).map((layer) => {
       const src = srcFor(layer);
@@ -578,9 +614,14 @@
           ${globalNumberField("Letter spacing", "taglineTracking", current.taglineTracking, -12, 30, "")}
           <label class="hs-mc-color"><span>Color</span><input type="color" data-mc-global-field="taglineColor" value="${esc(current.taglineColor || "#ffffff")}"><output>${esc(current.taglineColor || "#ffffff")}</output></label>
         </div>
-        <div class="hs-mc-section"><h4>Canvas finish</h4>
+        <div class="hs-mc-section"><h4>Canvas cover</h4>
+          <label class="hs-mc-select"><span>Cover mood</span><select data-mc-global-field="coverPreset">${optionList(Object.entries(COVER_PRESETS).map(([id, value]) => [id, value.label]), current.coverPreset || "classicBrazil")}</select></label>
           <label class="hs-mc-select"><span>Atmosphere</span><select data-mc-global-field="atmosphere">${optionList(Object.entries(ATMOSPHERES).map(([id, value]) => [id, value.label]), current.atmosphere)}</select></label>
           ${globalNumberField("Color wash", "atmosphereOpacity", current.atmosphereOpacity, 0, 60, "%")}
+          ${globalNumberField("Emerald depth", "atmosphereDepth", current.atmosphereDepth ?? 62, 0, 100, "%")}
+          ${globalNumberField("Central glow", "spotlight", current.spotlight ?? 48, 0, 100, "%")}
+          ${globalNumberField("Edge mist", "edgeMist", current.edgeMist ?? 46, 0, 100, "%")}
+          ${globalNumberField("Pitch-line memory", "pitchLines", current.pitchLines ?? 34, 0, 100, "%")}
           <label class="hs-mc-select"><span>Flourish</span><select data-mc-global-field="texture">${optionList([["none","Clean"],["archive","Archive grain + memory lines"],["pitch","Fine pitch arcs"],["dust","Gold dust"],["grain","Archival grain"],["constellation","Memory lines"]], current.texture)}</select></label>
           ${globalNumberField("Flourish strength", "textureStrength", current.textureStrength, 0, 100, "%")}
           ${globalNumberField("Vignette", "vignette", current.vignette, 0, 80, "%")}
@@ -660,12 +701,20 @@
     root.querySelectorAll("[data-mc-global-field]").forEach((control) => {
       const update = () => {
         const field = control.dataset.mcGlobalField;
-        layout()[field] = control.type === "range" ? Number(control.value) : control.value;
+        if (field === "coverPreset") {
+          const preset = COVER_PRESETS[control.value] || COVER_PRESETS.classicBrazil;
+          Object.assign(layout(), preset, { coverPreset: control.value });
+        } else {
+          layout()[field] = control.type === "range" ? Number(control.value) : control.value;
+          if (["atmosphere", "atmosphereOpacity", "texture", "textureStrength", "vignette", "atmosphereDepth", "spotlight", "edgeMist", "pitchLines"].includes(field)) {
+            layout().coverPreset = "custom";
+          }
+        }
         layout().flattened = "";
         const output = control.closest("label")?.querySelector("output");
         if (output) {
           const percentFields = new Set([
-            "atmosphereOpacity", "textureStrength", "vignette",
+            "atmosphereOpacity", "textureStrength", "vignette", "atmosphereDepth", "spotlight", "edgeMist", "pitchLines",
             "titleSize", "titleX", "titleY", "titleOpacity",
             "taglineSize", "taglineX", "taglineY", "taglineOpacity",
           ]);
@@ -674,6 +723,7 @@
             : `${control.value}${percentFields.has(field) ? "%" : ""}`;
         }
         renderStage();
+        if (field === "coverPreset") renderInspector();
       };
       control.addEventListener("input", update);
       control.addEventListener("change", update);
@@ -881,20 +931,66 @@
   }
   function drawAtmosphere(context, current, width, height) {
     const atmosphere = ATMOSPHERES[current.atmosphere] || ATMOSPHERES.house;
+    const depth = clamp(current.atmosphereDepth ?? 62, 0, 100) / 100;
+    const spotlight = clamp(current.spotlight ?? 48, 0, 100) / 100;
+    const edgeMist = clamp(current.edgeMist ?? 46, 0, 100) / 100;
+    const pitchLines = clamp(current.pitchLines ?? 34, 0, 100) / 100;
     context.save();
-    context.globalAlpha = clamp(current.atmosphereOpacity, 0, 60) / 100;
+    context.globalCompositeOperation = "multiply";
+    context.globalAlpha = Math.min(.58, clamp(current.atmosphereOpacity, 0, 60) / 100 + depth * .12);
     context.fillStyle = atmosphere.color;
     context.fillRect(0, 0, width, height);
     context.restore();
-    const strength = clamp(current.textureStrength, 0, 100) / 100;
-    if (current.texture === "pitch" || current.texture === "constellation" || current.texture === "archive") {
+    if (spotlight) {
       context.save();
-      context.strokeStyle = `rgba(185,145,63,${(current.texture === "archive" ? .1 : .16) * strength})`;
+      context.globalCompositeOperation = "screen";
+      const center = context.createRadialGradient(width * .5, height * .69, 0, width * .5, height * .69, width * .39);
+      center.addColorStop(0, `rgba(233,196,94,${.22 * spotlight})`);
+      center.addColorStop(.44, `rgba(189,145,54,${.1 * spotlight})`);
+      center.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = center;
+      context.fillRect(0, 0, width, height);
+      const left = context.createRadialGradient(width * .14, height * .74, 0, width * .14, height * .74, width * .32);
+      left.addColorStop(0, `rgba(227,177,39,${.1 * spotlight})`);
+      left.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = left;
+      context.fillRect(0, 0, width, height);
+      const right = context.createRadialGradient(width * .86, height * .74, 0, width * .86, height * .74, width * .32);
+      right.addColorStop(0, `rgba(227,177,39,${.1 * spotlight})`);
+      right.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = right;
+      context.fillRect(0, 0, width, height);
+      context.restore();
+    }
+    if (edgeMist) {
+      context.save();
+      context.globalCompositeOperation = "screen";
+      const leftMist = context.createLinearGradient(0, 0, width * .24, 0);
+      leftMist.addColorStop(0, `rgba(220,174,55,${.16 * edgeMist})`);
+      leftMist.addColorStop(.46, `rgba(30,87,47,${.07 * edgeMist})`);
+      leftMist.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = leftMist;
+      context.fillRect(0, 0, width, height);
+      const rightMist = context.createLinearGradient(width, 0, width * .76, 0);
+      rightMist.addColorStop(0, `rgba(220,174,55,${.16 * edgeMist})`);
+      rightMist.addColorStop(.46, `rgba(30,87,47,${.07 * edgeMist})`);
+      rightMist.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = rightMist;
+      context.fillRect(0, 0, width, height);
+      context.restore();
+    }
+    const strength = clamp(current.textureStrength, 0, 100) / 100;
+    if (pitchLines || current.texture === "pitch" || current.texture === "constellation" || current.texture === "archive") {
+      context.save();
+      context.globalCompositeOperation = "screen";
+      context.strokeStyle = `rgba(185,145,63,${Math.max(.035 * pitchLines, (current.texture === "archive" ? .1 : .16) * strength)})`;
       context.lineWidth = Math.max(1, width / 2200);
       context.beginPath();
-      context.arc(width / 2, height / 2, height * .43, 0, Math.PI * 2);
+      context.arc(width / 2, height * .52, height * .43, 0, Math.PI * 2);
       context.moveTo(width * .06, height * .92);
       context.quadraticCurveTo(width * .48, height * .08, width * .94, height * .86);
+      context.moveTo(width * .18, height * .08);
+      context.quadraticCurveTo(width * .52, height * .5, width * .78, height * .97);
       context.stroke();
       context.restore();
     }
@@ -916,34 +1012,43 @@
     if (vignette) {
       const gradient = context.createRadialGradient(width / 2, height / 2, height * .15, width / 2, height / 2, width * .58);
       gradient.addColorStop(0, "rgba(0,0,0,0)");
-      gradient.addColorStop(1, `rgba(0,8,4,${.7 * vignette})`);
+      gradient.addColorStop(.72, `rgba(0,8,4,${.24 * vignette})`);
+      gradient.addColorStop(1, `rgba(0,8,4,${.78 * vignette})`);
       context.fillStyle = gradient;
       context.fillRect(0, 0, width, height);
     }
   }
   function drawBlankBase(context, width, height) {
     const field = context.createLinearGradient(0, 0, width, height);
-    field.addColorStop(0, "#071813");
-    field.addColorStop(.42, "#0b281e");
-    field.addColorStop(.72, "#102f24");
-    field.addColorStop(1, "#071b15");
+    field.addColorStop(0, "#04110d");
+    field.addColorStop(.18, "#071b13");
+    field.addColorStop(.46, "#0d3020");
+    field.addColorStop(.76, "#0a2419");
+    field.addColorStop(1, "#04110d");
     context.fillStyle = field;
     context.fillRect(0, 0, width, height);
 
-    const warmth = context.createRadialGradient(width * .5, height * .68, 0, width * .5, height * .68, width * .62);
-    warmth.addColorStop(0, "rgba(185,145,63,.11)");
-    warmth.addColorStop(.46, "rgba(110,84,35,.045)");
+    const warmth = context.createRadialGradient(width * .5, height * .66, 0, width * .5, height * .66, width * .66);
+    warmth.addColorStop(0, "rgba(221,176,65,.17)");
+    warmth.addColorStop(.42, "rgba(132,100,35,.075)");
     warmth.addColorStop(1, "rgba(0,0,0,0)");
     context.fillStyle = warmth;
     context.fillRect(0, 0, width, height);
 
+    const turf = context.createLinearGradient(0, 0, 0, height);
+    turf.addColorStop(0, "rgba(255,255,255,.018)");
+    turf.addColorStop(.46, "rgba(255,255,255,0)");
+    turf.addColorStop(1, "rgba(0,0,0,.28)");
+    context.fillStyle = turf;
+    context.fillRect(0, 0, width, height);
+
     context.save();
-    context.globalAlpha = .18;
-    for (let index = 0; index < 1600; index += 1) {
+    context.globalAlpha = .2;
+    for (let index = 0; index < 2200; index += 1) {
       const x = ((index * 7919) % 10000) / 10000 * width;
       const y = ((index * 3571) % 10000) / 10000 * height;
-      const value = 16 + ((index * 17) % 22);
-      context.fillStyle = `rgb(${value},${value + 18},${value + 5})`;
+      const value = 14 + ((index * 17) % 24);
+      context.fillStyle = `rgba(${value + 8},${value + 28},${value + 9},.42)`;
       context.fillRect(x, y, 1, 1);
     }
     context.restore();
