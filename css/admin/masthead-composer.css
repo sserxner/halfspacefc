@@ -131,20 +131,10 @@
 }
 
 .hs-mc-header-actions .hs-mc-close {
-  width: 46px;
-  height: 46px;
+  font-size: 1.5rem;
   position: relative;
-  z-index: 3;
-  font-size: 1.75rem;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.hs-mc-header-actions .hs-mc-close:hover,
-.hs-mc-header-actions .hs-mc-close:focus-visible {
-  background: rgba(216, 173, 34, 0.28);
-  outline: 2px solid rgba(216, 173, 34, 0.55);
-  outline-offset: 2px;
+  z-index: 20;
+  pointer-events: auto;
 }
 
 .hs-mc-workspace {
@@ -417,6 +407,7 @@
   position: absolute;
   cursor: grab;
   user-select: none;
+  touch-action: none;
   transform-origin: center;
 }
 

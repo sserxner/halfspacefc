@@ -274,7 +274,14 @@
   }
 
   function ensureUI() {
-    if (document.getElementById("hsMastheadComposer")) return;
+    const existingRoot = document.getElementById("hsMastheadComposer");
+    if (existingRoot) {
+      if (existingRoot.dataset.mcBound !== "true") {
+        bindUI(existingRoot);
+        existingRoot.dataset.mcBound = "true";
+      }
+      return;
+    }
     const root = document.createElement("div");
     root.id = "hsMastheadComposer";
     root.className = "hs-mc-overlay";
@@ -332,6 +339,7 @@
       </section>`;
     document.body.appendChild(root);
     bindUI(root);
+    root.dataset.mcBound = "true";
   }
 
   function bindUI(root) {
@@ -344,11 +352,11 @@
         switchMode(modeButton.dataset.mcMode);
         return;
       }
-      const action = event.target.closest("[data-mc-action]")?.dataset.mcAction;
-      if (action) {
+      const actionButton = event.target.closest("[data-mc-action]");
+      if (actionButton) {
         event.preventDefault();
         event.stopPropagation();
-        invoke(action);
+        invoke(actionButton.dataset.mcAction);
         return;
       }
       const add = event.target.closest("[data-mc-add]");
@@ -793,9 +801,14 @@
     }
     const item = layers().find((layer) => layer.id === element.dataset.mcLayer);
     if (!item) return;
-    state.selected = item.id;
-    if (item.locked) { renderAll(); return; }
     event.preventDefault();
+    event.stopPropagation();
+    state.selected = item.id;
+    if (item.locked) {
+      renderInspector();
+      renderStage();
+      return;
+    }
     pushUndo();
     const rect = document.getElementById("hsMcStage").getBoundingClientRect();
     state.pointer = {
@@ -804,11 +817,13 @@
       x: item.x, y: item.y, width: item.width, height: item.height,
       ratio: Math.max(.05, item.width / item.height), id: item.id,
     };
-    renderAll();
+    element.classList.add("selected");
+    renderInspector();
   }
   function movePointer(event) {
     const pointer = state.pointer;
     if (!pointer) return;
+    event.preventDefault();
     const item = layers().find((layer) => layer.id === pointer.id);
     if (!item) return;
     const dx = ((event.clientX - pointer.startX) / pointer.rect.width) * 100;
@@ -1189,17 +1204,11 @@
   }
 
   function publicConfig() {
-    if (adminActive()) {
-      return normalizedConfig(
-        readKey(CONFIG_KEY, null) ||
-        window.HSData?.getDraft?.()?.[CONFIG_KEY] ||
-        window.getData?.(CONFIG_KEY),
-      );
-    }
+    if (adminActive()) return normalizedConfig(readKey(CONFIG_KEY, null));
     return normalizedConfig(window.__HALFSPACE_DATA__?.[CONFIG_KEY]);
   }
   function applyPublicBanner() {
-    const hero = document.querySelector("#page-home .hero, body > .hero.hs-floating-masthead");
+    const hero = document.querySelector("#page-home .hero");
     if (!hero) return;
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
@@ -1230,6 +1239,7 @@
     const root = document.getElementById("hsMastheadComposer");
     root?.classList.remove("open");
     root?.setAttribute("aria-hidden", "true");
+    root?.blur?.();
     state.open = false;
     state.pointer = null;
   }
