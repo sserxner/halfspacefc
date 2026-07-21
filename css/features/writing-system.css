@@ -1,0 +1,379 @@
+.nav-tab-band {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.hs-transfer-dropdown:hover .nav-dropdown-menu,
+.hs-transfer-dropdown:focus-within .nav-dropdown-menu {
+  display: flex;
+}
+
+.hs-writing-shell {
+  display: grid;
+  grid-template-columns: minmax(210px, 280px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.hs-writing-sidebar {
+  position: sticky;
+  top: 5.5rem;
+  border: 1px solid rgba(16, 42, 28, 0.16);
+  border-radius: 18px;
+  padding: 1rem;
+  background: rgba(255, 252, 244, 0.96);
+  box-shadow: 0 16px 40px rgba(15, 37, 24, 0.08);
+}
+
+.hs-writing-sidebar h3 {
+  margin: 0 0 0.75rem;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  color: #1c5735;
+}
+
+.hs-writing-filter-list {
+  display: grid;
+  gap: 0.4rem;
+  max-height: 56vh;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.hs-writing-filter-list button,
+.hs-writing-actions button,
+.hs-write-tools button {
+  border: 1px solid rgba(16, 42, 28, 0.18);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #153923;
+  padding: 0.45rem 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hs-writing-filter-list button {
+  text-align: left;
+  border-radius: 12px;
+}
+
+.hs-writing-filter-list button.active,
+.hs-writing-actions button:hover,
+.hs-write-tools button:hover {
+  background: #1d5c38;
+  color: #fff8d8;
+}
+
+.hs-writing-feed {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.hs-writing-card {
+  border: 1px solid rgba(16, 42, 28, 0.14);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fffdf7, #faf5ea);
+  padding: clamp(1.2rem, 2.2vw, 2rem);
+  box-shadow: 0 18px 45px rgba(16, 42, 28, 0.08);
+}
+
+.hs-writing-card.featured {
+  border-color: rgba(196, 153, 40, 0.5);
+  box-shadow: 0 24px 70px rgba(16, 42, 28, 0.14);
+}
+
+.hs-writing-card header {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(196, 153, 40, 0.28);
+}
+
+.hs-writing-kicker {
+  margin: 0;
+  color: #a67912;
+  font-size: 0.74rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.hs-writing-card h2 {
+  margin: 0;
+  color: #1c5735;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: clamp(1.65rem, 3vw, 3rem);
+  line-height: 0.98;
+}
+
+.hs-writing-meta {
+  margin: 0;
+  color: rgba(20, 41, 29, 0.68);
+  font-weight: 700;
+}
+
+.hs-writing-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.hs-writing-tags span {
+  border-radius: 999px;
+  background: rgba(29, 92, 56, 0.09);
+  color: #1d5c38;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.hs-writing-body {
+  color: #26372c;
+  font-size: 1.02rem;
+  line-height: 1.78;
+}
+
+.hs-writing-body p {
+  margin: 0 0 1.05rem;
+}
+
+.hs-writing-body h3 {
+  margin: 1.6rem 0 0.55rem;
+  color: #1c5735;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1.45rem;
+}
+
+.hs-writing-body blockquote {
+  margin: 1.3rem 0;
+  border-left: 4px solid #d0a51f;
+  padding: 0.8rem 1rem;
+  background: rgba(245, 208, 0, 0.08);
+  color: #173421;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1.18rem;
+}
+
+.hs-writing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.hs-writing-actions .danger {
+  color: #8d1d1d;
+}
+
+.hs-betting-tabs,
+.transfer-tabs {
+  position: sticky;
+  top: 3.35rem;
+  z-index: 50;
+  background: rgba(252, 249, 241, 0.96);
+  backdrop-filter: blur(12px);
+  padding-block: 0.45rem;
+}
+
+.hs-betting-tracker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.hs-betting-tracker div {
+  border-radius: 18px;
+  background: #12351f;
+  color: #fff9dc;
+  padding: 1rem;
+  box-shadow: 0 15px 36px rgba(15, 37, 24, 0.12);
+}
+
+.hs-betting-tracker span {
+  display: block;
+  opacity: 0.72;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.hs-betting-tracker strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 2rem;
+}
+
+.hs-home-feature .hs-writing-card {
+  padding: clamp(1.5rem, 3vw, 2.6rem);
+}
+
+.hs-writing-editor {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  place-items: center;
+  background: rgba(8, 24, 14, 0.68);
+  padding: 1.5rem;
+}
+
+.hs-writing-editor.open {
+  display: grid;
+}
+
+.hs-writing-editor section {
+  width: min(1040px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 24px;
+  background: #fffdf7;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+}
+
+.hs-writing-editor header,
+.hs-writing-editor footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(16, 42, 28, 0.12);
+}
+
+.hs-writing-editor footer {
+  border-top: 1px solid rgba(16, 42, 28, 0.12);
+  border-bottom: 0;
+}
+
+.hs-writing-editor h2 {
+  margin: 0;
+  color: #1c5735;
+  font-family: "Averia Serif Libre", Georgia, serif;
+}
+
+.hs-write-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 0;
+}
+
+.hs-write-form label,
+.hs-write-body,
+.hs-write-featured {
+  display: grid;
+  gap: 0.35rem;
+  color: #21402d;
+  font-weight: 800;
+}
+
+.hs-write-form input,
+.hs-write-form select,
+.hs-write-body textarea {
+  border: 1px solid rgba(16, 42, 28, 0.18);
+  border-radius: 12px;
+  padding: 0.7rem;
+  font: inherit;
+  background: white;
+}
+
+.hs-write-body {
+  padding: 1rem 1.25rem;
+}
+
+.hs-write-body textarea {
+  min-height: 44vh;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.hs-write-featured {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem 0;
+}
+
+.hs-write-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.hs-writing-editor footer button,
+.hs-writing-editor header button {
+  border: 1px solid rgba(16, 42, 28, 0.16);
+  border-radius: 12px;
+  background: white;
+  color: #153923;
+  padding: 0.65rem 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.hs-writing-editor footer .primary {
+  background: #1d5c38;
+  color: #fff8d8;
+}
+
+@media (max-width: 800px) {
+  .hs-writing-shell,
+  .hs-betting-tracker,
+  .hs-write-form {
+    grid-template-columns: 1fr;
+  }
+
+  .hs-writing-sidebar {
+    position: static;
+  }
+
+  .hs-writing-filter-list {
+    display: flex;
+    overflow-x: auto;
+    max-height: none;
+  }
+}
+
+
+.hs-write-big-close {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-width: 96px;
+  border: 2px solid rgba(141, 29, 29, 0.28) !important;
+  background: #fff1e8 !important;
+  color: #8d1d1d !important;
+  font-size: 1rem !important;
+  box-shadow: 0 8px 22px rgba(141, 29, 29, 0.14);
+}
+
+.hs-write-big-close:hover,
+.hs-write-big-close:focus {
+  background: #8d1d1d !important;
+  color: #fff8ef !important;
+}
+
+.hs-writing-status {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.24rem 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hs-writing-status.draft {
+  background: #fff0c2;
+  color: #8a6200;
+}
+
+.hs-writing-status.live {
+  background: rgba(29, 92, 56, 0.12);
+  color: #1d5c38;
+}
