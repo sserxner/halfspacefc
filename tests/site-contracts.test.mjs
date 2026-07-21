@@ -61,6 +61,24 @@ test("navigation and ranking-position tabs remain available while scrolling", ()
   assert.match(masthead, /overflow-x:\s*auto/);
 });
 
+test("positional ranking tabs use compact W and F labels", () => {
+  const present = read("src/components/present-rankings.html");
+  const century = read("src/components/rankings.html");
+  const features = read("features.js");
+  assert.match(present, /data-sec="w">W<\/button>/);
+  assert.match(present, /data-sec="f">F<\/button>/);
+  assert.match(century, /showRankingSection\('w'\)[\s\S]*?>\s*W\s*<\/button>/);
+  assert.match(century, /showRankingSection\('f'\)[\s\S]*?>\s*F\s*<\/button>/);
+  assert.match(features, /w:\s*"W",\s*f:\s*"F"/);
+});
+
+test("adding an existing Present Day player refreshes the visible ranking", () => {
+  const editor = read("ranking-editor.js");
+  assert.match(editor, /endsWith\("_now"\)/);
+  assert.match(editor, /window\.showPresentRanking\(section\)/);
+  assert.match(editor, /if \(addExistingPlayer\(key, candidate, Number\(tier\.value\)\)\) modal\.remove\(\)/);
+});
+
 test("football player cards use compact summaries and international caps and goals", () => {
   const features = read("features.js");
   const cards = read("css/rankings/ranking-player-card-style.css");
@@ -358,8 +376,27 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /function internationalFromWikitext/);
   assert.match(pilot, /internationalCaps/);
   assert.match(pilot, /internationalGoals/);
+  assert.match(pilot, /internationalTitles/);
+  assert.match(pilot, /DATA_SCHEMA_VERSION = 3/);
+  assert.match(pilot, /isInternationalGroup/);
   assert.match(pilot, /function careerTeamTitleTotal/);
   assert.match(pilot, /function notableIndividualAwards/);
+});
+
+test("player-card autofill separates international honours and preserves owner-entered facts", () => {
+  const features = read("features.js");
+  const pilot = read("player-data-pilot.js");
+  assert.match(features, /id="rpcInternationalTitles"/);
+  assert.match(features, /International Titles/);
+  assert.match(features, /internationalTitles: parts\(rpcInternationalTitles\.value\)/);
+  assert.match(features, /rpcInternationalCaps\.value = rpcInternationalCaps\.value \|\| draft\.internationalCaps/);
+  assert.match(features, /rpcCareerStints\.value = rpcCareerStints\.value \|\|/);
+  assert.match(features, /verifiedSchemaVersion: VERIFIED_SCHEMA_VERSION/);
+  assert.match(features, /needsVerifiedFacts/);
+  assert.doesNotMatch(features, /if \(!hasExistingCard\)/);
+  assert.match(pilot, /const internationalTitles = \[\]/);
+  assert.match(pilot, /careerTeamTitleTotal\(stints, teamTitles, internationalTitles\)/);
+  assert.match(pilot, /record\?\.schemaVersion === DATA_SCHEMA_VERSION/);
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
@@ -471,17 +508,27 @@ test("individual awards lead with cumulative totals and tuck away specifics", ()
   assert.match(features, /rank-profile-award-group/);
 });
 
-test("the career map is a sleek visual journey with per-stint stats and trophies", () => {
+test("the career map stays focused on club stints and playing stats", () => {
   const features = read("features.js");
   const styles = read("css/rankings/ranking-player-card-style.css");
   assert.match(features, /stint\.appearances/);
   assert.match(features, /stint\.goals/);
   assert.match(features, /stint\.assists/);
-  assert.match(features, /stint\.trophies/);
+  assert.doesNotMatch(features, /rank-career-trophies/);
   assert.match(styles, /\.rank-career-map/);
   assert.match(styles, /overflow-x:\s*auto/);
   assert.match(styles, /scroll-snap-type:\s*x proximity/);
   assert.match(styles, /\.rank-career-map:before/);
+});
+
+test("team titles are consolidated into a counted expandable breakdown", () => {
+  const features = read("features.js");
+  assert.match(features, /Total Team Titles/);
+  assert.match(features, /View Club and International Titles/);
+  assert.match(features, /teamHonoursHTML\(c, stints, teamTitles\)/);
+  assert.match(features, /parts\(stint\.trophies\)/);
+  assert.match(features, /parts\(card\.internationalTitles\)/);
+  assert.match(features, /Where and when/);
 });
 
 test("blank player-card fields stay absent and legacy cards remain supported", () => {

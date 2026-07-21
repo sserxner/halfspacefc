@@ -717,8 +717,7 @@
               stint.goals ? `${esc(stint.goals)} goals` : "",
               stint.assists ? `${esc(stint.assists)} assists` : "",
             ].filter(Boolean);
-            const trophies = parts(stint.trophies);
-            return `<article class="rank-career-stop"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(stint.years || "")}</div><h3>${esc(stint.club || "")}</h3>${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}${trophies.length ? `<div class="rank-career-trophies">${trophies.map((trophy) => `<span>${esc(trophy)}</span>`).join("")}</div>` : ""}</div></article>`;
+            return `<article class="rank-career-stop"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(stint.years || "")}</div><h3>${esc(stint.club || "")}</h3>${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}</div></article>`;
           }).join("")}</div></section>`;
         };
         const profileFactsHTML = (card, isCurrentPlayer) => {
@@ -740,12 +739,34 @@
           if (team) facts.push(["National team", team]);
           if (caps || goals)
             facts.push(["Caps (Goals)", `${caps || "—"} (${goals || "—"})`]);
-          return `<section class="rank-profile-section"><div class="rank-profile-label">International</div><div class="rank-profile-facts rank-profile-facts-compact">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div></section>`;
+          return `<section class="rank-profile-section"><div class="rank-profile-label">International</div>${facts.length ? `<div class="rank-profile-facts rank-profile-facts-compact">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>` : ""}</section>`;
         };
-        const teamHonoursHTML = (card, titles) => {
-          const total = String(card.careerTrophyTotal || "").trim();
+        const teamHonoursHTML = (card, stints, legacyTitles) => {
+          const grouped = new Map();
+          const addTitle = (rawTitle, detail = "") => {
+            const raw = String(rawTitle || "").trim();
+            const match = raw.match(/\s*[×x]\s*(\d+)\s*$/i);
+            const name = raw.replace(/\s*[×x]\s*\d+\s*$/i, "").trim();
+            if (!name) return;
+            const group = grouped.get(name.toLowerCase()) || { name, count: 0, details: [] };
+            group.count += match ? Number(match[1]) : 1;
+            if (detail && !group.details.includes(detail)) group.details.push(detail);
+            grouped.set(name.toLowerCase(), group);
+          };
+          stints.forEach((stint) =>
+            parts(stint.trophies).forEach((title) =>
+              addTitle(title, [stint.club, stint.years].filter(Boolean).join(" · ")),
+            ),
+          );
+          legacyTitles.forEach((title) => addTitle(title));
+          parts(card.internationalTitles).forEach((title) =>
+            addTitle(title, card.nationalTeam || card.nationality || "International"),
+          );
+          const titles = [...grouped.values()];
+          const calculatedTotal = titles.reduce((sum, title) => sum + title.count, 0);
+          const total = String(card.careerTrophyTotal || calculatedTotal || "").trim();
           if (!total && !titles.length) return "";
-          return `<section class="rank-profile-section"><div class="rank-profile-label">Team Titles</div>${total ? `<div class="rank-profile-title-total"><span>Total titles won</span><strong>${esc(total)}</strong></div>` : ""}${titles.length ? `<details class="rank-profile-title-breakdown"><summary>Title breakdown</summary><div class="rank-profile-honors">${titles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></details>` : ""}</section>`;
+          return `<section class="rank-profile-section"><div class="rank-profile-label">Total Team Titles</div>${total ? `<div class="rank-profile-title-total"><span>Total titles won</span><strong>${esc(total)}</strong></div>` : ""}${titles.length ? `<details class="rank-profile-title-breakdown"><summary>View Club and International Titles</summary><div class="rank-profile-awards">${titles.map((title) => `<article class="rank-profile-award-group"><strong>${esc(title.name)}${title.count > 1 ? ` ×${title.count}` : ""}</strong>${title.details.length ? `<details><summary>Where and when</summary><div>${title.details.map((detail) => `<span>${esc(detail)}</span>`).join("")}</div></details>` : ""}</article>`).join("")}</div></details>` : ""}</section>`;
         };
         const awardsHTML = (awards) => {
           if (!awards.length) return "";
@@ -815,6 +836,7 @@
               c.transferValue ||
               c.internationalCaps ||
               c.internationalGoals ||
+              parts(c.internationalTitles).length ||
               interestedClubs ||
               suggestedMove,
             );
@@ -842,7 +864,7 @@
               ${!stints.length && timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Club Map</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}
               ${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}
               ${internationalHTML(c)}
-              ${teamHonoursHTML(c, teamTitles)}
+              ${teamHonoursHTML(c, stints, teamTitles)}
               ${awardsHTML(awards)}
               ${!awards.length && individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Notable Individual Awards</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}
               ${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}
@@ -867,13 +889,8 @@
           const c = sharedCard(x),
             m = document.createElement("div"),
             verifiedDraft = window.HSVerifiedPlayerDrafts?.get?.(x.name);
-          const hasExistingCard = Object.values(c || {}).some((value) =>
-            Array.isArray(value)
-              ? value.length
-              : value && typeof value === "object"
-                ? Object.keys(value).length
-                : String(value || "").trim(),
-          );
+          const VERIFIED_SCHEMA_VERSION = 3;
+          const needsVerifiedFacts = Number(c.verifiedSchemaVersion || 0) < VERIFIED_SCHEMA_VERSION;
           m.id = "rankCardEditor";
           m.style.cssText =
             "position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100001;display:flex;padding:1rem;overflow:auto";
@@ -891,6 +908,7 @@
             <div><label>Country / national team</label><input id="rpcNationality" value="${esc(c.nationalTeam || c.nationality || "")}"></div>
             <div><label>International caps</label><input id="rpcInternationalCaps" inputmode="numeric" value="${esc(c.internationalCaps || "")}"></div>
             <div><label>International goals</label><input id="rpcInternationalGoals" inputmode="numeric" value="${esc(c.internationalGoals || "")}"></div>
+            <div class="full"><label>International titles — one per line</label><textarea id="rpcInternationalTitles" placeholder="FIFA World Cup: 2022&#10;Copa América: 2021, 2024">${esc(parts(c.internationalTitles).join("\n"))}</textarea></div>
             <div><label>Legacy clubs / country — list-card summary</label><input id="rpcLegacyAssociations" value="${esc(c.legacyAssociations || "")}" placeholder="Barcelona / Argentina"></div>
             <div><label>Career years</label><input id="rpcYears" value="${esc(c.years || "")}" placeholder="2006—"></div>
             <div><label>Current club — active players only</label><input id="rpcCurrentClub" value="${esc(c.currentClub || "")}"></div>
@@ -904,7 +922,7 @@
             <div class="full rank-editor-section-title">Honours and existing card details</div>
             <div class="full"><label>Individual awards: Award | Club or country | Year</label><textarea id="rpcAwards" placeholder="Ballon d'Or | Barcelona | 2019">${esc(awardLines)}</textarea></div>
             <div class="full"><label>Stats — Label: Value, one per line</label><textarea id="rpcStats">${esc(c.stats || "")}</textarea></div>
-            <div class="full"><label>Legacy team titles — hidden when career-map trophies are supplied</label><textarea id="rpcTeamTitles">${esc(c.teamTitles || c.honors || "")}</textarea></div>
+            <div class="full"><label>Additional team titles — one per line; combined with career and international titles</label><textarea id="rpcTeamTitles">${esc(c.teamTitles || c.honors || "")}</textarea></div>
             <div class="full"><label>Legacy individual titles</label><textarea id="rpcIndividualTitles">${esc(c.individualTitles || "")}</textarea></div>
             <div class="full rank-editor-section-title">Your editorial fields — AI leaves these blank</div>
             <div class="full"><label>Half Space view</label><textarea id="rpcBlurb" placeholder="Your writing; hidden when blank">${esc(c.blurb || c.assessment || "")}</textarea></div>
@@ -922,17 +940,17 @@
           let appliedVerifiedDraft = null;
           const loadVerifiedDraft = (draft) => {
             appliedVerifiedDraft = draft;
-            rpcNationality.value =
-              draft.nationalTeam || draft.nationality || rpcNationality.value;
-            rpcInternationalCaps.value = draft.internationalCaps || rpcInternationalCaps.value;
-            rpcInternationalGoals.value = draft.internationalGoals || rpcInternationalGoals.value;
-            rpcYears.value = draft.years || rpcYears.value;
-            rpcCurrentClub.value = draft.currentClub || rpcCurrentClub.value;
-            rpcDateOfBirth.value = draft.dateOfBirth || rpcDateOfBirth.value;
-            rpcCareerTrophyTotal.value = draft.careerTrophyTotal || rpcCareerTrophyTotal.value;
-            rpcCareerStints.value = (draft.careerStints || []).map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | ")).join("\n");
-            rpcTeamTitles.value = draft.teamTitles || rpcTeamTitles.value;
-            rpcAwards.value = (draft.individualAwards || []).map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | ")).join("\n");
+            rpcNationality.value = rpcNationality.value || draft.nationalTeam || draft.nationality || "";
+            rpcInternationalCaps.value = rpcInternationalCaps.value || draft.internationalCaps || "";
+            rpcInternationalGoals.value = rpcInternationalGoals.value || draft.internationalGoals || "";
+            rpcInternationalTitles.value = rpcInternationalTitles.value || parts(draft.internationalTitles).join("\n");
+            rpcYears.value = rpcYears.value || draft.years || "";
+            rpcCurrentClub.value = rpcCurrentClub.value || draft.currentClub || "";
+            rpcDateOfBirth.value = rpcDateOfBirth.value || draft.dateOfBirth || "";
+            rpcCareerTrophyTotal.value = rpcCareerTrophyTotal.value || draft.careerTrophyTotal || "";
+            rpcCareerStints.value = rpcCareerStints.value || (draft.careerStints || []).map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, parts(stint.trophies).join("; ")].map((value) => value || "").join(" | ")).join("\n");
+            rpcTeamTitles.value = rpcTeamTitles.value || draft.teamTitles || "";
+            rpcAwards.value = rpcAwards.value || (draft.individualAwards || []).map((award) => [award.name, award.club, award.year].map((value) => value || "").join(" | ")).join("\n");
             rpcVerifiedStatus.textContent = `${draft.reviewWarnings?.length ? `${draft.reviewWarnings.join(" ")} ` : ""}Draft loaded below. Review every field before saving.`;
             rpcVerifiedSources.innerHTML = (draft.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ");
             const button = document.getElementById("rpcApplyVerified") || document.getElementById("rpcPrepareVerified");
@@ -956,14 +974,14 @@
           };
           if (verifiedDraft) {
             rpcApplyVerified.onclick = () => loadVerifiedDraft(verifiedDraft);
-            if (!hasExistingCard) {
-              rpcVerifiedStatus.textContent = "Private verified draft found. Loading factual fields automatically; nothing is saved or published until you review and click Save reusable card.";
+            if (needsVerifiedFacts) {
+              rpcVerifiedStatus.textContent = "Current verified draft found. Loading blank factual fields automatically; nothing is saved or published until you review and click Save reusable card.";
               setTimeout(() => loadVerifiedDraft(verifiedDraft), 0);
             }
           } else {
             rpcPrepareVerified.onclick = prepareVerifiedDraft;
-            if (!hasExistingCard) {
-              rpcVerifiedStatus.textContent = "Preparing a private verified draft automatically for this new player card. Nothing will be saved or published until you review it.";
+            if (needsVerifiedFacts) {
+              rpcVerifiedStatus.textContent = "Preparing a private verified draft automatically. Existing values stay untouched, and nothing is saved or published until you review it.";
               setTimeout(prepareVerifiedDraft, 0);
             }
           }
@@ -992,6 +1010,7 @@
               nationalTeam: rpcNationality.value.trim(),
               internationalCaps: rpcInternationalCaps.value.trim(),
               internationalGoals: rpcInternationalGoals.value.trim(),
+              internationalTitles: parts(rpcInternationalTitles.value),
               legacyAssociations: rpcLegacyAssociations.value.trim(),
               years: rpcYears.value.trim(),
               currentClub: rpcCurrentClub.value.trim(),
@@ -1016,6 +1035,7 @@
               dataAsOf: appliedVerifiedDraft?.dataAsOf || c.dataAsOf || "",
               dataSources: appliedVerifiedDraft?.sources || c.dataSources || [],
               statsNote: appliedVerifiedDraft?.statsNote || c.statsNote || "",
+              verifiedSchemaVersion: VERIFIED_SCHEMA_VERSION,
             };
             rankSet(k, d);
             saveSharedCard(z.name, z.card);
@@ -1071,8 +1091,8 @@
           fb: "FBs",
           cm: "CMs",
           am: "AM / 10s",
-          w: "Wingers",
-          f: "Forwards",
+          w: "W",
+          f: "F",
         };
         let activePresentCardSection = "overall";
         const POSITION_LABELS = {

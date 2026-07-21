@@ -46,6 +46,17 @@
       rankRender(section);
     }
 
+    // Present Day rankings render inside their own shared panel rather than
+    // the legacy per-section containers refreshed by rankRender(). Reopen the
+    // active Present Day section so newly reused players appear immediately.
+    if (String(key || "").endsWith("_now")) {
+      if (typeof window.showPresentRanking === "function") {
+        window.showPresentRanking(section);
+      } else if (typeof showPresentRanking === "function") {
+        showPresentRanking(section);
+      }
+    }
+
     window.HSHistory?.record?.();
     window.HSAutosave?.schedule?.();
     setTimeout(decorate, 60);

@@ -121,6 +121,12 @@
         color: var(--accent);
         margin-bottom: 0.55rem;
       }
+      .rank-profile-subheading {
+        margin: 0.8rem 0 0.45rem;
+        color: var(--green);
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
       .rank-profile-copy {
         font-family: var(--serif);
         font-size: 1rem;
@@ -331,8 +337,7 @@
         color: var(--accent);
         font: 700 1.05rem/1.15 var(--serif);
       }
-      .rank-career-numbers,
-      .rank-career-trophies {
+      .rank-career-numbers {
         display: flex;
         flex-wrap: wrap;
         gap: 0.3rem;
@@ -340,16 +345,6 @@
       .rank-career-numbers span {
         color: #48534b;
         font: 700 0.62rem var(--sans);
-      }
-      .rank-career-trophies {
-        margin-top: 0.65rem;
-      }
-      .rank-career-trophies span {
-        padding: 0.18rem 0.36rem;
-        border-radius: 999px;
-        background: var(--gold-bg);
-        color: #806200;
-        font: 700 0.56rem var(--sans);
       }
       .rank-profile-awards {
         display: grid;

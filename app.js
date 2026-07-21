@@ -1104,8 +1104,8 @@
           fb: "FBs",
           cm: "CMs",
           am: "AM / 10s",
-          w: "Wingers",
-          f: "Forwards",
+          w: "W",
+          f: "F",
         };
         let activePresent = "overall";
         function esc(v) {

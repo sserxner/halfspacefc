@@ -1,4 +1,5 @@
 (function () {
+  const DATA_SCHEMA_VERSION = 3;
   const records = {
     "lionel-messi": {
       currentClub: "Inter Miami",
@@ -210,10 +211,11 @@
     return years?.length || 1;
   }
 
-  function careerTeamTitleTotal(stints, teamTitles) {
+  function careerTeamTitleTotal(stints, teamTitles, internationalTitles) {
     return [
       ...stints.flatMap((stint) => stint.trophies || []),
       ...String(teamTitles || "").split("\n").filter(Boolean),
+      ...String(internationalTitles || "").split("\n").filter(Boolean),
     ].reduce((sum, title) => sum + countTitle(title), 0);
   }
 
@@ -233,7 +235,7 @@
     }
     return rows;
   }
-  function honoursFromWikitext(wikitext, stints) {
+  function honoursFromWikitext(wikitext, stints, nationalTeam) {
     const text = String(wikitext || "");
     const start = text.search(/^==\s*Honou?rs\s*==\s*$/im);
     if (start < 0) return [];
@@ -241,6 +243,7 @@
     let group = "", individual = false;
     const awards = [];
     const teamTitles = [];
+    const internationalTitles = [];
     const comparable = (value) => keyFor(value)
       .replace(/(^|-)fc($|-)|(^|-)afc($|-)|(^|-)cf($|-)|(^|-)football-club($|-)/g, "-")
       .replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -254,6 +257,12 @@
           groupKey.split("-").filter((token) => token.length > 3).every((token) => clubKey.includes(token))
         );
       });
+    };
+    const isInternationalGroup = (label) => {
+      const groupKey = comparable(label);
+      const countryKey = comparable(nationalTeam);
+      if (!groupKey || !countryKey || /(?:^|-)u-?\d{2}(?:-|$)|under-?\d{2}|olympic|youth/.test(groupKey)) return false;
+      return groupKey === countryKey || groupKey.includes(countryKey) || countryKey.includes(groupKey);
     };
     section.split("\n").forEach((line) => {
       const heading = line.match(/^={3,5}\s*(.*?)\s*={3,5}\s*$/);
@@ -277,12 +286,14 @@
         if (stint && !stint.trophies.includes(honor)) stint.trophies.push(honor);
         if (!stint) {
           const labelledHonor = group ? `${group}: ${honor}` : honor;
-          if (!teamTitles.includes(labelledHonor)) teamTitles.push(labelledHonor);
+          const destination = isInternationalGroup(group) ? internationalTitles : teamTitles;
+          if (!destination.includes(labelledHonor)) destination.push(labelledHonor);
         }
       }
     });
     const result = awards.slice(0, 40);
     result.teamTitles = teamTitles;
+    result.internationalTitles = internationalTitles;
     return result;
   }
   function honours(documentNode, stints) {
@@ -318,26 +329,30 @@
     const labels = await resolveLabels([countryId, clubId]);
     const stints = careerRowsFromWikitext(wikitext);
     if (!stints.length) stints.push(...careerRows(documentNode));
-    const awards = honoursFromWikitext(wikitext, stints);
+    const international = internationalFromWikitext(wikitext);
+    const nationalTeam = international.team || labels[countryId] || "";
+    const awards = honoursFromWikitext(wikitext, stints, nationalTeam);
     if (!awards.length) awards.push(...honours(documentNode, stints));
     const teamTitles = (awards.teamTitles || []).join("\n");
+    const internationalTitles = (awards.internationalTitles || []).join("\n");
     const notableAwards = notableIndividualAwards(awards);
-    const international = internationalFromWikitext(wikitext);
-    const trophyTotal = careerTeamTitleTotal(stints, teamTitles);
+    const trophyTotal = careerTeamTitleTotal(stints, teamTitles, internationalTitles);
     const firstYear = stints.map((item) => item.years.match(/\d{4}/)?.[0]).filter(Boolean).sort()[0] || "";
     const active = labels[clubId] || infoboxFields(wikitext).currentclub || "";
     const record = {
       currentClub: active,
       dateOfBirth: claimDate(claims, "P569"),
       nationality: labels[countryId] || "",
-      nationalTeam: international.team || labels[countryId] || "",
+      nationalTeam,
       internationalCaps: international.caps || "",
       internationalGoals: international.goals || "",
+      internationalTitles,
       years: firstYear ? `${firstYear}—` : "",
       careerTrophyTotal: trophyTotal ? String(trophyTotal) : "",
       careerStints: stints,
       teamTitles,
       individualAwards: notableAwards,
+      schemaVersion: DATA_SCHEMA_VERSION,
       dataAsOf: new Date().toISOString().slice(0, 10),
       sources: [{label:`${parsed.parse?.title || name} — Wikipedia`,url:page.fullurl || `https://en.wikipedia.org/?curid=${page.pageid}`}],
       statsNote: "Club years, league appearances and league goals are prepared from Wikipedia’s football biography record, with career-statistics tables as a fallback. Honours are mapped from the cited page when identifiable. Assists and uncertain fields remain blank. Review every row before saving.",
@@ -365,7 +380,7 @@
     const cache = readPrivateDraftCache();
     const resolved = aliases[key] || aliases[surname] || key;
     const record = cache[key] || cache[resolved] || records[key] || records[resolved];
-    return record ? JSON.parse(JSON.stringify(record)) : null;
+    return record?.schemaVersion === DATA_SCHEMA_VERSION ? JSON.parse(JSON.stringify(record)) : null;
   }
 
   function queue(name) {
@@ -379,7 +394,7 @@
   }
 
   window.HSVerifiedPlayerDrafts = {
-    version: "step-40-verified-autofill-all-ranked-players",
+    version: "step-40-verified-autofill-international-v3",
     get: getDraft,
     prepare,
     queue,
