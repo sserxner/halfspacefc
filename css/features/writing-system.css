@@ -222,7 +222,7 @@
 .hs-writing-editor {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 150000;
   display: none;
   place-items: center;
   background: rgba(8, 24, 14, 0.68);
@@ -334,6 +334,26 @@
 .hs-writing-editor footer .primary {
   background: #1d5c38;
   color: #fff8d8;
+}
+
+.hs-writing-editor.saving {
+  cursor: progress;
+}
+
+.hs-writing-editor button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.hs-write-status {
+  margin-right: auto;
+  color: #2c653f;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.hs-write-status.error {
+  color: #9b1c1c;
 }
 
 @media (max-width: 800px) {

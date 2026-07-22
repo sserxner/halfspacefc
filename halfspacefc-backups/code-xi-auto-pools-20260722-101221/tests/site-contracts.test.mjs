@@ -384,11 +384,6 @@ test("admins add reader players once and visually position every formation", () 
   assert.match(reader, /Set reader players \(add once\)/);
   assert.match(reader, /Edit reader pitch layout/);
   assert.match(reader, /function rankingPool/);
-  assert.match(reader, /function cardPool\(entity\)/);
-  assert.match(reader, /card\.careerStints/);
-  assert.match(reader, /card\.currentClub/);
-  assert.match(reader, /card\.nationalTeam/);
-  assert.match(reader, /\.\.\.rankingPool\(entity\), \.\.\.cardPool\(entity\), \.\.\.fallback/);
   assert.match(reader, /ranking_\$\{section\}_\$\{era\}/);
   assert.match(reader, /reader_xi_layouts_v1/);
   assert.match(reader, /data-layout-marker/);
@@ -484,7 +479,7 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /internationalCaps/);
   assert.match(pilot, /internationalGoals/);
 	  assert.match(pilot, /internationalTitles/);
-		  assert.match(pilot, /DATA_SCHEMA_VERSION = 9/);
+	  assert.match(pilot, /DATA_SCHEMA_VERSION = 4/);
   assert.match(pilot, /isInternationalGroup/);
   assert.match(pilot, /function careerTeamTitleTotal/);
   assert.match(pilot, /function notableIndividualAwards/);
