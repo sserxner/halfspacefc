@@ -62,27 +62,36 @@
       }
 
       function compactMastheadDraft(value) {
-        const draft = cloneData(value);
-        if (!draft || typeof draft !== "object") return draft;
+        if (!value || typeof value !== "object") return value;
+        const draft = {};
+        Object.keys(value).forEach((key) => {
+          if (key === "desktop" || key === "mobile") return;
+          draft[key] = cloneData(value[key]);
+        });
         ["desktop", "mobile"].forEach((mode) => {
-          if (!draft[mode] || typeof draft[mode] !== "object") return;
-          // Flattened masthead renders are enormous data URLs. Keep them live in
-          // memory for preview/publish, but do not let them crowd ranking edits
-          // out of the browser draft cache.
-          if (String(draft[mode].flattened || "").startsWith("data:image/")) {
-            draft[mode].flattened = "";
-          }
+          const layout = value[mode];
+          if (!layout || typeof layout !== "object") return;
+          const compactLayout = {};
+          Object.keys(layout).forEach((key) => {
+            if (key === "flattened") {
+              compactLayout.flattened = "";
+              return;
+            }
+            compactLayout[key] = cloneData(layout[key]);
+          });
+          draft[mode] = compactLayout;
         });
         return draft;
       }
 
       function protectDraftForStorage(draft) {
-        const protectedDraft = cloneData(draft) || {};
-        if (protectedDraft.masthead_composer_v1) {
-          protectedDraft.masthead_composer_v1 = compactMastheadDraft(
-            protectedDraft.masthead_composer_v1,
-          );
-        }
+        const protectedDraft = {};
+        Object.keys(draft || {}).forEach((key) => {
+          protectedDraft[key] =
+            key === "masthead_composer_v1"
+              ? compactMastheadDraft(draft[key])
+              : draft[key];
+        });
         return protectedDraft;
       }
 
@@ -314,31 +323,57 @@
               : [],
           lightConsiderations: Array.isArray(source.lightConsiderations)
             ? source.lightConsiderations
-            : [],
+          : [],
         };
       }
 
+      function normalizeRankingEntry(entry) {
+        if (!entry || typeof entry !== "object") return null;
+        const name = String(entry.name || "").trim();
+        if (!name) return null;
+        return {
+          ...entry,
+          name,
+          detail: String(entry.detail || "").trim(),
+          note: String(entry.note || "").trim(),
+          xi: Array.isArray(entry.xi) ? entry.xi.filter(Boolean) : [],
+        };
+      }
+
+      function normalizeRankingData(value) {
+        const fallback = {
+          blurb: "",
+          tiers: [{ name: "", entries: [] }],
+          honorable: normalizeHonorable(),
+        };
+        const data = Array.isArray(value)
+          ? { ...fallback, tiers: [{ name: "", entries: value }] }
+          : value && typeof value === "object"
+            ? value
+            : fallback;
+        const rawTiers = Array.isArray(data.tiers) && data.tiers.length
+          ? data.tiers
+          : fallback.tiers;
+        data.tiers = rawTiers.map((tier, index) => {
+          const safeTier = tier && typeof tier === "object" ? tier : {};
+          return {
+            ...safeTier,
+            name: String(safeTier.name || (rawTiers.length > 1 ? `Tier ${index + 1}` : "")).trim(),
+            entries: Array.isArray(safeTier.entries)
+              ? safeTier.entries.map(normalizeRankingEntry).filter(Boolean)
+              : [],
+          };
+        });
+        data.honorable = normalizeHonorable(data.honorable);
+        return data;
+      }
+
       function rankGet(key) {
-        const d = getData("ranking_" + key, null);
-        if (!d)
-          return {
-            blurb: "",
-            tiers: [{ name: "", entries: [] }],
-            honorable: normalizeHonorable(),
-          };
-        if (Array.isArray(d))
-          return {
-            blurb: "",
-            tiers: [{ name: "", entries: d }],
-            honorable: normalizeHonorable(),
-          };
-        if (!d.tiers) d.tiers = [{ name: "", entries: [] }];
-        d.honorable = normalizeHonorable(d.honorable);
-        return d;
+        return normalizeRankingData(getData("ranking_" + key, null));
       }
 
       function rankSet(key, data) {
-        setData("ranking_" + key, data);
+        setData("ranking_" + key, normalizeRankingData(data));
       }
 
       // ---- SECTION SWITCHING ----
