@@ -1,18 +1,21 @@
-# Half Space — Complete Replace All Package
+Half Space restored-tabs package
 
-This is a complete site folder, not a partial patch.
+What this does:
+- Keeps the current local content/rankings/player-card data from your halfspacefc folder.
+- Restores the missing Editorials and Betting Corner loaders.
+- Does not rewrite published content records.
 
-1. Open this extracted folder.
+Install:
+1. Open this folder.
 2. Select everything inside it.
-3. Copy the selected items into `/Users/sserxner/Documents/halfspacefc`.
-4. When Finder asks, choose **Replace All**.
-5. Open the site locally and check the rankings, Build an XI, Streets Won’t Forget, player cards, scrolling navigation, Positions cards, and Masthead Composer.
-6. When those checks pass, double-click `Deploy Half Space.command` from `/Users/sserxner/Documents/halfspacefc`.
+3. Copy.
+4. Paste into /Users/sserxner/Documents/halfspacefc.
+5. Choose Replace All.
+6. Open the local site and hard-refresh.
 
-The package already includes the newest July 20 published content from GitHub. Do not paste an older `index.html` over it afterward.
-
-This build also fixes the browser-storage save failure by saving only your local draft changes instead of duplicating the whole published site, media library, and masthead data inside Chrome.
-
-This build also includes the same-row Free Build navigation, `F`/`W` Top 100 labels,
-editable Present Day Top 100 display positions, automatic private Verified Autofill
-for new player cards, and admin controls for adding the large Positions-page cards.
+Check before deploying:
+- Top navigation includes Betting Corner and Editorials.
+- Transfers still has Recs/Grades.
+- Rankings and player cards still contain your latest work.
+- Notebook still contains the Jonjo piece.
+- Homepage featured story behaves normally.
