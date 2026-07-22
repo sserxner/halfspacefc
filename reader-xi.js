@@ -9,6 +9,15 @@
   const keyName = (value) => clean(value).toLowerCase();
   const surname = (value) => clean(value).split(/\s+/).slice(-1)[0] || "+";
   const esc = (value) => clean(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  const playerIdentity = (value) =>
+    clean(value)
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/['’]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
   function entityFrom(container) {
     if (container.dataset.readerEntity) return clean(container.dataset.readerEntity);
@@ -138,8 +147,13 @@
     return positions;
   }
 
+  function sharedPlayerCard(entry) {
+    const library = typeof getData === "function" ? getData("player_card_library_v1", {}) : {};
+    return (library && library[playerIdentity(entry?.name)]) || {};
+  }
+
   function cardTeams(entry) {
-    const card = entry?.card || {};
+    const card = Object.assign({}, entry?.card || {}, sharedPlayerCard(entry));
     const teams = [
       entry?.detail,
       card.legacyAssociations,
@@ -160,7 +174,7 @@
     const map = new Map();
     rankingEntries().forEach(({ entry, section }) => {
       if (!cardTeams(entry).some((team) => entityMatches(entity, team))) return;
-      const card = entry.card || {};
+      const card = Object.assign({}, entry.card || {}, sharedPlayerCard(entry));
       const positions = [
         ...positionsFromText(card.specificPosition || card.position || entry.displayPosition || ""),
         ...rankedPositionsFor(entry.name),
@@ -262,7 +276,7 @@
     const store = typeof getData === "function" ? getData("reader_xi_pools_v1", {}) : {};
     store[poolKey(modal._entity)] = { positions };
     if (typeof setData === "function") setData("reader_xi_pools_v1", store);
-    window.HSAutosave?.schedule?.();
+    window.HSAutosave?.markReady?.("Draft ready");
     modal.remove();
   }
 
@@ -744,7 +758,7 @@
       const store = typeof getData === "function" ? getData(LAYOUT_KEY, {}) : {};
       store[modal._formation] = modal._layout;
       if (typeof setData === "function") setData(LAYOUT_KEY, store);
-      window.HSAutosave?.schedule?.();
+      window.HSAutosave?.markReady?.("Draft ready");
       modal.remove();
     }
     const choice = event.target.closest("[data-player-choice]");

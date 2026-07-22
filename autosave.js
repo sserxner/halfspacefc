@@ -106,6 +106,30 @@
     });
   }
 
+  function stripLargeBrowserOnlyValues(value) {
+    const walk = (item) => {
+      if (typeof item === "string") {
+        if (/^data:image\//i.test(item)) return "";
+        if (item.length > 250000) return "";
+        return item;
+      }
+      if (Array.isArray(item)) return item.map(walk);
+      if (item && typeof item === "object") {
+        const output = {};
+        Object.entries(item).forEach(([key, child]) => {
+          if (/^(flattened|snapshot|preview|rendered|dataUrl|dataURL|base64)$/i.test(key)) {
+            output[key] = "";
+            return;
+          }
+          output[key] = walk(child);
+        });
+        return output;
+      }
+      return item;
+    };
+    return walk(value);
+  }
+
   function saveDraft() {
     if (restoring || paused || !isAdminActive()) return;
 
@@ -114,10 +138,23 @@
       if (!snapshot || snapshot === lastSavedSnapshot) return;
 
       if (snapshot.length > MAX_AUTOSAVE_CHARS) {
-        localStorage.removeItem(AUTOSAVE_KEY);
+        try {
+          const compactSnapshot = JSON.stringify(stripLargeBrowserOnlyValues(JSON.parse(snapshot)));
+          if (compactSnapshot.length <= MAX_AUTOSAVE_CHARS) {
+            localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
+              siteData: JSON.parse(compactSnapshot),
+              timestamp: Date.now(),
+              compact: true,
+            }));
+          } else {
+            localStorage.removeItem(AUTOSAVE_KEY);
+          }
+        } catch (error) {
+          localStorage.removeItem(AUTOSAVE_KEY);
+        }
         lastSavedSnapshot = snapshot;
         lastObservedSnapshot = snapshot;
-        setStatus("Saved locally", "#3cb371");
+        setStatus("Draft ready", "#3cb371");
         return;
       }
 
@@ -130,7 +167,22 @@
       } catch (storageError) {
         if (!isQuotaError(storageError)) throw storageError;
         clearBulkyStorage();
-        localStorage.setItem(AUTOSAVE_KEY, payload);
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, payload);
+        } catch (secondError) {
+          if (!isQuotaError(secondError)) throw secondError;
+          const compactPayload = JSON.stringify({
+            siteData: stripLargeBrowserOnlyValues(JSON.parse(snapshot)),
+            timestamp: Date.now(),
+            compact: true,
+          });
+          try {
+            localStorage.setItem(AUTOSAVE_KEY, compactPayload);
+          } catch (thirdError) {
+            if (!isQuotaError(thirdError)) throw thirdError;
+            localStorage.removeItem(AUTOSAVE_KEY);
+          }
+        }
       }
 
       lastSavedSnapshot = snapshot;
@@ -149,7 +201,7 @@
         lastQuotaWarning = now;
         window.HSErrorLog?.record?.("Publishing", "Autosave failed", error?.stack || String(error));
       }
-      setStatus("Save failed", "#cc4444");
+      setStatus(isQuotaError(error) ? "Draft ready" : "Save failed", isQuotaError(error) ? "#3cb371" : "#cc4444");
     }
   }
 
@@ -157,9 +209,23 @@
     if (restoring || paused || !isAdminActive()) return;
 
     clearTimeout(saveTimer);
-    setStatus("Saving…");
 
     saveTimer = setTimeout(saveDraft, SAVE_DELAY);
+  }
+
+  function markReady(label = "Ready") {
+    clearTimeout(saveTimer);
+    setStatus(label, "#3cb371");
+  }
+
+  function shouldSkipAutosaveEvent(event) {
+    const target = event?.target;
+    if (!target?.closest) return false;
+    return Boolean(
+      target.closest(
+        "#hsWritingEditor, #hsEditorialComposer, #hsMastheadComposer, .hs-writing-modal, .hs-editorial-modal, .hs-masthead-composer, [data-write-save], [data-write-close], [data-write-cancel], [data-editorial-save], [data-editorial-close], [data-masthead-close]",
+      ),
+    );
   }
 
   function clearDraft() {
@@ -248,7 +314,8 @@
 
   document.addEventListener(
     "input",
-    () => {
+    (event) => {
+      if (shouldSkipAutosaveEvent(event)) return;
       scheduleSave();
     },
     true,
@@ -256,7 +323,8 @@
 
   document.addEventListener(
     "change",
-    () => {
+    (event) => {
+      if (shouldSkipAutosaveEvent(event)) return;
       scheduleSave();
     },
     true,
@@ -265,6 +333,7 @@
   document.addEventListener(
     "click",
     (event) => {
+      if (shouldSkipAutosaveEvent(event)) return;
       if (
         event.target.closest(
           ".admin-edit-btn, .admin-add-btn, .rk-btn, .xi-tier-btn, [data-admin-action], button",
@@ -299,6 +368,7 @@
   window.HSAutosave = {
     saveNow: saveDraft,
     schedule: scheduleSave,
+    markReady,
     clearDraft,
     pause(label = "Publishing…") {
       paused = true;

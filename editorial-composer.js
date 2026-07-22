@@ -2,7 +2,32 @@
   "use strict";
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const read = (key, fallback) => typeof getData === "function" ? getData(key, fallback) : window.HSData?.getDraft?.()?.[key] ?? fallback;
-  const write = (key, value) => { if (typeof setData === "function") setData(key, value); window.HSAutosave?.schedule?.(); };
+  const sameJSON = (left, right) => {
+    try { return JSON.stringify(left) === JSON.stringify(right); }
+    catch { return left === right; }
+  };
+  const write = (key, value) => {
+    let saved = false;
+    if (window.HSData?.setDraftValue) {
+      window.HSData.setDraftValue(key, value);
+      saved = true;
+    } else if (typeof setData === "function") {
+      setData(key, value);
+      saved = true;
+    }
+    if (!saved) {
+      const draft = Object.assign({}, window.HSData?.getDraft?.() || {});
+      draft[key] = value;
+      try { localStorage.setItem("halfspace_data", JSON.stringify(draft)); }
+      catch (error) { throw error; }
+    }
+    const draftValue = window.HSData?.getDraft?.()?.[key];
+    const confirmed = draftValue !== undefined ? draftValue : read(key, null);
+    if (!sameJSON(confirmed, value)) {
+      throw new Error("This item did not save into the publishable site draft. Refresh after installing the latest save fix and try again.");
+    }
+    window.HSAutosave?.markReady?.("Draft ready");
+  };
   const isAdmin = () => document.body.classList.contains("admin-active");
   let state = null;
   function saveErrorMessage(error) {
@@ -150,10 +175,23 @@
   function click(event) {
     const button = event.target.closest("button");
     if (!button) return;
-    if (button.matches("[data-compose-close]")) return close();
-    if (button.matches("[data-compose-save]")) return save(false);
-    if (button.matches("[data-compose-publish]")) return save(true);
-    if (button.dataset.composeInsert) return insertFormatting(button.dataset.composeInsert);
+    if (button.matches("[data-compose-close]")) {
+      event.preventDefault();
+      event.stopPropagation();
+      return close();
+    }
+    if (button.matches("[data-compose-save]")) {
+      event.preventDefault();
+      return save(false);
+    }
+    if (button.matches("[data-compose-publish]")) {
+      event.preventDefault();
+      return save(true);
+    }
+    if (button.dataset.composeInsert) {
+      event.preventDefault();
+      return insertFormatting(button.dataset.composeInsert);
+    }
     if (button.matches("[data-compose-media]")) return window.HSMediaManager?.open?.({onChoose(asset) {
       state.record.mediaEmbeds.push({src:asset.src, alt:asset.alt || "", caption:asset.title || "", credit:"", size:"wide", align:"center", placement:"after"});
       window.HSMediaManager.close(); renderAssets(); renderPreview();

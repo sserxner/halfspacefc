@@ -385,7 +385,13 @@
             await window.HSBackups.create({ reason: "before-publish" });
           }
           window.HSMastheadComposer?.prepareForPublish?.();
-          const publishData = JSON.parse(JSON.stringify(siteData));
+          window.HSData?.flushDraft?.();
+          const activeDraft =
+            window.HSData?.getDraft?.() &&
+            typeof window.HSData.getDraft() === "object"
+              ? window.HSData.getDraft()
+              : siteData;
+          const publishData = JSON.parse(JSON.stringify(activeDraft));
           publishData.__content_revision_v1 = new Date().toISOString();
           publishData.__content_edit_clock_v1 = {};
           const html = buildExportHTML(publishData);

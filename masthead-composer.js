@@ -140,8 +140,17 @@
   const rawDraftConfig = () => readKey(CONFIG_KEY, null);
   const rawPublishedConfig = () => window.__HALFSPACE_DATA__?.[CONFIG_KEY] || null;
   const writeKey = (key, value) => {
-    if (typeof setData !== "function") throw new Error("Site storage is unavailable.");
-    setData(key, value);
+    if (window.HSData?.setDraftValue) {
+      window.HSData.setDraftValue(key, value);
+      window.HSAutosave?.markReady?.("Draft ready");
+      return;
+    }
+    if (typeof setData === "function") {
+      setData(key, value);
+      window.HSAutosave?.markReady?.("Draft ready");
+      return;
+    }
+    throw new Error("Site storage is unavailable.");
   };
   const media = () => {
     const items = readKey(MEDIA_KEY, []);
@@ -351,11 +360,7 @@
   }
 
   function bindUI(root) {
-    if (root.dataset.mcReliableBound !== "true") {
-      root.addEventListener("click", reliableClick, true);
-      root.addEventListener("pointerdown", reliablePointerDown, true);
-      root.dataset.mcReliableBound = "true";
-    }
+    root.dataset.mcReliableBound = "native";
     root.addEventListener("mousedown", (event) => { if (event.target === root) close(); });
     root.addEventListener("click", (event) => {
       const modeButton = event.target.closest("[data-mc-mode]");

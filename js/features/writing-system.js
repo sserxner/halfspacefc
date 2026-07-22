@@ -21,6 +21,13 @@
       return fallback;
     }
   };
+  const sameJSON = (left, right) => {
+    try {
+      return JSON.stringify(left) === JSON.stringify(right);
+    } catch {
+      return left === right;
+    }
+  };
   function storageErrorMessage(error) {
     if (error?.name === "QuotaExceededError" || /quota/i.test(String(error?.message || error))) {
       return "Browser storage is full. Your editor is still open; publish or clear old local backups before continuing.";
@@ -42,13 +49,33 @@
     node.classList.toggle("error", Boolean(isError));
   }
   const write = (key, value) => {
-    if (typeof setData === "function") setData(key, value);
-    else {
+    let saved = false;
+    if (window.HSData?.setDraftValue) {
+      window.HSData.setDraftValue(key, value);
+      saved = true;
+    } else if (typeof setData === "function") {
+      setData(key, value);
+      saved = true;
+    }
+    if (!saved) {
       const data = JSON.parse(localStorage.getItem("halfspace_data") || "{}");
       data[key] = value;
-      localStorage.setItem("halfspace_data", JSON.stringify(data));
+      try {
+        localStorage.setItem("halfspace_data", JSON.stringify(data));
+      } catch (error) {
+        if (!(error?.name === "QuotaExceededError" || /quota/i.test(String(error?.message || error)))) throw error;
+        ["halfspace_autosave", "hs_error_log_v1", "halfspace_pre_sync_backup_v1", "masthead_composer_history_v1"].forEach((storageKey) => {
+          try { localStorage.removeItem(storageKey); } catch (cleanupError) {}
+        });
+        localStorage.setItem("halfspace_data", JSON.stringify(data));
+      }
     }
-    window.HSAutosave?.schedule?.();
+    const draftValue = window.HSData?.getDraft?.()?.[key];
+    const confirmed = draftValue !== undefined ? draftValue : read(key, null);
+    if (!sameJSON(confirmed, value)) {
+      throw new Error("This tab did not save into the publishable site draft. Refresh after installing the latest save fix and try again.");
+    }
+    window.HSAutosave?.markReady?.("Draft ready");
   };
   const live = (entry) =>
     admin() ||
@@ -481,10 +508,20 @@
   function editorClick(event) {
     const button = event.target.closest("button");
     if (!button) return;
-    if (button.matches("[data-write-close]")) return closeEditor();
+    if (button.matches("[data-write-close]")) {
+      event.preventDefault();
+      event.stopPropagation();
+      return closeEditor();
+    }
     if (!editor) return;
-    if (button.dataset.insert) return insert(button.dataset.insert);
-    if (button.dataset.writeSave) return saveEditor(button.dataset.writeSave === "publish");
+    if (button.dataset.insert) {
+      event.preventDefault();
+      return insert(button.dataset.insert);
+    }
+    if (button.dataset.writeSave) {
+      event.preventDefault();
+      return saveEditor(button.dataset.writeSave === "publish");
+    }
   }
 
   function insert(kind) {

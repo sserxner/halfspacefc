@@ -4,6 +4,7 @@
 
       let adminMode = false;
       let siteData = {};
+      let draftSaveTimer = null;
 
       const DATA_KEY = "halfspace_data";
       const CONTENT_REVISION_KEY = "__content_revision_v1";
@@ -84,6 +85,30 @@
         return draft;
       }
 
+      function stripLargeBrowserOnlyValues(value) {
+        const walk = (item) => {
+          if (typeof item === "string") {
+            if (/^data:image\//i.test(item)) return "";
+            if (item.length > 250000) return "";
+            return item;
+          }
+          if (Array.isArray(item)) return item.map(walk);
+          if (item && typeof item === "object") {
+            const output = {};
+            Object.entries(item).forEach(([key, child]) => {
+              if (/^(flattened|snapshot|preview|rendered|dataUrl|dataURL|base64)$/i.test(key)) {
+                output[key] = "";
+                return;
+              }
+              output[key] = walk(child);
+            });
+            return output;
+          }
+          return item;
+        };
+        return walk(value);
+      }
+
       function protectDraftForStorage(draft) {
         const protectedDraft = {};
         Object.keys(draft || {}).forEach((key) => {
@@ -95,6 +120,82 @@
         return protectedDraft;
       }
 
+      function publishedData() {
+        return window.__HALFSPACE_DATA__ &&
+          typeof window.__HALFSPACE_DATA__ === "object"
+          ? window.__HALFSPACE_DATA__
+          : {};
+      }
+
+      function privateDraftKeys() {
+        return new Set(["notebook_pages_v1"]);
+      }
+
+      function mergeRecordsById(published, draft) {
+        const merged = new Map();
+        (Array.isArray(published) ? published : []).forEach((record) => {
+          if (record && record.id) merged.set(record.id, record);
+        });
+        (Array.isArray(draft) ? draft : []).forEach((record) => {
+          if (record && record.id) merged.set(record.id, record);
+        });
+        return [...merged.values()];
+      }
+
+      function mergeLocalDraftWithPublished(local, baked) {
+        const merged = Object.assign({}, cloneData(baked || {}));
+        const localData = local && typeof local === "object" ? local : {};
+        const bakedRevision = String((baked || {})[CONTENT_REVISION_KEY] || "");
+        const localRevision = String(localData[CONTENT_REVISION_KEY] || "");
+        const localClock =
+          localData[CONTENT_CLOCK_KEY] &&
+          typeof localData[CONTENT_CLOCK_KEY] === "object"
+            ? localData[CONTENT_CLOCK_KEY]
+            : {};
+        const publishedBaselineChanged =
+          Boolean(bakedRevision) && bakedRevision !== localRevision;
+        const privateKeys = privateDraftKeys();
+        const localMayOverride = (key) =>
+          !publishedBaselineChanged ||
+          Boolean(localClock[key]) ||
+          privateKeys.has(key) ||
+          !Object.prototype.hasOwnProperty.call(baked || {}, key);
+
+        Object.keys(localData).forEach((key) => {
+          if (
+            key === CONTENT_REVISION_KEY ||
+            key === CONTENT_CLOCK_KEY ||
+            !localMayOverride(key)
+          ) {
+            return;
+          }
+          if (key === "media_library_v1") {
+            merged[key] = mergeRecordsById((baked || {})[key], localData[key]);
+            return;
+          }
+          if (key === "player_card_library_v1") {
+            merged[key] = Object.assign(
+              {},
+              (baked || {})[key] || {},
+              localData[key] || {},
+            );
+            return;
+          }
+          merged[key] = cloneData(localData[key]);
+        });
+
+        merged[CONTENT_REVISION_KEY] = bakedRevision;
+        merged[CONTENT_CLOCK_KEY] = Object.fromEntries(
+          Object.entries(localClock).filter(
+            ([key, timestamp]) =>
+              Boolean(timestamp) &&
+              Object.prototype.hasOwnProperty.call(localData, key) &&
+              !sameData(localData[key], (baked || {})[key]),
+          ),
+        );
+        return merged;
+      }
+
       function createLocalDraftForStorage(baked) {
         const clock =
           siteData[CONTENT_CLOCK_KEY] && typeof siteData[CONTENT_CLOCK_KEY] === "object"
@@ -104,7 +205,7 @@
           [CONTENT_REVISION_KEY]: siteData[CONTENT_REVISION_KEY] || baked[CONTENT_REVISION_KEY] || "",
           [CONTENT_CLOCK_KEY]: clock,
         };
-        const privateKeys = new Set(["notebook_pages_v1"]);
+        const privateKeys = privateDraftKeys();
         Object.keys(siteData).forEach((key) => {
           if (key === CONTENT_REVISION_KEY || key === CONTENT_CLOCK_KEY) return;
           const isChanged = Boolean(clock[key]);
@@ -126,7 +227,8 @@
       }
 
       function storeLocalDraft(value) {
-        const payload = JSON.stringify(protectDraftForStorage(value));
+        const protectedValue = protectDraftForStorage(value);
+        const payload = JSON.stringify(protectedValue);
         try {
           localStorage.setItem(DATA_KEY, payload);
         } catch (error) {
@@ -136,14 +238,23 @@
             localStorage.setItem(DATA_KEY, payload);
           } catch (secondError) {
             if (!isQuotaError(secondError)) throw secondError;
-            const emergency = protectDraftForStorage(value);
+            const emergency = stripLargeBrowserOnlyValues(protectedValue);
             delete emergency.masthead_composer_v1;
-            localStorage.setItem(DATA_KEY, JSON.stringify(emergency));
-            window.HSErrorLog?.record?.(
-              "Publishing",
-              "Saved content draft after dropping oversized masthead render from local cache",
-              "Your rankings/content were preserved. Re-render the masthead before publishing it again if needed.",
-            );
+            try {
+              localStorage.setItem(DATA_KEY, JSON.stringify(emergency));
+              window.HSErrorLog?.record?.(
+                "Publishing",
+                "Saved compact content draft after browser storage filled",
+                "Your current in-page edits stayed active. Oversized masthead/media previews were not duplicated in browser storage.",
+              );
+            } catch (thirdError) {
+              if (!isQuotaError(thirdError)) throw thirdError;
+              window.HSErrorLog?.record?.(
+                "Publishing",
+                "Browser storage full; keeping edits in active page memory",
+                "Publish Changes can still use the current open page. Do not refresh before publishing.",
+              );
+            }
           }
         }
       }
@@ -160,13 +271,16 @@
       function loadData() {
         try {
           const raw = localStorage.getItem(DATA_KEY);
-          siteData = raw ? JSON.parse(raw) : {};
+          siteData = mergeLocalDraftWithPublished(
+            raw ? JSON.parse(raw) : {},
+            publishedData(),
+          );
         } catch (e) {
-          siteData = {};
+          siteData = Object.assign({}, publishedData());
         }
       }
 
-      function saveData(options = {}) {
+      function markChangedKeys(options = {}) {
         const baked = window.__HALFSPACE_DATA__ || {};
         if (options.markChanges !== false) {
           const clock = Object.assign(
@@ -188,21 +302,44 @@
             siteData[CONTENT_REVISION_KEY] = baked[CONTENT_REVISION_KEY];
           }
         }
+      }
+
+      function persistDraftNow() {
+        const baked = window.__HALFSPACE_DATA__ || {};
         try {
           storeLocalDraft(createLocalDraftForStorage(baked));
+          window.HSAutosave?.markReady?.("Draft ready");
         } catch (error) {
           window.HSErrorLog?.record?.("Publishing", "Save failed", error?.stack || String(error));
-          throw error;
+          if (!isQuotaError(error)) throw error;
         }
+      }
+
+      function saveData(options = {}) {
+        markChangedKeys(options);
+        if (options.defer === true) {
+          clearTimeout(draftSaveTimer);
+          draftSaveTimer = setTimeout(() => {
+            draftSaveTimer = null;
+            persistDraftNow();
+          }, 200);
+          return;
+        }
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = null;
+        persistDraftNow();
       }
 
       function setData(key, value) {
         siteData[key] = value;
-        saveData({ changedKey: key });
+        saveData({ changedKey: key, defer: true });
+        return siteData[key];
       }
 
       function getData(key, fallback) {
-        return siteData[key] !== undefined ? siteData[key] : fallback;
+        if (siteData[key] !== undefined) return siteData[key];
+        const baked = publishedData();
+        return baked[key] !== undefined ? baked[key] : fallback;
       }
 
       // Stable access for CMS modules that need to compare the browser draft
@@ -217,6 +354,13 @@
         markPublished: function () {
           window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(siteData));
           return window.__HALFSPACE_DATA__;
+        },
+        setDraftValue: function (key, value) {
+          return setData(key, value);
+        },
+        flushDraft: function () {
+          saveData({ markChanges: false });
+          return siteData;
         },
       };
 
@@ -1196,95 +1340,12 @@
           const raw = localStorage.getItem(DATA_KEY);
           const local = raw ? JSON.parse(raw) : {};
           const isAdminEntry = window.location.hash === "#admin";
-          // Admin data must not share nested object references with the baked
-          // public baseline, otherwise an edit would also alter the version
-          // Draft Comparison is meant to compare against.
-          const editableBaked = isAdminEntry ? cloneData(baked) : baked;
-          siteData = Object.assign({}, editableBaked);
+          siteData = isAdminEntry
+            ? mergeLocalDraftWithPublished(local, baked)
+            : cloneData(baked);
 
           // Never let stale browser data override published content for readers.
           if (!isAdminEntry) return;
-
-          const bakedRevision = String(baked[CONTENT_REVISION_KEY] || "");
-          const localRevision = String(local[CONTENT_REVISION_KEY] || "");
-          const localClock =
-            local[CONTENT_CLOCK_KEY] &&
-            typeof local[CONTENT_CLOCK_KEY] === "object"
-              ? local[CONTENT_CLOCK_KEY]
-              : {};
-          const publishedBaselineChanged =
-            Boolean(bakedRevision) && bakedRevision !== localRevision;
-          const privateLocalKeys = new Set(["notebook_pages_v1"]);
-          const localMayOverride = (key) =>
-            !publishedBaselineChanged ||
-            Boolean(localClock[key]) ||
-            privateLocalKeys.has(key) ||
-            !Object.prototype.hasOwnProperty.call(baked, key);
-
-          if (publishedBaselineChanged && Object.keys(local).length) {
-            // Keep a recovery copy before moving the browser onto a newer
-            // published baseline. This is intentionally separate from the
-            // active draft so stale content can never silently win again.
-            try {
-              localStorage.setItem(
-                CONTENT_BACKUP_KEY,
-                JSON.stringify({
-                  savedAt: new Date().toISOString(),
-                  fromRevision: localRevision || "legacy-browser-copy",
-                  toRevision: bakedRevision,
-                  data: local,
-                }),
-              );
-            } catch (backupError) {
-              console.warn("Half Space recovery backup was too large:", backupError);
-            }
-          }
-
-          Object.keys(local).forEach((key) => {
-            if (
-              key !== CONTENT_REVISION_KEY &&
-              key !== CONTENT_CLOCK_KEY &&
-              localMayOverride(key)
-            ) {
-              siteData[key] = cloneData(local[key]);
-            }
-          });
-          siteData[CONTENT_REVISION_KEY] = bakedRevision;
-          siteData[CONTENT_CLOCK_KEY] = Object.fromEntries(
-            Object.entries(localClock).filter(
-              ([key, timestamp]) =>
-                Boolean(timestamp) &&
-                Object.prototype.hasOwnProperty.call(local, key) &&
-                !sameData(local[key], baked[key]),
-            ),
-          );
-
-          // Published media and shared player cards are additive. A localhost
-          // draft from before the latest public save must not erase assets that
-          // are already live merely because its saved arrays are older.
-          const mergeRecordsById = (published, draft) => {
-            const merged = new Map();
-            (Array.isArray(published) ? published : []).forEach((record) => {
-              if (record && record.id) merged.set(record.id, record);
-            });
-            (Array.isArray(draft) ? draft : []).forEach((record) => {
-              if (record && record.id) merged.set(record.id, record);
-            });
-            return [...merged.values()];
-          };
-          if (localMayOverride("media_library_v1")) {
-            siteData.media_library_v1 = mergeRecordsById(
-              baked.media_library_v1,
-              local.media_library_v1,
-            );
-          }
-          if (localMayOverride("player_card_library_v1")) {
-            siteData.player_card_library_v1 = Object.assign(
-              {},
-              baked.player_card_library_v1 || {},
-              local.player_card_library_v1 || {},
-            );
-          }
 
           // Step 17 migrates legacy per-ranking cards into the shared library.
           // Until that migration runs, retain any published card that is absent
@@ -1329,9 +1390,8 @@
               );
             });
 
-          saveData({ markChanges: false });
         } catch (e) {
           console.error("Half Space data recovery:", e);
-          siteData = Object.assign({}, baked);
+          siteData = cloneData(baked);
         }
       }

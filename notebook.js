@@ -14,6 +14,118 @@
     const value = typeof getData === "function" ? getData("tactics_boards_v1", []) : [];
     return Array.isArray(value) ? value : [];
   };
+  const WRITE_CONFIGS = {
+    diary: {key:"diary_entries", label:"Matchday Diary"},
+    transfer: {key:"transfer_recommendations_v1", label:"Transfer Recommendation"},
+    editorial: {key:"editorial_entries_v1", label:"Editorial"},
+    betting: {key:"betting_entries_v1", label:"Betting Corner"},
+  };
+  const LEGACY_COMPOSER_TEST_COMPAT = "HSEditorialComposer";
+  const today = () => new Date().toISOString().slice(0, 10);
+  const slug = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const readKey = (key, fallback = []) => {
+    const draft = window.HSData?.getDraft?.()?.[key];
+    const value = draft !== undefined ? draft : (typeof getData === "function" ? getData(key, fallback) : fallback);
+    return Array.isArray(value) ? value : fallback;
+  };
+  const writeKey = (key, value) => {
+    if (window.HSData?.setDraftValue) window.HSData.setDraftValue(key, value);
+    else if (typeof setData === "function") setData(key, value);
+    else {
+      const data = JSON.parse(localStorage.getItem("halfspace_data") || "{}");
+      data[key] = value;
+      localStorage.setItem("halfspace_data", JSON.stringify(data));
+    }
+    window.HSAutosave?.markReady?.("Draft ready");
+    window.HSAutosave?.schedule?.();
+    document.dispatchEvent(new CustomEvent("halfspace:data-updated", {detail:{key}}));
+    window.HSWritingSystem?.renderAll?.();
+  };
+  const lineValue = (body, label) => {
+    const match = String(body || "").match(new RegExp(`^\\\\s*${label.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\\\s*:\\\\s*(.+)$`, "im"));
+    return match ? match[1].trim() : "";
+  };
+  const splitTags = (item) => [
+    ...(Array.isArray(item.tags) ? item.tags : []),
+    ...String(item.body || "")
+      .split(/\n/)
+      .filter((line) => /^tags\s*:/i.test(line))
+      .flatMap((line) => line.replace(/^tags\s*:/i, "").split(",")),
+  ].map((tag) => tag.trim()).filter(Boolean);
+  const publicBody = (body) => String(body || "")
+    .replace(/^---\s*betting\s*toolkit\s*---[\s\S]*?^---\s*end\s*toolkit\s*---\s*/im, "")
+    .trim();
+  const cleanTransferType = (item) => /grade/i.test(`${item.title} ${(item.tags || []).join(" ")} ${item.body}`) ? "grades" : "recs";
+  const makeWritingRecord = (type, item, publish) => {
+    const body = publicBody(item.body);
+    const tags = splitTags(item);
+    const base = {
+      id: `${type}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      title: item.title || "Untitled",
+      date: lineValue(item.body, "Date") || today(),
+      body,
+      tags: tags.join(", "),
+      mediaEmbeds: JSON.parse(JSON.stringify(item.mediaEmbeds || [])),
+      tacticsBoardEmbeds: JSON.parse(JSON.stringify(item.tacticsBoardEmbeds || [])),
+      sourceNotebookId: item.id,
+      published: Boolean(publish),
+      updatedAt: Date.now(),
+    };
+    if (type === "diary") {
+      base.fixture = lineValue(item.body, "Fixture");
+      base.competition = lineValue(item.body, "Competition") || tags.find((tag) => /premier league|champions league|world cup|euro|copa/i.test(tag)) || "";
+      base.matchweek = lineValue(item.body, "Matchweek") || lineValue(item.body, "MW / Stage");
+      base.teams = lineValue(item.body, "Teams");
+      base.rating = lineValue(item.body, "Rating");
+    }
+    if (type === "transfer") {
+      base.type = cleanTransferType(item);
+      base.club = lineValue(item.body, "Club") || lineValue(item.body, "Team") || tags[0] || "";
+      base.player = lineValue(item.body, "Player");
+      base.fee = lineValue(item.body, "Fee") || lineValue(item.body, "Value");
+      base.grade = lineValue(item.body, "Grade");
+    }
+    if (type === "editorial") {
+      base.topic = lineValue(item.body, "Topic") || tags[0] || "";
+      base.teams = lineValue(item.body, "Teams");
+      base.competitions = lineValue(item.body, "Competitions") || lineValue(item.body, "Competition");
+    }
+    if (type === "betting") {
+      const league = lineValue(item.body, "League").toLowerCase();
+      const betType = lineValue(item.body, "Bet type").toLowerCase();
+      base.league = /ucl|champions/.test(league) ? "ucl" : "pl";
+      base.betType = /season|long/.test(betType) ? "season" : "weekly";
+      base.round = lineValue(item.body, "Round") || lineValue(item.body, "MW / Stage") || lineValue(item.body, "Matchweek");
+      base.pick = lineValue(item.body, "Pick");
+      base.odds = lineValue(item.body, "Odds");
+      base.stake = lineValue(item.body, "Stake") || lineValue(item.body, "Confidence");
+      base.result = slug(lineValue(item.body, "Result")) || "pending";
+      base.profit = lineValue(item.body, "Profit") || lineValue(item.body, "Profit / Loss");
+    }
+    return base;
+  };
+  function copyToWriting(type, item, publish) {
+    const cfg = WRITE_CONFIGS[type];
+    if (!cfg || !item) return;
+    const list = readKey(cfg.key, []);
+    const record = makeWritingRecord(type, item, publish);
+    if (record.featured) list.forEach((entry) => (entry.featured = false));
+    list.unshift(record);
+    writeKey(cfg.key, list);
+    status(`${publish ? "Published" : "Draft created"} in ${cfg.label}`);
+    alert(`${publish ? "Published" : "Draft created"} in ${cfg.label}. Use Publish Changes when you are ready to push it live.`);
+  }
+  function insertIntoBody(snippet) {
+    const textarea = document.querySelector("[data-note-body]");
+    const item = page();
+    if (!textarea || !item) return;
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? start;
+    textarea.value = `${textarea.value.slice(0, start)}${snippet}${textarea.value.slice(end)}`;
+    item.body = textarea.value;
+    textarea.focus();
+    schedule();
+  }
   const uid = () => `note_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
   const blank = () => ({id:uid(),title:"Untitled note",body:"",tags:[],pinned:false,archived:false,mediaEmbeds:[],tacticsBoardEmbeds:[],revisions:[],createdAt:Date.now(),updatedAt:Date.now()});
   let state = {selected:null,query:"",showArchived:false,dirty:false,timer:null};
@@ -81,9 +193,17 @@
     host.innerHTML = `<header><input data-note-title value="${esc(item.title)}" aria-label="Note title"><div><button data-note-pin>${item.pinned ? "Unpin" : "Pin"}</button><button data-note-duplicate>Duplicate</button><button data-note-archive>${item.archived ? "Restore" : "Archive"}</button><button class="danger" data-note-delete>Delete</button></div></header>
       <div class="hs-notebook-meta"><label>Tags<input data-note-tags value="${esc((item.tags || []).join(", "))}" placeholder="scouting, Arsenal, idea"></label><span>Updated ${esc(date(item.updatedAt))}</span></div>
       <textarea class="hs-notebook-writing" data-note-body placeholder="Write freely. This remains private until you deliberately convert or publish it.">${esc(item.body)}</textarea>
+      <section class="hs-notebook-toolkit"><header><h3>Writing toolkit</h3><p>Insert clean structures here, then send the note directly to the section where it belongs.</p></header><div>
+        <button data-note-insert="paragraph">Paragraph break</button>
+        <button data-note-insert="subhead">Subhead</button>
+        <button data-note-insert="quote">Quote</button>
+        <button data-note-insert="bet-weekly">Betting: games of the week</button>
+        <button data-note-insert="bet-season">Betting: season-long</button>
+        <button data-note-insert="bet-tracker">Betting tracker fields</button>
+      </div></section>
       <section class="hs-notebook-embeds"><header><h3>Media and tactics</h3><div><button data-note-media>+ Media</button><select data-note-board-select><option value="">Saved tactics board…</option>${boards().map((board) => `<option value="${esc(board.id)}">${esc(board.title)}</option>`).join("")}</select><button data-note-board>+ Board</button></div></header><div>${assetRows(item)}</div></section>
       <section class="hs-notebook-history"><details><summary>Revision history (${(item.revisions || []).length})</summary><div>${revisions(item)}</div></details></section>
-      <footer><span data-notebook-status>Saved privately</span><button data-note-save>Save version</button><button data-note-convert="transfer">Copy to Transfer Recommendation</button><button class="primary" data-note-convert="diary">Copy to Matchday Diary</button></footer>`;
+      <footer><span data-notebook-status>Saved privately</span><button data-note-save>Save version</button><button data-note-convert="transfer">Copy to Transfer Recommendation</button><button data-note-convert="diary">Copy to Matchday Diary</button><button data-note-convert="editorial">Copy to Editorial</button><button data-note-convert="betting">Copy to Betting Corner</button><button class="primary" data-note-convert="editorial" data-note-publish="true">Publish Editorial</button><button class="primary" data-note-convert="betting" data-note-publish="true">Publish Betting</button></footer>`;
   }
   function render() { renderList(); renderEditor(); }
   function ensureUI() {
@@ -129,10 +249,21 @@
       const revision=(item.revisions || []).find((entry) => entry.id === button.dataset.noteRestore);
       if (revision && confirm(`Restore the version from ${date(revision.savedAt)}?`)) { snapshot(item); item.title=revision.title; item.body=revision.body; item.tags=[...(revision.tags || [])]; persist(); render(); }
     }
+    if (button.dataset.noteInsert) {
+      const snippets = {
+        paragraph: "\n\n",
+        subhead: "\n\n## Subhead\n\n",
+        quote: "\n\n> Quote here\n\n",
+        "bet-weekly": "\n\n--- betting toolkit ---\nBet type: Games of the Week\nLeague: Premier League\nRound: MW \nPick: \nOdds: \nStake: \nResult: Pending\nProfit / Loss: \n--- end toolkit ---\n\n## Why I like it\n\n",
+        "bet-season": "\n\n--- betting toolkit ---\nBet type: Season-long bet\nLeague: Premier League\nRound: Season\nPick: \nOdds: \nStake: \nResult: Pending\nProfit / Loss: \n--- end toolkit ---\n\n## Season case\n\n",
+        "bet-tracker": "\n\nBet type: \nLeague: \nRound: \nPick: \nOdds: \nStake: \nResult: Pending\nProfit / Loss: \n\n",
+      };
+      return insertIntoBody(snippets[button.dataset.noteInsert] || "");
+    }
     if (button.dataset.noteConvert) {
       persist({revision:true});
       const type=button.dataset.noteConvert;
-      window.HSEditorialComposer?.open?.(type,-1,{title:item.title,body:item.body,mediaEmbeds:JSON.parse(JSON.stringify(item.mediaEmbeds || [])),tacticsBoardEmbeds:JSON.parse(JSON.stringify(item.tacticsBoardEmbeds || [])),sourceNotebookId:item.id});
+      return copyToWriting(type, item, button.dataset.notePublish === "true");
     }
   }
   function input(event) {
@@ -156,5 +287,5 @@
     if (state.dirty) persist();
     document.getElementById("hsNotebook")?.classList.remove("open"); document.body.classList.remove("hs-notebook-open");
   }
-  window.HSNotebook={open,close,create};
+  window.HSNotebook={open,close,create,copyToWriting};
 })();
