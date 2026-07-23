@@ -34,7 +34,8 @@
     if (typeof previous !== "function") return;
     window.showPage = function (...args) {
       const result = previous.apply(this, args);
-      setTimeout(syncState, 0);
+      syncState();
+      requestAnimationFrame(syncState);
       return result;
     };
     window.HSMastheadNavFlowPatched = true;
@@ -44,6 +45,7 @@
     moveMasthead();
     patchShowPage();
     syncState();
+    document.documentElement.classList.add("hs-flow-ready");
     window.addEventListener("scroll", syncState, { passive: true });
     window.addEventListener("resize", syncState);
   }
