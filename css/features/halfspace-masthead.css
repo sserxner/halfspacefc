@@ -23,6 +23,45 @@
   background-size: cover;
 }
 
+/* Begin fetching section artwork with the first stylesheet instead of waiting
+   for the large embedded content payload and late feature stylesheet. */
+html::after {
+  content: "";
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  background-image:
+    url("../../assets/betting-corner-paqueta.avif"),
+    url("../../assets/editorials-opinion-simon-jordan.webp"),
+    url("../../assets/editorials-matchday-diaries-thompson-acosta.jpg"),
+    url("../../assets/transfer-recs-wenger-dein.jpg"),
+    url("../../assets/transfer-grades-brian-clough.webp"),
+    url("../../assets/rankings-johan-cruyff.webp"),
+    url("../../assets/build-xi-main-jose-mourinho.webp"),
+    url("../../assets/position-guide-mikel-arteta.webp"),
+    url("../../assets/tv-tony-soprano.jpg"),
+    url("../../assets/nba-allen-iverson.avif"),
+    url("../../assets/music-cat-stevens.webp");
+}
+
+/* The real masthead is moved above navigation once the complete document is
+   ready. Show its published image in that exact space during parsing so the
+   first paint never begins with navigation or blank space alone. */
+html:not(.hs-flow-ready) body::before {
+  content: "";
+  display: block;
+  width: 100%;
+  min-height: clamp(220px, 33.333vw, 724px);
+  background-color: #0b281e;
+  background-image: var(--hs-initial-masthead-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .hero::before {
   z-index: 0;
   opacity: 1;
@@ -171,8 +210,8 @@ body > nav {
 
 #page-rankings #rankings-primary-tabs,
 #page-present-rankings #present-primary-tabs {
-  position: sticky !important;
-  top: var(--hs-persistent-nav-height) !important;
+  position: static !important;
+  top: auto !important;
   z-index: 9000 !important;
   margin-inline: -0.7rem;
   padding: 0.55rem 0.7rem 0.35rem;
@@ -202,7 +241,7 @@ body > nav {
 
   #page-rankings #rankings-primary-tabs,
   #page-present-rankings #present-primary-tabs {
-    top: var(--hs-persistent-nav-height) !important;
+    top: auto !important;
     display: flex !important;
     flex-wrap: nowrap !important;
     gap: 0.35rem !important;
