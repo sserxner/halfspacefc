@@ -258,7 +258,7 @@
             ${tagsFor(feature).length ? `<div class="hs-writing-tags">${tagsFor(feature).map((tag) => `<span>${esc(tag)}</span>`).join("")}</div>` : ""}
           </header>
           <div class="hs-home-body hs-writing-body">${excerptHTML(feature.entry.body) || `<p>${esc(feature.entry.excerpt || "No body added yet.")}</p>`}</div>
-          <button class="hs-home-continue" type="button" onclick="HSHomepageFeature.open('${feature.type}',${feature.index})">Continue reading</button>
+          <button class="hs-home-continue" type="button" onclick="HSHomepageFeature.continueReading(this,'${feature.type}',${feature.index})">Continue reading</button>
         </article>
         <aside class="hs-home-latest-rail">
           <h3>Headlines</h3>
@@ -336,6 +336,16 @@
     }, 80);
   }
 
+  function continueReading(button, type, index) {
+    const item = allEntries().find((candidate) => candidate.type === type && candidate.index === Number(index));
+    const article = button?.closest(".hs-home-lead-story");
+    const body = article?.querySelector(".hs-home-body");
+    if (!item || !body) return;
+    body.innerHTML = bodyHTML(item.entry?.body) || `<p>${esc(item.entry?.excerpt || "No body added yet.")}</p>`;
+    article.classList.add("hs-home-story-expanded");
+    button.remove();
+  }
+
   function patchShowPage() {
     const previous = window.showPage;
     if (typeof previous !== "function") return;
@@ -364,7 +374,7 @@
 
   function init() {
     window.HS_USE_HOMEPAGE_FEATURE_RENDERER = true;
-    window.HSHomepageFeature = { render, scheduleRender, setFeatured, open: openItem, move: moveHeadline };
+    window.HSHomepageFeature = { render, scheduleRender, setFeatured, open: openItem, continueReading, move: moveHeadline };
     window.renderHomePostFeed = scheduleRender;
     patchShowPage();
     watchHomeRoot();

@@ -111,7 +111,7 @@ export function homepageMarkup(data) {
             ${tags.length ? `<div class="hs-writing-tags">${tags.map((tag) => `<span>${esc(tag)}</span>`).join("")}</div>` : ""}
           </header>
           <div class="hs-home-body hs-writing-body">${bodyExcerpt(feature.entry.body) || `<p>${esc(feature.entry.excerpt || "No body added yet.")}</p>`}</div>
-          <button class="hs-home-continue" type="button" onclick="HSHomepageFeature.open('${feature.type}',${feature.index})">Continue reading</button>
+          <button class="hs-home-continue" type="button" onclick="HSHomepageFeature.continueReading(this,'${feature.type}',${feature.index})">Continue reading</button>
         </article>
         <aside class="hs-home-latest-rail">
           <h3>Headlines</h3>

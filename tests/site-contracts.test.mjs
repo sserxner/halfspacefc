@@ -237,6 +237,15 @@ test("legacy blog rendering cannot blank the pre-rendered homepage", () => {
   assert.ok(publicContent.includes('if (feed.querySelector(".hs-home-reading-layout")) return;'));
 });
 
+test("homepage continues the featured story in place", () => {
+  const homepage = read("js/features/homepage-feature.js");
+  const prerender = read("tools/prerender-homepage.mjs");
+  assert.match(homepage, /function continueReading\(button, type, index\)/);
+  assert.match(homepage, /body\.innerHTML = bodyHTML/);
+  assert.match(homepage, /continueReading\(this/);
+  assert.match(prerender, /continueReading\(this/);
+});
+
 test("profile copy link sits quietly at the end of the player card", () => {
   const router = read("router.js");
   assert.match(router, /body\.appendChild\(button\)/);
@@ -825,6 +834,13 @@ test("the green bar prioritizes daily work and groups specialist tools", () => {
   assert.doesNotMatch(template, /data-admin-tool="media"/);
 });
 
+test("admin bar opens the two-club transfer grade publisher", () => {
+  const template = read("src/index.template.html");
+  assert.match(template, /id="hsTransferGradeToolbarButton"/);
+  assert.match(template, /showTransferPage\('grades'\)/);
+  assert.match(template, /addTransfer\('grades'\)/);
+});
+
 test("reader XIs enforce valid selection and direct device-image saving", () => {
   const reader = read("reader-xi.js");
   const template = read("src/index.template.html");
@@ -1094,4 +1110,15 @@ test("site and ranking navigation remain clickable while scrolling", () => {
   assert.match(styles, /--hs-persistent-nav-height: 110px/);
   assert.match(styles, /@media \(max-width: 768px\)[\s\S]*--hs-persistent-nav-height: 58px/);
   assert.match(styles, /#page-rankings #rankings-primary-tabs \.sub-tab,[\s\S]*#page-present-rankings #present-primary-tabs \.sub-tab[\s\S]*white-space: nowrap !important/);
+});
+
+test("homepage masthead collapses after scrolling", () => {
+  const template = read("src/index.template.html");
+  const flow = read("js/features/masthead-nav-flow.js");
+  const styles = read("css/features/masthead-nav-flow.css");
+  assert.match(template, /masthead-nav-flow\.css/);
+  assert.match(template, /masthead-nav-flow\.js/);
+  assert.match(flow, /window\.scrollY > 140/);
+  assert.match(flow, /hs-masthead-collapsed/);
+  assert.match(styles, /hs-masthead-collapsed[\s\S]*max-height:\s*0/);
 });
