@@ -582,7 +582,30 @@
         };
         const sharedCard = (entry) => {
           const saved = cardLibrary()[playerKey(entry?.name)];
-          return sanitizePlayerCard(saved && typeof saved === "object" ? saved : entry?.card || {});
+          const existing =
+            saved && typeof saved === "object" ? saved : entry?.card || {};
+          const verified =
+            window.HSVerifiedPlayerDrafts?.get?.(entry?.name) ||
+            window.HSVerifiedPlayerDrafts?.getHonours?.(entry?.name);
+          if (!verified) return sanitizePlayerCard(existing);
+          const merged = { ...verified, ...existing };
+          [
+            "careerStints",
+            "careerTrophyTotal",
+            "teamTitles",
+            "internationalTitles",
+            "nationalTeam",
+            "nationality",
+          ].forEach((field) => {
+            const value = existing[field];
+            if (
+              value == null ||
+              value === "" ||
+              (Array.isArray(value) && !value.length)
+            )
+              merged[field] = verified[field];
+          });
+          return sanitizePlayerCard(merged);
         };
         function saveSharedCard(name, card) {
           const id = playerKey(name);
@@ -811,6 +834,12 @@
             facts.push(["Caps (Goals)", `${caps || "—"} (${goals || "—"})`]);
           return `<section class="rank-profile-section"><div class="rank-profile-label">International</div>${facts.length ? `<div class="rank-profile-facts rank-profile-facts-compact">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>` : ""}</section>`;
         };
+        const hasTeamHonours = (card, stints) =>
+          Boolean(
+            String(card.careerTrophyTotal || card.teamTitles || "").trim() ||
+              titleParts(card.internationalTitles).length ||
+              stints.some((stint) => titleParts(stint.trophies).length),
+          );
 	        const teamHonoursHTML = (card, stints, legacyTitles) => {
           const rules = [
             [/^(?:fifa\s+)?world cup$/i, 1, "FIFA World Cup"],
@@ -954,7 +983,11 @@
               titleParts(c.internationalTitles).length ||
               interestedClubs ||
               suggestedMove,
-            );
+            ),
+            shouldHydrateHonours =
+              !/_mgr(?:_|$)/.test(k) &&
+              !hasTeamHonours(c, stints) &&
+              window.HSVerifiedPlayerDrafts?.availableFor?.(x.name);
           let b = document.createElement("div");
           b.id = "rankProfileBackdrop";
           b.className = "rank-profile-backdrop";
@@ -962,6 +995,7 @@
           b.dataset.rankKey = k;
           b.dataset.tierIndex = t;
           b.dataset.entryIndex = e;
+          b.dataset.playerKey = playerKey(x.name);
           b.innerHTML = `<aside class="rank-profile-drawer">
             <div class="rank-profile-hero">
               ${c.image ? `<img class="rank-profile-image" src="${esc(c.image)}" alt="">` : ""}
@@ -980,6 +1014,7 @@
               ${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}
               ${internationalHTML(c)}
               ${teamHonoursHTML(c, stints, teamTitles)}
+              ${shouldHydrateHonours ? '<section class="rank-profile-section rank-profile-honours-loading"><div class="rank-profile-label">Team Trophies</div><div class="rank-profile-copy">Loading verified career trophies…</div></section>' : ""}
               ${awardsHTML(awards)}
               ${!awards.length && individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Notable Individual Awards</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}
               ${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}
@@ -997,6 +1032,26 @@
           };
           document.body.appendChild(b);
           document.body.style.overflow = "hidden";
+          if (shouldHydrateHonours) {
+            const requestedPlayer = playerKey(x.name);
+            window.HSVerifiedPlayerDrafts
+              .queueHonours(x.name)
+              .then(() => {
+                const current = document.getElementById("rankProfileBackdrop");
+                if (current?.dataset.playerKey !== requestedPlayer) return;
+                closeRankProfile();
+                openRankProfile(k, t, e);
+              })
+              .catch((error) => {
+                const loading = document.querySelector(
+                  "#rankProfileBackdrop .rank-profile-honours-loading .rank-profile-copy",
+                );
+                if (loading)
+                  loading.textContent =
+                    "Trophy data is temporarily unavailable. Try reopening this card.";
+                console.warn("Player trophy autofill failed:", error);
+              });
+          }
         };
         window.rankEditCard = (k, t, e) => {
           const x = entryAt(k, t, e);

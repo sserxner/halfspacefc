@@ -613,11 +613,16 @@
     if (!band || band.dataset.writingNavUpgraded === "1") return;
     const diaryButton = [...band.children].find((node) => /Matchday Diaries/i.test(node.textContent || ""));
     if (diaryButton) {
-      diaryButton.insertAdjacentHTML(
-        "beforebegin",
-        `<button class="nav-tab hs-writing-top-tab" onclick="showPage('betting')">Betting Corner</button>
-         <button class="nav-tab hs-writing-top-tab" onclick="showPage('editorials')">Editorials</button>`,
-      );
+      if (!band.querySelector('[onclick*="showPage(\'betting\')"]'))
+        diaryButton.insertAdjacentHTML(
+          "beforebegin",
+          `<button class="nav-tab hs-writing-top-tab" onclick="showPage('betting')">Betting Corner</button>`,
+        );
+      if (!band.querySelector('[onclick*="showPage(\'editorials\')"]'))
+        diaryButton.insertAdjacentHTML(
+          "beforebegin",
+          `<button class="nav-tab hs-writing-top-tab" onclick="showPage('editorials')">Editorials</button>`,
+        );
     }
     const transferButton = [...band.children].find(
       (node) => node.matches?.("button.nav-tab") && /^Transfers$/i.test((node.textContent || "").trim()),

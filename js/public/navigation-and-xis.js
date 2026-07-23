@@ -1327,4 +1327,4 @@
       }
 
       // Apply saved additions/removals before global search builds its catalog.
-      syncXIProfiles();
+      document.addEventListener("DOMContentLoaded", syncXIProfiles);

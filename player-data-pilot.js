@@ -74,6 +74,8 @@
   const keyFor = (name) => String(name || "").toLowerCase().trim().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const PRIVATE_DRAFT_CACHE_KEY = "hs_verified_player_drafts_private_v2";
   const pendingDrafts = new Map();
+  const pendingHonoursDrafts = new Map();
+  const honoursDrafts = new Map();
   function readPrivateDraftCache() {
     try {
       const value = JSON.parse(localStorage.getItem(PRIVATE_DRAFT_CACHE_KEY) || "{}");
@@ -142,7 +144,7 @@
     const raw = clean(value)
       .replace(/^[^:]{2,70}:\s*/, "")
       .replace(/\[[^\]]*]/g, "")
-      .replace(/\s*[×x]\s*\d+\s*$/i, "")
+      .replace(/\s*[×x]\s*\d+\b/i, "")
       .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
       .replace(/\s*[—:-]\s*(?:19|20)\d{2}.*$/i, "")
       .replace(/\s+(?:winners?|champions?)$/i, "")
@@ -412,7 +414,9 @@
         individual = /individual|personal/i.test(group);
         return;
       }
-      const label = line.match(/^\s*(?:;|'{3})\s*(.*?)\s*(?:'{3})?\s*$/);
+      const boldLabel = line.match(/^\s*'{3}\s*(.*?)\s*'{3}(?:\s*<ref\b.*)?\s*$/i);
+      const definitionLabel = line.match(/^\s*;\s*(.*?)\s*$/);
+      const label = boldLabel || definitionLabel;
       if (label && !/^\s*\*/.test(line)) {
         group = plainWiki(label[1]);
         individual = /individual|personal/i.test(group);
@@ -423,7 +427,9 @@
       if (!honor) return;
       if (individual) awards.push({name:honor,club:"",year:""});
       else {
-        const cleanHonor = sanitizeTeamTitles(honor)[0];
+        const cleanHonor = sanitizeTeamTitles(
+          group ? `${group}: ${honor}` : honor,
+        )[0];
         if (!cleanHonor) return;
         const stint = matchingStint(group);
         if (stint && !stint.trophies.includes(cleanHonor)) stint.trophies.push(cleanHonor);
@@ -510,6 +516,42 @@
     return JSON.parse(JSON.stringify(sanitizedRecord));
   }
 
+  async function prepareHonours(name) {
+    const page = await lookupWikipediaPage(name);
+    const parsed = await json(
+      `https://en.wikipedia.org/w/api.php?action=parse&pageid=${page.pageid}&prop=wikitext|revid&formatversion=2&format=json&origin=*`,
+    );
+    const wikitext = parsed.parse?.wikitext || "";
+    const stints = careerRowsFromWikitext(wikitext);
+    const international = internationalFromWikitext(wikitext);
+    const nationalTeam = international.team || "";
+    const awards = honoursFromWikitext(wikitext, stints, nationalTeam);
+    const teamTitles = (awards.teamTitles || []).join("\n");
+    const internationalTitles = (awards.internationalTitles || []).join("\n");
+    const record = sanitizeDraftRecord({
+      nationalTeam,
+      internationalCaps: international.caps || "",
+      internationalGoals: international.goals || "",
+      internationalTitles,
+      careerStints: stints,
+      teamTitles,
+      careerTrophyTotal: String(
+        careerTeamTitleTotal(stints, teamTitles, internationalTitles) || "",
+      ),
+      individualAwards: notableIndividualAwards(awards),
+      dataAsOf: new Date().toISOString().slice(0, 10),
+      sources: [
+        {
+          label: `${parsed.parse?.title || name} — Wikipedia`,
+          url: page.fullurl || `https://en.wikipedia.org/?curid=${page.pageid}`,
+        },
+      ],
+      honoursOnly: true,
+    });
+    honoursDrafts.set(keyFor(name), record);
+    return JSON.parse(JSON.stringify(record));
+  }
+
   function getDraft(name) {
     const key = keyFor(name);
     const aliases = {
@@ -528,8 +570,9 @@
     if (cachedRecord?.schemaVersion === DATA_SCHEMA_VERSION)
       return JSON.parse(JSON.stringify(sanitizeDraftRecord(cachedRecord)));
     const bundledRecord = records[key] || records[resolved];
-    return bundledRecord?.schemaVersion === DATA_SCHEMA_VERSION
-      ? JSON.parse(JSON.stringify(sanitizeDraftRecord(bundledRecord)))
+    const sanitizedBundledRecord = sanitizeDraftRecord(bundledRecord);
+    return sanitizedBundledRecord?.schemaVersion === DATA_SCHEMA_VERSION
+      ? JSON.parse(JSON.stringify(sanitizedBundledRecord))
       : null;
   }
 
@@ -543,11 +586,31 @@
     return job;
   }
 
+  function getHonours(name) {
+    const record = honoursDrafts.get(keyFor(name));
+    return record ? JSON.parse(JSON.stringify(record)) : null;
+  }
+
+  function queueHonours(name) {
+    const key = keyFor(name);
+    const existing = getDraft(name) || getHonours(name);
+    if (existing) return Promise.resolve(existing);
+    if (pendingHonoursDrafts.has(key)) return pendingHonoursDrafts.get(key);
+    const job = prepareHonours(name).finally(() =>
+      pendingHonoursDrafts.delete(key),
+    );
+    pendingHonoursDrafts.set(key, job);
+    return job;
+  }
+
   window.HSVerifiedPlayerDrafts = {
     version: "step-40-verified-autofill-career-table-first-v9",
     get: getDraft,
+    getHonours,
     prepare,
+    prepareHonours,
     queue,
+    queueHonours,
     isReserveOrDevelopmentTeam,
     isMajorIndividualAward,
     sanitizeCareerStints,

@@ -265,49 +265,109 @@
   }
 
   function playerItems() {
-    const items = [];
-    const seen = new Set();
+    const players = new Map();
+    const getter =
+      typeof window.rankGet === "function"
+        ? window.rankGet
+        : typeof rankGet === "function"
+          ? rankGet
+          : null;
 
     Object.keys(RANKING_SECTIONS).forEach((section) => {
-      const key = `${section}_century`;
-      let ranking = null;
+      ["century", "now"].forEach((era) => {
+        let ranking = null;
+        try {
+          ranking = getter?.(`${section}_${era}`);
+        } catch {}
 
-      try {
-        const getter =
-          typeof window.rankGet === "function"
-            ? window.rankGet
-            : typeof rankGet === "function"
-              ? rankGet
-              : null;
-        ranking = getter?.(key);
-      } catch {}
+        let rank = 0;
+        (ranking?.tiers || []).forEach((tier, tierIndex) => {
+          (tier.entries || []).forEach((entry, entryIndex) => {
+            rank += 1;
+            const name = String(entry?.name || "").trim();
+            if (!name) return;
 
-      (ranking?.tiers || []).forEach((tier) => {
-        (tier.entries || []).forEach((entry) => {
-          const name = String(entry?.name || "").trim();
-          if (!name) return;
+            const identity = normalize(name);
+            const player = players.get(identity) || {
+              name,
+              details: new Set(),
+              notes: new Set(),
+              sources: [],
+              centuryRank: Infinity,
+              presentRank: Infinity,
+              positionRank: Infinity,
+            };
+            if (entry.detail) player.details.add(entry.detail);
+            if (entry.note) player.notes.add(entry.note);
+            player.sources.push({ section, era, rank, tierIndex, entryIndex });
 
-          const identity = `${section}:${normalize(name)}`;
-          if (seen.has(identity)) return;
-          seen.add(identity);
+            if (section === "overall" && era === "century")
+              player.centuryRank = Math.min(player.centuryRank, rank);
+            else if (section === "overall" && era === "now")
+              player.presentRank = Math.min(player.presentRank, rank);
+            else if (section !== "overall")
+              player.positionRank = Math.min(player.positionRank, rank);
 
-          items.push({
-            id: `player-${identity}`,
-            type: "Player",
-            group: "Players",
-            title: name,
-            subtitle: `${RANKING_SECTIONS[section]}${entry.detail ? ` · ${entry.detail}` : ""}`,
-            keywords: `${entry.detail || ""} ${entry.note || ""} player profile`,
-            priority: 70,
-            action() {
-              window.HSRouter?.openPlayer?.(section, name);
-            },
+            players.set(identity, player);
           });
         });
       });
     });
 
-    return items;
+    return [...players.entries()].map(([identity, player]) => {
+      const preferredSource =
+        player.sources.find(
+          (source) => source.section === "overall" && source.era === "century",
+        ) ||
+        player.sources.find(
+          (source) => source.section === "overall" && source.era === "now",
+        ) ||
+        [...player.sources].sort((a, b) => a.rank - b.rank)[0];
+      const detail = [...player.details].join(" · ");
+
+      return {
+        id: `player-${identity}`,
+        type: "Player",
+        group: "Players",
+        title: player.name,
+        subtitle: `${preferredSource.era === "now" ? "Present Rankings" : "21st Century Rankings"} · ${RANKING_SECTIONS[preferredSource.section]}${detail ? ` · ${detail}` : ""}`,
+        keywords: `${detail} ${[...player.notes].join(" ")} player profile`,
+        priority: 70,
+        playerRankOrder: [
+          player.centuryRank,
+          player.presentRank,
+          player.positionRank,
+        ],
+        action() {
+          if (preferredSource.era === "century") {
+            window.HSRouter?.openPlayer?.(preferredSource.section, player.name);
+            return;
+          }
+          window.showPage?.("present-rankings");
+          window.showPresentRanking?.(preferredSource.section);
+          setTimeout(
+            () =>
+              window.openRankProfile?.(
+                `${preferredSource.section}_now`,
+                preferredSource.tierIndex,
+                preferredSource.entryIndex,
+              ),
+            80,
+          );
+        },
+      };
+    });
+  }
+
+  function comparePlayerRank(left, right) {
+    const leftOrder = left.playerRankOrder || [];
+    const rightOrder = right.playerRankOrder || [];
+    for (let index = 0; index < 3; index += 1) {
+      const difference =
+        (leftOrder[index] ?? Infinity) - (rightOrder[index] ?? Infinity);
+      if (difference) return difference;
+    }
+    return left.title.localeCompare(right.title);
   }
 
   function xiItems() {
@@ -492,12 +552,29 @@
     }
 
     const allItems = buildItems();
+    const exactCountryQuery = allItems.some(
+      (item) =>
+        item.type === "Country XI" &&
+        normalize(item.title) === normalize(query),
+    );
 
     const seen = new Set();
     currentResults = allItems
       .map((item) => ({ item, score: scoreItem(item, query) }))
       .filter((entry) => entry.score >= 0)
-      .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+      .sort((a, b) => {
+        if (
+          exactCountryQuery &&
+          a.item.type === "Player" &&
+          b.item.type === "Player"
+        ) {
+          const rankDifference = comparePlayerRank(a.item, b.item);
+          if (rankDifference) return rankDifference;
+        }
+        const scoreDifference = b.score - a.score;
+        if (scoreDifference) return scoreDifference;
+        return a.item.title.localeCompare(b.item.title);
+      })
       .map((entry) => entry.item)
       .filter((item) => {
         if (seen.has(item.id)) return false;

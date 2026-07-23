@@ -279,6 +279,13 @@ test("search, media, profiles, and backups retain their storage contracts", () =
   const search = read("command-palette.js");
   assert.match(search, /saveToGitHub/);
   assert.match(search, /currentResults/);
+  assert.match(search, /\["century", "now"\]\.forEach/);
+  assert.match(search, /playerRankOrder/);
+  assert.match(search, /player\.centuryRank/);
+  assert.match(search, /player\.presentRank/);
+  assert.match(search, /player\.positionRank/);
+  assert.match(search, /function comparePlayerRank/);
+  assert.match(search, /exactCountryQuery/);
   const media = read("media-manager.js");
   assert.match(media, /media_library_v1/);
   assert.match(media, /alt/);
@@ -507,6 +514,44 @@ test("player-card autofill separates international honours and preserves owner-e
   assert.match(pilot, /const internationalTitles = \[\]/);
   assert.match(pilot, /careerTeamTitleTotal\(stints, teamTitles, internationalTitles\)/);
   assert.match(pilot, /cachedRecord\?\.schemaVersion === DATA_SCHEMA_VERSION/);
+  assert.match(pilot, /const sanitizedBundledRecord = sanitizeDraftRecord\(bundledRecord\)/);
+  assert.match(pilot, /sanitizedBundledRecord\?\.schemaVersion === DATA_SCHEMA_VERSION/);
+  assert.match(
+    features,
+    /window\.HSVerifiedPlayerDrafts\?\.get\?\.\(entry\?\.name\)/,
+  );
+  assert.match(features, /shouldHydrateHonours/);
+  assert.match(features, /HSVerifiedPlayerDrafts\s*\.queueHonours\(x\.name\)/);
+  assert.match(features, /Loading verified career trophies/);
+  assert.match(pilot, /async function prepareHonours\(name\)/);
+  assert.match(pilot, /prop=wikitext\|revid/);
+  assert.match(pilot, /function queueHonours\(name\)/);
+  assert.match(pilot, /const boldLabel = line\.match/);
+  assert.match(pilot, /const label = boldLabel \|\| definitionLabel/);
+});
+
+test("matchday diary wide writing rail is centered from its actual page wrapper", () => {
+  const styles = read("css/features/writing-system.css");
+  assert.match(styles, /#page-diary > \.content\s*\{/);
+  assert.match(styles, /#page-diary > \.content[\s\S]*?margin-inline: auto !important/);
+  assert.match(styles, /#page-diary \.hs-writing-shell\s*\{\s*width: 100% !important/);
+});
+
+test("masthead and all nine primary navigation tabs exist at first paint", () => {
+  const template = read("src/index.template.html");
+  const mastheadStyles = read("css/features/halfspace-masthead.css");
+  const writing = read("js/features/writing-system.js");
+  assert.match(template, /--hs-initial-masthead-image/);
+  assert.match(mastheadStyles, /var\(\s*--hs-initial-masthead-image/);
+  assert.match(template, /showPage\('betting'\)/);
+  assert.match(template, /showPage\('editorials'\)/);
+  assert.match(template, /hs-transfer-dropdown/);
+  assert.match(writing, /if \(!band\.querySelector\('\[onclick\*="showPage/);
+  const navigation = read("js/public/navigation-and-xis.js");
+  assert.match(
+    navigation,
+    /document\.addEventListener\("DOMContentLoaded", syncXIProfiles\)/,
+  );
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
