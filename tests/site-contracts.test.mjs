@@ -310,6 +310,8 @@ test("deployment automatically rebuilds generated-index conflicts", () => {
   const resolver = read("tools/resolve-generated-index.mjs");
   assert.match(deploy, /conflicted_files/);
   assert.match(deploy, /resolve-generated-index\.mjs/);
+  assert.match(deploy, /resolver_copy=\$\(mktemp/);
+  assert.match(deploy, /"\$node_command" "\$resolver_copy" "\$site_root"/);
   assert.match(deploy, /tools\/build-site\.mjs/);
   assert.match(resolver, /git", \["show", ":2:index\.html"\]/);
   assert.match(resolver, /maxBuffer: 64 \* 1024 \* 1024/);

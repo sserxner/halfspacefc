@@ -37,6 +37,10 @@ backup_stamp=$(date "+%Y-%m-%d_%H-%M-%S")
 git bundle create "$backup_root/halfspace-code-$backup_stamp.bundle" --all
 echo "Recoverable code backup created in $(basename "$backup_root")."
 
+resolver_copy=$(mktemp "${TMPDIR:-/tmp}/halfspace-resolver.XXXXXX.mjs")
+cp "$site_root/tools/resolve-generated-index.mjs" "$resolver_copy"
+trap 'rm -f "$resolver_copy"' EXIT
+
 attempt=1
 while [ "$attempt" -le 2 ]; do
   echo "Synchronizing with the latest live files..."
@@ -45,7 +49,7 @@ while [ "$attempt" -le 2 ]; do
     conflicted_files=$(git diff --name-only --diff-filter=U)
     if [ "$conflicted_files" = "index.html" ]; then
       echo "Preserving the latest live content and rebuilding the generated page..."
-      if "$node_command" tools/resolve-generated-index.mjs "$site_root" &&
+      if "$node_command" "$resolver_copy" "$site_root" &&
         "$node_command" tools/build-site.mjs &&
         git add index.html src/index.template.html &&
         GIT_EDITOR=true git rebase --continue; then
