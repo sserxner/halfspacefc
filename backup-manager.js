@@ -88,7 +88,7 @@
     ensureUI();
     const snapshots = await all();
     document.getElementById("hsBackupList").innerHTML = snapshots.length
-      ? snapshots.map((item) => `<article class="hs-backup-row"><div><strong>${formatDate(item.createdAt)}</strong><span>${item.reason === "before-publish" ? "Automatic pre-publish" : item.reason === "imported" ? "Imported" : "Manual"} · ${formatBytes(item.bytes || 0)}</span></div><div><button type="button" data-backup-download="${item.id}">Download</button><button type="button" data-backup-restore="${item.id}">Restore</button><button type="button" class="danger" data-backup-delete="${item.id}">Delete</button></div></article>`).join("")
+      ? snapshots.map((item) => `<article class="hs-backup-row"><div><strong>${formatDate(item.createdAt)}</strong><span>${item.reason === "before-publish" ? "Automatic pre-publish" : item.reason === "writing-save" ? "Automatic writing save" : item.reason === "imported" ? "Imported" : "Manual"} · ${formatBytes(item.bytes || 0)}</span></div><div><button type="button" data-backup-download="${item.id}">Download</button><button type="button" data-backup-restore="${item.id}">Restore</button><button type="button" class="danger" data-backup-delete="${item.id}">Delete</button></div></article>`).join("")
       : '<div class="hs-backup-empty">No browser backups yet.</div>';
   }
 

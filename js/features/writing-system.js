@@ -186,7 +186,9 @@
     if (!text) return "";
     const inline = (chunk) =>
       esc(chunk)
+        .replace(/\t/g, "&emsp;")
         .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\+\+([^+]+)\+\+/g, "<u>$1</u>")
         .replace(/\*([^*]+)\*/g, "<em>$1</em>");
     return text
       .split(/\n{2,}/)
@@ -443,6 +445,9 @@
         <button type="button" data-insert="subhead">Subhead</button>
         <button type="button" data-insert="quote">Quote</button>
         <button type="button" data-insert="bold">Bold</button>
+        <button type="button" data-insert="underline">Underline</button>
+        <button type="button" data-insert="indent">Indent</button>
+        <button type="button" data-insert="outdent">Outdent</button>
       </div>
       <footer><span class="hs-write-status" data-write-status></span><button type="button" data-write-close>Cancel</button><button type="button" data-write-save="draft">Save draft</button><button type="button" class="primary" data-write-save="publish">Save published</button></footer>
     </section>`;
@@ -452,6 +457,7 @@
     node.addEventListener("click", editorClick);
     node.addEventListener("input", editorInput);
     node.addEventListener("change", editorInput);
+    node.addEventListener("keydown", editorKeydown);
   }
 
   function openEditor(type, index = -1) {
@@ -531,12 +537,49 @@
       subhead: "\n\n## Subhead\n\n",
       quote: "\n\n> Quote here\n\n",
       bold: "**bold text**",
+      underline: "++underlined text++",
     };
     const start = textarea.selectionStart ?? textarea.value.length;
     const end = textarea.selectionEnd ?? start;
-    textarea.value = textarea.value.slice(0, start) + snippets[kind] + textarea.value.slice(end);
+    if (kind === "bold" || kind === "underline") {
+      const marker = kind === "bold" ? "**" : "++";
+      const selected = textarea.value.slice(start, end) || (kind === "bold" ? "bold text" : "underlined text");
+      textarea.value = textarea.value.slice(0, start) + marker + selected + marker + textarea.value.slice(end);
+      textarea.selectionStart = start + marker.length;
+      textarea.selectionEnd = start + marker.length + selected.length;
+    } else if (kind === "indent" || kind === "outdent") {
+      const lineStart = textarea.value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+      const lineEndMatch = textarea.value.indexOf("\n", end);
+      const lineEnd = lineEndMatch < 0 ? textarea.value.length : lineEndMatch;
+      const selectedLines = textarea.value.slice(lineStart, lineEnd);
+      const replacement = kind === "indent"
+        ? selectedLines.replace(/^/gm, "\t")
+        : selectedLines.replace(/^(?:\t| {1,4})/gm, "");
+      textarea.value = textarea.value.slice(0, lineStart) + replacement + textarea.value.slice(lineEnd);
+      textarea.selectionStart = lineStart;
+      textarea.selectionEnd = lineStart + replacement.length;
+    } else {
+      textarea.value = textarea.value.slice(0, start) + snippets[kind] + textarea.value.slice(end);
+    }
     editor.record.body = textarea.value;
     textarea.focus();
+  }
+
+  function editorKeydown(event) {
+    if (!event.target.matches('[data-write-field="body"]')) return;
+    if (event.key === "Tab") {
+      event.preventDefault();
+      insert(event.shiftKey ? "outdent" : "indent");
+      return;
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "b") {
+      event.preventDefault();
+      insert("bold");
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "u") {
+      event.preventDefault();
+      insert("underline");
+    }
   }
 
   function saveEditor(publish) {
@@ -558,6 +601,9 @@
       if (editor.index >= 0) list[editor.index] = editor.record;
       else list.unshift(editor.record);
       saveRecords(editor.type, list);
+      window.HSBackups?.create?.({ reason: "writing-save" }).catch((error) => {
+        console.error("Writing recovery snapshot failed:", error);
+      });
       closeEditor();
     } catch (error) {
       console.error("Writing save failed:", error);

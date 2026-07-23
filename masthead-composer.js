@@ -1290,6 +1290,10 @@
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
     const flattened = config[mode]?.flattened || (mode === "mobile" ? config.desktop?.flattened : "");
+    document.documentElement.classList.toggle(
+      "hs-initial-masthead-composed",
+      Boolean(flattened),
+    );
     heroes.forEach((hero) => {
       hero.classList.toggle("hs-masthead-composed", Boolean(flattened));
       if (flattened) hero.style.setProperty("--hs-masthead-image", `url(${JSON.stringify(flattened)})`);

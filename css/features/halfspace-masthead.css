@@ -89,7 +89,9 @@
 }
 
 .hero.hs-masthead-composed h1,
-.hero.hs-masthead-composed > p:not(.hero-eyebrow) {
+.hero.hs-masthead-composed > p:not(.hero-eyebrow),
+.hs-initial-masthead-composed .hero h1,
+.hs-initial-masthead-composed .hero > p:not(.hero-eyebrow) {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;

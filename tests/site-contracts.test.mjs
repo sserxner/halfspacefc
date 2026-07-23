@@ -242,8 +242,18 @@ test("admin saves avoid browser storage quota failures", () => {
   assert.match(errorLog, /QUOTA_COOLDOWN = 60000/);
   assert.match(publishing, /saveData\(\{ markChanges: false \}\)/);
   assert.doesNotMatch(publishing, /localStorage\.setItem\("halfspace_data",\s*JSON\.stringify\(siteData\)\)/);
-  assert.match(template, /js\/admin\/editor\.js\?v=40\.16/);
+  assert.match(template, /js\/admin\/editor\.js\?v=40\.17/);
   assert.match(template, /autosave\.js\?v=16\.3/);
+});
+
+test("a corrupt empty browser draft cannot blank the published site", () => {
+  const editor = read("js/admin/editor.js");
+  assert.match(editor, /const emptyOverrideKeys = new Set/);
+  assert.match(editor, /const recoveringCorruptEmptyDraft = emptyOverrideKeys\.size >= 3/);
+  assert.match(
+    editor,
+    /recoveringCorruptEmptyDraft && emptyOverrideKeys\.has\(key\)/,
+  );
 });
 
 test("code updates cannot overwrite newer published content", () => {
@@ -870,6 +880,13 @@ test("Diaries, Editorials, Transfers, and Betting share one writing system", () 
   assert.match(system, /window\.addDiaryEntry/);
   assert.match(system, /window\.editTransferRecommendation/);
   assert.match(system, /HSData/);
+  assert.match(system, /data-insert="underline"/);
+  assert.match(system, /data-insert="indent"/);
+  assert.match(system, /event\.key === "Tab"/);
+  assert.match(system, /event\.key\.toLowerCase\(\) === "b"/);
+  assert.match(system, /event\.key\.toLowerCase\(\) === "u"/);
+  assert.match(system, /reason: "writing-save"/);
+  assert.match(system, /<u>\$1<\/u>/);
   assert.match(content, /function editorialHTML/);
   assert.match(styles, /\.hs-writing-shell/);
   assert.match(styles, /\.hs-writing-card/);
@@ -939,6 +956,8 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /approved_manager_left/);
   assert.match(composer, /approved_fourteen/);
   assert.match(composer, /Clean green-and-gold canvas \+ independent layers/);
+  assert.match(composer, /hs-initial-masthead-composed/);
+  assert.match(mastheadStyles, /\.hs-initial-masthead-composed \.hero h1/);
   assert.match(composer, /data-mc-mode="desktop"/);
   assert.match(composer, /data-mc-mode="mobile"/);
   assert.match(composer, /Dissolve into banner/);

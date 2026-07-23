@@ -50,7 +50,9 @@
     if (!text) return "";
     const inline = (chunk) =>
       esc(chunk)
+        .replace(/\t/g, "&emsp;")
         .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\+\+([^+]+)\+\+/g, "<u>$1</u>")
         .replace(/\*([^*]+)\*/g, "<em>$1</em>");
     return text
       .split(/\n{2,}/)

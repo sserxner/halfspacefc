@@ -145,6 +145,33 @@
       function mergeLocalDraftWithPublished(local, baked) {
         const merged = Object.assign({}, cloneData(baked || {}));
         const localData = local && typeof local === "object" ? local : {};
+        const unexpectedlyEmpty = (localValue, publishedValue) => {
+          if (Array.isArray(publishedValue)) {
+            return publishedValue.length > 0 &&
+              Array.isArray(localValue) &&
+              localValue.length === 0;
+          }
+          if (
+            publishedValue &&
+            typeof publishedValue === "object" &&
+            !Array.isArray(publishedValue)
+          ) {
+            return (
+              localValue &&
+              typeof localValue === "object" &&
+              !Array.isArray(localValue) &&
+              Object.keys(publishedValue).length > 0 &&
+              Object.keys(localValue).length === 0
+            );
+          }
+          return false;
+        };
+        const emptyOverrideKeys = new Set(
+          Object.keys(localData).filter((key) =>
+            unexpectedlyEmpty(localData[key], (baked || {})[key]),
+          ),
+        );
+        const recoveringCorruptEmptyDraft = emptyOverrideKeys.size >= 3;
         const bakedRevision = String((baked || {})[CONTENT_REVISION_KEY] || "");
         const localRevision = String(localData[CONTENT_REVISION_KEY] || "");
         const localClock =
@@ -165,6 +192,7 @@
           if (
             key === CONTENT_REVISION_KEY ||
             key === CONTENT_CLOCK_KEY ||
+            (recoveringCorruptEmptyDraft && emptyOverrideKeys.has(key)) ||
             !localMayOverride(key)
           ) {
             return;
@@ -189,6 +217,7 @@
           Object.entries(localClock).filter(
             ([key, timestamp]) =>
               Boolean(timestamp) &&
+              !(recoveringCorruptEmptyDraft && emptyOverrideKeys.has(key)) &&
               Object.prototype.hasOwnProperty.call(localData, key) &&
               !sameData(localData[key], (baked || {})[key]),
           ),
