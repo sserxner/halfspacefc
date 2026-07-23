@@ -189,6 +189,16 @@
       .rank-profile-facts-compact {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+      .rank-profile-fact-group span:not(:first-child) {
+        margin-top: 0.55rem;
+        padding-top: 0.55rem;
+        border-top: 1px solid var(--gray-200);
+      }
+      .rank-career-transfer {
+        margin: 0.35rem 0 0.5rem;
+        color: #8b6c0d;
+        font: 800 0.68rem/1.3 var(--sans);
+      }
       .rank-profile-title-total {
         display: flex;
         align-items: baseline;
@@ -544,7 +554,10 @@
           padding: 1.3rem;
         }
         .rank-profile-facts {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .rank-profile-fact-group:last-child:nth-child(odd) {
+          grid-column: 1 / -1;
         }
         .rank-profile-awards > div {
           display: grid;

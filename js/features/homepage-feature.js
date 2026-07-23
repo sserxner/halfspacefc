@@ -48,6 +48,16 @@
   function bodyHTML(value) {
     const text = String(value || "").replace(/\r\n/g, "\n").trim();
     if (!text) return "";
+    if (/<\/?(?:p|div|h[2-4]|blockquote|strong|b|u|em|i|figure|img|br)\b/i.test(text)) {
+      const template = document.createElement("template");
+      template.innerHTML = text;
+      template.content.querySelectorAll("script,style,iframe,object,embed,form,input,button").forEach((node) => node.remove());
+      template.content.querySelectorAll("*").forEach((node) => [...node.attributes].forEach((attribute) => {
+        if (node.tagName === "IMG" && ["src", "alt", "loading", "decoding"].includes(attribute.name)) return;
+        node.removeAttribute(attribute.name);
+      }));
+      return template.innerHTML;
+    }
     const inline = (chunk) =>
       esc(chunk)
         .replace(/\t/g, "&emsp;")
@@ -64,6 +74,28 @@
         return `<p>${inline(clean).replace(/\n/g, "<br>")}</p>`;
       })
       .join("");
+  }
+
+  function excerptHTML(value) {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = bodyHTML(value);
+    wrapper.querySelectorAll("figure").forEach((node) => node.remove());
+    const blocks = [...wrapper.children].filter((node) => /^(P|H2|H3|H4|BLOCKQUOTE|DIV)$/.test(node.tagName));
+    const excerpt = document.createElement("div");
+    let characters = 0;
+    for (const block of blocks) {
+      if (excerpt.children.length >= 3 || characters >= 720) break;
+      excerpt.append(block.cloneNode(true));
+      characters += (block.textContent || "").length;
+    }
+    return excerpt.innerHTML || `<p>${esc(wrapper.textContent?.slice(0, 720) || "")}</p>`;
+  }
+
+  function formatDate(value) {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value || "";
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+      .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   }
 
   function allEntries() {
@@ -86,10 +118,10 @@
 
   function metaFor(item) {
     const e = item.entry || {};
-    if (item.type === "betting") return [e.league === "ucl" ? "Champions League" : "Premier League", e.round, e.date].filter(Boolean).join(" · ");
-    if (item.type === "diary") return [e.competition, e.fixture || e.matchweek, e.date].filter(Boolean).join(" · ");
-    if (item.type === "editorial") return [e.topic, e.teams, e.competitions, e.date].filter(Boolean).join(" · ");
-    return [e.type === "grades" ? "Transfer Grade" : "Transfer Rec", e.club, e.date].filter(Boolean).join(" · ");
+    if (item.type === "betting") return [e.league === "ucl" ? "Champions League" : "Premier League", e.round, formatDate(e.date)].filter(Boolean).join(" · ");
+    if (item.type === "diary") return [e.competition, e.fixture || e.matchweek, formatDate(e.date)].filter(Boolean).join(" · ");
+    if (item.type === "editorial") return [e.category === "opinion" || !e.category ? "Opinion" : e.category, e.topic, formatDate(e.date)].filter(Boolean).join(" · ");
+    return [e.type === "grades" ? "Transfer Grade" : "Transfer Rec", e.club, formatDate(e.date)].filter(Boolean).join(" · ");
   }
 
   function tagsFor(item) {
@@ -212,18 +244,20 @@
     root.innerHTML = `${controls(items, feature)}
       <section class="hs-home-reading-layout">
         <article class="hs-home-lead-story hs-writing-card hs-writing-card-published featured">
+          ${feature.entry.coverImage ? `<figure class="hs-home-cover"><img src="${esc(feature.entry.coverImage)}" alt="${esc(feature.entry.coverAlt || titleFor(feature))}"></figure>` : ""}
           <header>
             <p class="hs-home-kicker hs-writing-kicker">${esc(feature.cfg.label)}</p>
           <h2>${esc(titleFor(feature))}</h2>
           <p class="hs-home-meta">${esc(metaFor(feature))}</p>
             ${tagsFor(feature).length ? `<div class="hs-writing-tags">${tagsFor(feature).map((tag) => `<span>${esc(tag)}</span>`).join("")}</div>` : ""}
           </header>
-          <div class="hs-home-body hs-writing-body">${bodyHTML(feature.entry.body) || `<p>${esc(feature.entry.excerpt || "No body added yet.")}</p>`}</div>
+          <div class="hs-home-body hs-writing-body">${excerptHTML(feature.entry.body) || `<p>${esc(feature.entry.excerpt || "No body added yet.")}</p>`}</div>
+          <button class="hs-home-continue" type="button" onclick="HSHomepageFeature.open('${feature.type}',${feature.index})">Continue reading</button>
         </article>
         <aside class="hs-home-latest-rail">
           <h3>Headlines</h3>
           ${latest.length ? latest.map((item, position) => `<div class="hs-home-headline-row">
-            <button class="hs-home-headline-link" type="button" onclick="HSHomepageFeature.open('${item.type}',${item.index})"><span>${esc(item.cfg.label)}</span><strong>${esc(titleFor(item))}</strong><small>${esc(metaFor(item))}</small></button>
+            <button class="hs-home-headline-link" type="button" onclick="HSHomepageFeature.open('${item.type}',${item.index})">${item.entry.coverImage ? `<img src="${esc(item.entry.coverImage)}" alt="">` : ""}<span>${esc(item.type === "editorial" ? "Opinion" : item.cfg.label)}</span><strong>${esc(titleFor(item))}</strong><small>${esc(metaFor(item))}</small></button>
             ${admin() ? `<div class="hs-home-headline-order" aria-label="Reorder ${esc(titleFor(item))}">
               <button type="button" title="Move headline up" aria-label="Move headline up" onclick="HSHomepageFeature.move('${item.type}',${item.index},-1)" ${position === 0 ? "disabled" : ""}>↑</button>
               <button type="button" title="Move headline down" aria-label="Move headline down" onclick="HSHomepageFeature.move('${item.type}',${item.index},1)" ${position === latest.length - 1 ? "disabled" : ""}>↓</button>

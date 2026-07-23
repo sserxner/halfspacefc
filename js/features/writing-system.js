@@ -123,6 +123,7 @@
       plural: "Editorials",
       empty: "No editorials yet.",
       fields: [
+        ["category", "Category", "select:opinion=Opinion"],
         ["title", "Title", "text"],
         ["date", "Date", "date"],
         ["topic", "Topic", "text"],
@@ -158,6 +159,7 @@
     diaryFilter: "all",
     editorialFilter: "all",
     transferClub: "all",
+    editorialSection: "opinion",
   };
 
   function records(type) {
@@ -184,6 +186,8 @@
   function bodyHTML(value) {
     const text = String(value || "").replace(/\r\n/g, "\n").trim();
     if (!text) return "";
+    if (/<\/?(?:p|div|h[2-4]|blockquote|strong|b|u|em|i|figure|img|br)\b/i.test(text))
+      return sanitizeRichHTML(text);
     const inline = (chunk) =>
       esc(chunk)
         .replace(/\t/g, "&emsp;")
@@ -204,6 +208,38 @@
       .join("");
   }
 
+  function sanitizeRichHTML(value) {
+    const template = document.createElement("template");
+    template.innerHTML = String(value || "");
+    const allowed = new Set(["P", "DIV", "H2", "H3", "H4", "BLOCKQUOTE", "STRONG", "B", "U", "EM", "I", "FIGURE", "FIGCAPTION", "IMG", "BR"]);
+    template.content.querySelectorAll("*").forEach((node) => {
+      if (!allowed.has(node.tagName)) {
+        node.replaceWith(...node.childNodes);
+        return;
+      }
+      [...node.attributes].forEach((attribute) => {
+        if (node.tagName === "IMG" && ["src", "alt", "loading", "decoding"].includes(attribute.name)) return;
+        node.removeAttribute(attribute.name);
+      });
+      if (node.tagName === "IMG") {
+        const src = node.getAttribute("src") || "";
+        if (!/^(?:data:image\/|https?:\/\/|\/|\.{0,2}\/)/i.test(src)) node.remove();
+        else {
+          node.loading = "lazy";
+          node.decoding = "async";
+        }
+      }
+    });
+    return template.innerHTML;
+  }
+
+  function formatDate(value) {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value || "";
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+      .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+
   function articleCard(type, entry, index, opts = {}) {
     const cfg = configs[type];
     const title =
@@ -218,7 +254,7 @@
           : type === "transfer"
             ? transferLabel(entry.type)
             : [entry.topic, entry.competitions].filter(Boolean).join(" · ");
-    const meta = [entry.date, entry.teams || entry.club].filter(Boolean).join(" · ");
+    const meta = [formatDate(entry.date), entry.teams || entry.club].filter(Boolean).join(" · ");
     const tagKeys =
       type === "diary"
         ? ["competition", "teams"]
@@ -241,6 +277,7 @@
         </div>`
       : "";
     return `<article class="hs-writing-card ${opts.featured ? "featured" : ""}" data-writing-type="${type}" data-writing-index="${index}">
+      ${entry.coverImage ? `<figure class="hs-writing-cover"><img src="${esc(entry.coverImage)}" alt="${esc(entry.coverAlt || title)}"></figure>` : ""}
       <header>
         ${kicker ? `<p class="hs-writing-kicker">${esc(kicker)}</p>` : ""}
         <h2>${esc(title)}</h2>
@@ -451,7 +488,12 @@
       <header><div><span>Half Space Studio</span><h2>Writing</h2></div><button class="hs-write-big-close" type="button" data-write-close aria-label="Close editor">× Close</button></header>
       <div class="hs-write-form"></div>
       <label class="hs-write-featured"><input type="checkbox" data-write-featured> Feature this on the homepage</label>
-      <label class="hs-write-body"><span>Piece</span><textarea data-write-field="body" placeholder="Write with blank lines for paragraphs. Use ## for subheads, > for quotes, **bold** for emphasis."></textarea></label>
+      <section class="hs-write-media-fields">
+        <div class="hs-write-cover-preview" data-write-cover-preview></div>
+        <label><span>Cover photo</span><input data-write-field="coverImage" data-write-cover placeholder="Choose an image or paste its URL"></label>
+        <label><span>Cover photo description</span><input data-write-field="coverAlt" placeholder="Describe the image for readers using screen readers"></label>
+        <button type="button" data-write-cover-choose>Choose cover from Media</button>
+      </section>
       <div class="hs-write-tools">
         <button type="button" data-insert="paragraph">Paragraph</button>
         <button type="button" data-insert="subhead">Subhead</button>
@@ -460,7 +502,9 @@
         <button type="button" data-insert="underline">Underline</button>
         <button type="button" data-insert="indent">Indent</button>
         <button type="button" data-insert="outdent">Outdent</button>
+        <button type="button" data-write-inline-media>＋ Image in article</button>
       </div>
+      <label class="hs-write-body"><span>Piece</span><div class="hs-write-rich-editor" data-write-field="body" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Start writing…"></div></label>
       <footer><span class="hs-write-status" data-write-status></span><button type="button" data-write-close>Cancel</button><button type="button" data-write-save="draft">Save draft</button><button type="button" class="primary" data-write-save="publish">Save published</button></footer>
     </section>`;
     document.body.appendChild(node);
@@ -495,7 +539,10 @@
     root.querySelector(".hs-write-form").innerHTML = cfg.fields
       .map((field) => fieldHTML(record, field))
       .join("");
-    root.querySelector('[data-write-field="body"]').value = record.body || "";
+    root.querySelector('[data-write-field="body"]').innerHTML = bodyHTML(record.body || "");
+    root.querySelector('[data-write-field="coverImage"]').value = record.coverImage || "";
+    root.querySelector('[data-write-field="coverAlt"]').value = record.coverAlt || "";
+    updateCoverPreview();
     root.querySelector("[data-write-featured]").checked = Boolean(record.featured);
     setEditorStatus("");
     setEditorBusy(false);
@@ -518,8 +565,10 @@
       editor.record.featured = event.target.checked;
       return;
     }
-    const key = event.target.dataset.writeField;
-    if (key) editor.record[key] = event.target.value;
+    const field = event.target.closest?.("[data-write-field]");
+    const key = field?.dataset.writeField;
+    if (key) editor.record[key] = field.isContentEditable ? sanitizeRichHTML(field.innerHTML) : field.value;
+    if (key === "coverImage") updateCoverPreview();
   }
 
   function editorClick(event) {
@@ -531,6 +580,24 @@
       return closeEditor();
     }
     if (!editor) return;
+    if (button.matches("[data-write-cover-choose]")) {
+      event.preventDefault();
+      return window.HSMediaManager?.open?.({ onChoose(asset) {
+        editor.record.coverImage = asset.src;
+        const input = document.querySelector("#hsWritingEditor [data-write-cover]");
+        if (input) input.value = asset.src;
+        if (!editor.record.coverAlt && asset.alt) {
+          editor.record.coverAlt = asset.alt;
+          const alt = document.querySelector('#hsWritingEditor [data-write-field="coverAlt"]');
+          if (alt) alt.value = asset.alt;
+        }
+        updateCoverPreview();
+      }});
+    }
+    if (button.matches("[data-write-inline-media]")) {
+      event.preventDefault();
+      return chooseInlineMedia();
+    }
     if (button.dataset.insert) {
       event.preventDefault();
       return insert(button.dataset.insert);
@@ -542,43 +609,42 @@
   }
 
   function insert(kind) {
-    const textarea = document.querySelector('#hsWritingEditor [data-write-field="body"]');
-    if (!textarea) return;
-    const snippets = {
-      paragraph: "\n\n",
-      subhead: "\n\n## Subhead\n\n",
-      quote: "\n\n> Quote here\n\n",
-      bold: "**bold text**",
-      underline: "++underlined text++",
+    const rich = document.querySelector('#hsWritingEditor [data-write-field="body"]');
+    if (!rich) return;
+    rich.focus();
+    const commands = {
+      paragraph: ["formatBlock", "p"],
+      subhead: ["formatBlock", "h3"],
+      quote: ["formatBlock", "blockquote"],
+      bold: ["bold", null],
+      underline: ["underline", null],
+      indent: ["indent", null],
+      outdent: ["outdent", null],
     };
-    const start = textarea.selectionStart ?? textarea.value.length;
-    const end = textarea.selectionEnd ?? start;
-    if (kind === "bold" || kind === "underline") {
-      const marker = kind === "bold" ? "**" : "++";
-      const selected = textarea.value.slice(start, end) || (kind === "bold" ? "bold text" : "underlined text");
-      textarea.value = textarea.value.slice(0, start) + marker + selected + marker + textarea.value.slice(end);
-      textarea.selectionStart = start + marker.length;
-      textarea.selectionEnd = start + marker.length + selected.length;
-    } else if (kind === "indent" || kind === "outdent") {
-      const lineStart = textarea.value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
-      const lineEndMatch = textarea.value.indexOf("\n", end);
-      const lineEnd = lineEndMatch < 0 ? textarea.value.length : lineEndMatch;
-      const selectedLines = textarea.value.slice(lineStart, lineEnd);
-      const replacement = kind === "indent"
-        ? selectedLines.replace(/^/gm, "\t")
-        : selectedLines.replace(/^(?:\t| {1,4})/gm, "");
-      textarea.value = textarea.value.slice(0, lineStart) + replacement + textarea.value.slice(lineEnd);
-      textarea.selectionStart = lineStart;
-      textarea.selectionEnd = lineStart + replacement.length;
-    } else {
-      textarea.value = textarea.value.slice(0, start) + snippets[kind] + textarea.value.slice(end);
-    }
-    editor.record.body = textarea.value;
-    textarea.focus();
+    const [command, value] = commands[kind] || [];
+    if (command) document.execCommand(command, false, value);
+    editor.record.body = sanitizeRichHTML(rich.innerHTML);
+  }
+
+  function chooseInlineMedia() {
+    const rich = document.querySelector('#hsWritingEditor [data-write-field="body"]');
+    rich?.focus();
+    window.HSMediaManager?.open?.({ onChoose(asset) {
+      rich?.focus();
+      const caption = asset.alt || asset.title || "";
+      document.execCommand("insertHTML", false, `<figure><img src="${esc(asset.src)}" alt="${esc(asset.alt || asset.title || "")}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ""}</figure><p><br></p>`);
+      editor.record.body = sanitizeRichHTML(rich.innerHTML);
+    }});
+  }
+
+  function updateCoverPreview() {
+    const preview = document.querySelector("#hsWritingEditor [data-write-cover-preview]");
+    const src = document.querySelector("#hsWritingEditor [data-write-cover]")?.value || "";
+    if (preview) preview.innerHTML = src ? `<img src="${esc(src)}" alt="">` : "<span>No cover selected</span>";
   }
 
   function editorKeydown(event) {
-    if (!event.target.matches('[data-write-field="body"]')) return;
+    if (!event.target.closest?.('[data-write-field="body"]')) return;
     if (event.key === "Tab") {
       event.preventDefault();
       insert(event.shiftKey ? "outdent" : "indent");
@@ -646,10 +712,20 @@
       diary.insertAdjacentHTML(
         "beforebegin",
         `<div class="page" id="page-editorials"><div class="content-wide">
-          <div class="section-header"><span class="section-title">Editorials</span><span class="section-sub">Longer pieces, arguments, obsessions, and football writing.</span></div>
+          <div class="section-header"><span class="section-title">Editorials</span><span class="section-sub" data-editable="editorials_sub" contenteditable="true">Opinion, arguments, obsessions, and football writing.</span></div>
+          <div class="sub-tabs hs-editorial-tabs">
+            <button class="sub-tab active" onclick="HSWritingSystem.showEditorialSection('opinion')">Opinion</button>
+            <button class="sub-tab" onclick="HSWritingSystem.showEditorialSection('diary')">Matchday Diaries</button>
+          </div>
           <div id="editorialsFeed"></div>
         </div></div>`,
       );
+    }
+    if (diary && !diary.querySelector(".hs-editorial-tabs")) {
+      diary.querySelector(".section-header")?.insertAdjacentHTML("afterend", `<div class="sub-tabs hs-editorial-tabs">
+        <button class="sub-tab" onclick="HSWritingSystem.showEditorialSection('opinion')">Opinion</button>
+        <button class="sub-tab active" onclick="HSWritingSystem.showEditorialSection('diary')">Matchday Diaries</button>
+      </div>`);
     }
     if (diary && !document.getElementById("page-betting")) {
       diary.insertAdjacentHTML(
@@ -669,19 +745,23 @@
   function ensureNav() {
     const band = document.querySelector(".nav-tab-band");
     if (!band || band.dataset.writingNavUpgraded === "1") return;
-    const diaryButton = [...band.children].find((node) => /Matchday Diaries/i.test(node.textContent || ""));
-    if (diaryButton) {
-      if (!band.querySelector('[onclick*="showPage(\'betting\')"]'))
-        diaryButton.insertAdjacentHTML(
-          "beforebegin",
-          `<button class="nav-tab hs-writing-top-tab" onclick="showPage('betting')">Betting Corner</button>`,
-        );
-      if (!band.querySelector('[onclick*="showPage(\'editorials\')"]'))
-        diaryButton.insertAdjacentHTML(
-          "beforebegin",
-          `<button class="nav-tab hs-writing-top-tab" onclick="showPage('editorials')">Editorials</button>`,
-        );
-    }
+    [...band.children].forEach((node) => {
+      if (/^(Editorials|Matchday Diaries|Positions|Contact)$/i.test((node.textContent || "").trim())) node.remove();
+    });
+    const bettingButton = [...band.children].find((node) => /Betting Corner/i.test(node.textContent || ""));
+    if (bettingButton && !band.querySelector(".hs-editorials-dropdown"))
+      bettingButton.insertAdjacentHTML("afterend", `<div class="nav-dropdown hs-editorials-dropdown">
+        <button aria-expanded="false" aria-haspopup="true" class="nav-tab nav-dropdown-toggle" type="button">Editorials ▾</button>
+        <div class="nav-dropdown-menu" role="menu">
+          <button type="button" onclick="HSWritingSystem.showEditorialSection('opinion')">Opinion</button>
+          <button type="button" onclick="HSWritingSystem.showEditorialSection('diary')">Matchday Diaries</button>
+        </div>
+      </div>`);
+    const miscMenu = document.getElementById("miscMenu");
+    [["positions", "Positions"], ["contact", "Contact"]].forEach(([page, label]) => {
+      if (miscMenu && !miscMenu.querySelector(`[data-misc-page="${page}"]`))
+        miscMenu.insertAdjacentHTML("beforeend", `<button data-misc-page="${page}" type="button">${label}</button>`);
+    });
     const transferButton = [...band.children].find(
       (node) => node.matches?.("button.nav-tab") && /^Transfers$/i.test((node.textContent || "").trim()),
     );
@@ -764,6 +844,15 @@
     filterEditorial(value) {
       state.editorialFilter = value;
       renderEditorials();
+    },
+    showEditorialSection(section) {
+      state.editorialSection = section === "diary" ? "diary" : "opinion";
+      showPage(state.editorialSection === "diary" ? "diary" : "editorials");
+      document.querySelectorAll(".hs-editorial-tabs").forEach((tabs) => {
+        [...tabs.querySelectorAll("button")].forEach((button) =>
+          button.classList.toggle("active", state.editorialSection === "diary" ? /Matchday/i.test(button.textContent) : /Opinion/i.test(button.textContent)),
+        );
+      });
     },
     filterTransferClub(value) {
       state.transferClub = value;

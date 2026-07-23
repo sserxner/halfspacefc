@@ -358,7 +358,15 @@
   function urlFor(id, fallbackSlug = "", explicitSlug = "") {
     const target = targetById(id);
     const slug = slugify(explicitSlug) || slugFor(id, fallbackSlug || target?.defaultSlug);
-    const url = new URL("/", ORIGIN);
+    // Keep the deployed project path (for example /halfspacefc/) instead of
+    // sending GitHub Pages visitors back to the account root.
+    const deploymentPath = (() => {
+      const path = window.location.pathname || "/";
+      if (path.endsWith("/")) return path;
+      const last = path.split("/").pop() || "";
+      return last.includes(".") ? path.slice(0, path.lastIndexOf("/") + 1) || "/" : `${path}/`;
+    })();
+    const url = new URL(deploymentPath, ORIGIN);
 
     if (id.startsWith("ranking:")) {
       url.searchParams.set("view", "rankings");

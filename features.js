@@ -818,19 +818,18 @@
               stint.goals ? `${esc(stint.goals)} goals` : "",
               stint.assists ? `${esc(stint.assists)} assists` : "",
             ].filter(Boolean);
-            return `<article class="rank-career-stop${isCurrentStint ? " is-current" : ""}"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(displayedYears)}</div><h3>${esc(stint.club || "")}</h3>${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}</div></article>`;
+            return `<article class="rank-career-stop${isCurrentStint ? " is-current" : ""}"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(displayedYears)}</div><h3>${esc(stint.club || "")}</h3>${index > 0 && stint.transferFee ? `<div class="rank-career-transfer">Joined for ${esc(stint.transferFee)}</div>` : ""}${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}</div></article>`;
           }).join("")}</div></section>`;
         };
         const profileFactsHTML = (card, isCurrentPlayer) => {
-          const facts = [
-            ["Current club", isCurrentPlayer ? card.currentClub : ""],
-            ["Age", isCurrentPlayer ? calculatedAge(card.dateOfBirth) || card.age : ""],
-            ["National team", card.nationalTeam || card.nationality],
-            ["Caps (Goals)", card.internationalCaps || card.internationalGoals ? `${card.internationalCaps || "—"} (${card.internationalGoals || "—"})` : ""],
-            ["Transfer value", isCurrentPlayer ? card.transferValue : ""],
-          ].filter(([, value]) => String(value || "").trim());
-          return facts.length
-            ? `<section class="rank-profile-section rank-profile-overview"><div class="rank-profile-label">Player Overview</div><div class="rank-profile-facts">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div></section>`
+          const transferValue = String(card.transferValue || "").trim();
+          const groups = [
+            [["Current club", isCurrentPlayer ? card.currentClub : ""], ["Transfer value", isCurrentPlayer && !/^(?:n\/?a|unknown|—)$/i.test(transferValue) ? transferValue : ""]],
+            [["National team", card.nationalTeam || card.nationality], ["Caps (Goals)", card.internationalCaps || card.internationalGoals ? `${card.internationalCaps || "—"} (${card.internationalGoals || "—"})` : ""]],
+            [["Age", isCurrentPlayer ? calculatedAge(card.dateOfBirth) || card.age : ""]],
+          ].map((group) => group.filter(([, item]) => String(item || "").trim())).filter((group) => group.length);
+          return groups.length
+            ? `<section class="rank-profile-section rank-profile-overview"><div class="rank-profile-label">Player Overview</div><div class="rank-profile-facts">${groups.map((group) => `<div class="rank-profile-fact-group">${group.map(([label, item]) => `<span>${esc(label)}</span><strong>${esc(item)}</strong>`).join("")}</div>`).join("")}</div></section>`
             : "";
         };
         const internationalHTML = (card) => {
@@ -1081,12 +1080,18 @@
             .split("\n")
             .map((line) => line.split("|").map((item) => item.trim()))
             .filter((row) => row[0])
-            .map(([club, years, appearances, goals, assists, trophies]) => ({
-              club, years, appearances, goals, assists, trophies: titleParts(trophies),
+            .map(([club, years, appearances, goals, assists, sixth, seventh]) => ({
+              club,
+              years,
+              appearances,
+              goals,
+              assists,
+              transferFee: seventh === undefined ? "" : sixth,
+              trophies: titleParts(seventh === undefined ? sixth : seventh),
             }))
             .filter((stint) => !isReserveOrDevelopmentTeam(stint.club));
           const formatStintLines = (stints) => careerStints({ careerStints: stints })
-            .map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, titleParts(stint.trophies).join("; ")].map((value) => value || "").join(" | "))
+            .map((stint) => [stint.club, stint.years, stint.appearances, stint.goals, stint.assists, stint.transferFee, titleParts(stint.trophies).join("; ")].map((value) => value || "").join(" | "))
             .join("\n");
           const parseAwardLines = (value) => String(value || "")
             .split("\n")
@@ -1119,7 +1124,7 @@
             <div><label>Career team trophies</label><input id="rpcCareerTrophyTotal" value="${esc(c.careerTrophyTotal || "")}" placeholder="Verified career total"></div>
             <div><label>Your transfer value</label><input id="rpcTransferValue" value="${esc(c.transferValue || "")}" placeholder="Left blank for you"></div>
             <div class="full rank-editor-section-title">Visual career map</div>
-            <div class="full"><label>Career-map rows — Club | Years | Apps | Goals | Assists | Trophies separated by semicolons</label><textarea id="rpcCareerStints" placeholder="Barcelona | 2004–2021 | 520 | 474 |  | La Liga ×10; Champions League ×4">${esc(stintLines)}</textarea></div>
+            <div class="full"><label>Career-map rows — Club | Years | Apps | Goals | Assists | Transfer fee | Trophies separated by semicolons</label><textarea id="rpcCareerStints" placeholder="Barcelona | 2004–2021 | 520 | 474 |  | €0 | La Liga ×10; Champions League ×4">${esc(stintLines)}</textarea></div>
             <div class="full"><label>Legacy teams timeline — used only until structured career-map rows are added</label><textarea id="rpcTeamsTimeline">${esc(c.teamsTimeline || c.teams || x.detail || "")}</textarea></div>
             <div class="full rank-editor-section-title">Honours and existing card details</div>
             <div class="full"><label>Major individual awards only: Award | Club or country | Year</label><textarea id="rpcAwards" placeholder="Ballon d'Or | Barcelona | 2019">${esc(awardLines)}</textarea><small>Kept automatically: Ballon d’Or; league or country Player of the Year; Golden Boot/Shoe; World Cup, Euros or Copa América Player of the Tournament.</small></div>

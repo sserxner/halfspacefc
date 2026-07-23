@@ -565,16 +565,20 @@ test("matchday diary wide writing rail is centered from its actual page wrapper"
   assert.match(styles, /#page-diary \.hs-writing-shell\s*\{\s*width: 100% !important/);
 });
 
-test("masthead and all nine primary navigation tabs exist at first paint", () => {
+test("masthead and the consolidated primary navigation exist at first paint", () => {
   const template = read("src/index.template.html");
   const mastheadStyles = read("css/features/halfspace-masthead.css");
   const writing = read("js/features/writing-system.js");
   assert.match(template, /--hs-initial-masthead-image/);
   assert.match(mastheadStyles, /var\(\s*--hs-initial-masthead-image/);
   assert.match(template, /showPage\('betting'\)/);
-  assert.match(template, /showPage\('editorials'\)/);
+  assert.match(template, /showEditorialSection\('opinion'\)/);
+  assert.match(template, /showEditorialSection\('diary'\)/);
+  assert.match(template, /data-misc-page="positions"/);
+  assert.match(template, /data-misc-page="contact"/);
   assert.match(template, /hs-transfer-dropdown/);
-  assert.match(writing, /if \(!band\.querySelector\('\[onclick\*="showPage/);
+  assert.match(writing, /band\.dataset\.writingNavUpgraded/);
+  assert.match(writing, /hs-editorials-dropdown/);
   const navigation = read("js/public/navigation-and-xis.js");
   assert.match(
     navigation,
