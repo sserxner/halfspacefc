@@ -802,15 +802,23 @@
           if (today.getMonth() + 1 < Number(match[2]) || (today.getMonth() + 1 === Number(match[2]) && today.getDate() < Number(match[3]))) age--;
           return age >= 0 ? String(age) : "";
         };
-        const careerMapHTML = (stints) => {
+        const careerMapHTML = (stints, card, isCurrentPlayer) => {
           if (!stints.length) return "";
           return `<section class="rank-profile-section rank-career-section"><div class="rank-profile-label">Career Map</div><div class="rank-career-map">${stints.map((stint, index) => {
+            const isCurrentStint =
+              isCurrentPlayer &&
+              (card.currentClub
+                ? playerKey(stint.club) === playerKey(card.currentClub)
+                : index === stints.length - 1);
+            const displayedYears = isCurrentStint
+              ? String(stint.years || "").replace(/^(\d{4})(?:\s*[–—-]\s*.*)?$/, "$1—")
+              : stint.years || "";
             const stats = [
               stint.appearances !== "" && stint.appearances != null ? `${esc(stint.appearances)} apps` : "",
               stint.goals ? `${esc(stint.goals)} goals` : "",
               stint.assists ? `${esc(stint.assists)} assists` : "",
             ].filter(Boolean);
-            return `<article class="rank-career-stop"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(stint.years || "")}</div><h3>${esc(stint.club || "")}</h3>${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}</div></article>`;
+            return `<article class="rank-career-stop${isCurrentStint ? " is-current" : ""}"><div class="rank-career-rail"><span>${index + 1}</span></div><div class="rank-career-stop-body"><div class="rank-career-years">${esc(displayedYears)}</div><h3>${esc(stint.club || "")}</h3>${stats.length ? `<div class="rank-career-numbers">${stats.map((stat) => `<span>${stat}</span>`).join("")}</div>` : ""}</div></article>`;
           }).join("")}</div></section>`;
         };
         const profileFactsHTML = (card, isCurrentPlayer) => {
@@ -1019,7 +1027,7 @@
               ${adminMode && !structuredProfileStarted ? `<section class="rank-profile-admin-empty"><strong>New player profile fields are ready</strong><span>Add career-map stops, international stats, team titles, notable awards and your Half Space view.</span><button type="button" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Set up player card</button></section>` : ""}
               ${profileFactsHTML(c, isCurrentPlayer)}
               ${blurb ? `<section class="rank-profile-section rank-profile-view-feature"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}
-              ${careerMapHTML(stints)}
+              ${careerMapHTML(stints, c, isCurrentPlayer)}
               ${!stints.length && timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Club Map</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}
               ${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}
               ${teamHonoursHTML(c, stints, teamTitles)}

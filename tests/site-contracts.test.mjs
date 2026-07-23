@@ -697,6 +697,9 @@ test("the career map stays focused on club stints and playing stats", () => {
   assert.match(features, /stint\.appearances/);
   assert.match(features, /stint\.goals/);
   assert.match(features, /stint\.assists/);
+  assert.match(features, /const isCurrentStint/);
+  assert.match(features, /careerMapHTML\(stints, c, isCurrentPlayer\)/);
+  assert.match(features, /replace\(\/\^\(\\d\{4\}\).*"\$1—"\)/);
   assert.doesNotMatch(features, /rank-career-trophies/);
   assert.match(styles, /\.rank-career-map/);
   assert.match(styles, /overflow-x:\s*auto/);
