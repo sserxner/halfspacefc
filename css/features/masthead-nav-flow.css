@@ -27,9 +27,35 @@ body.hs-is-home.hs-masthead-collapsed > .hero.hs-floating-masthead {
 
 body > nav {
   position: sticky !important;
+  position: -webkit-sticky !important;
   top: 0 !important;
-  z-index: 5000 !important;
+  z-index: 20000 !important;
+  width: 100% !important;
+  align-self: flex-start;
+  transform: translateZ(0);
   box-shadow: 0 10px 30px rgba(8, 24, 14, 0.1);
+}
+
+/* Safari can disable sticky descendants when the page itself uses
+   overflow-x:hidden. Clip the paint instead without creating a scroll
+   container, so the complete search + tabs fixture remains attached. */
+html,
+body {
+  overflow-x: clip !important;
+}
+
+/* Fixed-position fallback once the masthead has fully collapsed. This also
+   protects the navigation in older mobile browsers with unreliable sticky
+   behavior. The padding preserves the space the fixture occupied. */
+body.hs-masthead-collapsed {
+  padding-top: 104px !important;
+}
+
+body.hs-masthead-collapsed > nav {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
 }
 
 body > nav .nav-logo-bar {
@@ -59,5 +85,9 @@ body.hs-is-home.hs-masthead-collapsed > nav .nav-logo {
 
   body > nav .nav-logo-bar {
     min-height: 58px;
+  }
+
+  body.hs-masthead-collapsed {
+    padding-top: 58px !important;
   }
 }

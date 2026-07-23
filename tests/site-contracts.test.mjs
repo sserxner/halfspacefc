@@ -1168,3 +1168,11 @@ test("homepage masthead collapses after scrolling", () => {
   assert.match(styles, /hs-masthead-collapsed[\s\S]*max-height:\s*0/);
   assert.match(styles, /body\s*\{[\s\S]*padding-top:\s*0\s*!important/);
 });
+
+test("search and primary tabs remain a permanent navigation fixture", () => {
+  const css = read("css/features/masthead-nav-flow.css");
+  assert.match(css, /body > nav \{[\s\S]*position: sticky !important/);
+  assert.match(css, /body\.hs-masthead-collapsed > nav \{[\s\S]*position: fixed !important/);
+  assert.match(css, /body\.hs-masthead-collapsed \{[\s\S]*padding-top: 104px !important/);
+  assert.match(css, /overflow-x: clip !important/);
+});
