@@ -119,6 +119,8 @@ test("Transfer grades use the centered reading layout", () => {
   assert.match(writingSystem, /entry\.grade/);
   assert.match(writingSystem, /formerClub/);
   assert.match(writingSystem, /newClub/);
+  assert.match(writingSystem, /formerClubGrade/);
+  assert.match(writingSystem, /newClubGrade/);
   assert.match(writingSystem, /hs-transfer-route-arrow/);
   assert.match(writingSystem, /hs-transfer-grade-filter/);
   assert.match(writingSystem, /<select id="hsTransferGradeTeam"/);
@@ -704,6 +706,18 @@ test("Free Build uses every player in the selected era's positional rankings", (
   assert.match(hub, /Object\.values\(source\?\.honorable/);
 });
 
+test("Club and country XI search share navigation and rank-ordered player pools", () => {
+  const app = read("app.js");
+  const reader = read("reader-xi.js");
+  assert.match(app, /Build an XI · Country/);
+  assert.match(app, /Build an XI · Club/);
+  assert.match(app, /showCountryDetail\(country\.name\)/);
+  assert.match(app, /showClubDetail\(club\.name\)/);
+  assert.match(reader, /function rankingOrder\(\)/);
+  assert.match(reader, /ranking_overall_\$\{era\}/);
+  assert.match(reader, /const order = rankingOrder\(\)/);
+});
+
 test("regional XI pages are owner-managed and player-card editing closes from the top", () => {
   const hub = read("build-xi-hub.js");
   const features = read("features.js");
@@ -835,7 +849,7 @@ test("reader XIs enforce valid selection and direct device-image saving", () => 
   assert.match(template, /reader-xi-polish\.css\?v=40\.9/);
   assert.match(reader, /image\/png/);
   assert.match(reader, /insertAdjacentElement\("afterend", actions\)/);
-  assert.match(template, /reader-xi\.js\?v=40\.10/);
+  assert.match(template, /reader-xi\.js\?v=40\.11/);
   assert.match(template, /id="hsMediaToolbarButton"/);
 });
 

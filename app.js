@@ -1477,6 +1477,28 @@
             return;
           }
           const hits = [];
+          (typeof COUNTRIES !== "undefined" ? COUNTRIES : []).forEach((country) => {
+            if (![country.name, country.continent].join(" ").toLowerCase().includes(q)) return;
+            hits.push({
+              name: country.name,
+              meta: "Build an XI · Country",
+              go: () => {
+                showPage("country-xi");
+                showCountryDetail(country.name);
+              },
+            });
+          });
+          (typeof CLUBS !== "undefined" ? CLUBS : []).forEach((club) => {
+            if (![club.name, club.country].join(" ").toLowerCase().includes(q)) return;
+            hits.push({
+              name: club.name,
+              meta: "Build an XI · Club",
+              go: () => {
+                showPage("club-xi");
+                showClubDetail(club.name);
+              },
+            });
+          });
           PLAYER_SECTIONS.forEach((sec) =>
             ["century", "now"].forEach((era) => {
               const d = rankGet(sec + "_" + era);

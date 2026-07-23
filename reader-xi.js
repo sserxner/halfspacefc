@@ -194,6 +194,20 @@
     return [...map.values()];
   }
 
+  function rankingOrder() {
+    const order = new Map();
+    const add = (entry) => {
+      const key = keyName(typeof entry === "string" ? entry : entry?.name);
+      if (key && !order.has(key)) order.set(key, order.size);
+    };
+    ["century", "now"].forEach((era) => {
+      const overall = typeof getData === "function" ? getData(`ranking_overall_${era}`, {}) : {};
+      (overall?.tiers || []).forEach((tier) => (tier.entries || []).forEach(add));
+    });
+    rankingEntries().forEach(({ entry }) => add(entry));
+    return order;
+  }
+
   function mergedPool(entity, fallback = []) {
     const map = new Map();
     [...rankingPool(entity), ...cardPool(entity), ...fallback].forEach((player) => {
@@ -210,7 +224,14 @@
     const store = typeof getData === "function" ? getData("reader_xi_pools_v1", {}) : {};
     const excluded = new Set((store?.[poolKey(entity)]?.excluded || []).map(keyName));
     excluded.forEach((name) => map.delete(name));
-    return [...map.values()].sort((a,b) => a.name.localeCompare(b.name));
+    const order = rankingOrder();
+    return [...map.values()].sort((a, b) => {
+      const aRank = order.get(keyName(a.name));
+      const bRank = order.get(keyName(b.name));
+      if (aRank !== undefined || bRank !== undefined)
+        return (aRank ?? Number.MAX_SAFE_INTEGER) - (bRank ?? Number.MAX_SAFE_INTEGER);
+      return a.name.localeCompare(b.name);
+    });
   }
 
   function playerPool(container, entity) {

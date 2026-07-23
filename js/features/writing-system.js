@@ -115,7 +115,9 @@
         ["formerClub", "Former club", "text"],
         ["newClub", "New club", "text"],
         ["fee", "Fee / Value", "text"],
-        ["grade", "Grade", "text"],
+        ["formerClubGrade", "Former club grade", "text"],
+        ["newClubGrade", "New club grade", "text"],
+        ["grade", "Legacy / overall grade", "text"],
       ],
     },
     editorial: {
@@ -272,7 +274,7 @@
     const body = bodyHTML(entry.body);
     const transaction =
       type === "transfer" && (entry.formerClub || entry.newClub)
-        ? `<p class="hs-transfer-transaction"><span>${esc(entry.formerClub || "")}</span>${entry.formerClub && (entry.newClub || entry.club) ? `<b aria-label="to">→</b>` : ""}<span>${esc(entry.newClub || entry.club || "")}</span>${entry.fee ? `<em>${esc(/^[£€$]/.test(String(entry.fee).trim()) ? String(entry.fee).trim() : `£${String(entry.fee).trim()}`)}</em>` : ""}</p>`
+        ? `<p class="hs-transfer-transaction"><span>${esc(entry.formerClub || "")}${entry.formerClubGrade ? `<i>${esc(entry.formerClubGrade)}</i>` : ""}</span>${entry.formerClub && (entry.newClub || entry.club) ? `<b aria-label="to">→</b>` : ""}<span>${esc(entry.newClub || entry.club || "")}${entry.newClubGrade || entry.grade ? `<i>${esc(entry.newClubGrade || entry.grade)}</i>` : ""}</span>${entry.fee ? `<em>${esc(/^[£€$]/.test(String(entry.fee).trim()) ? String(entry.fee).trim() : `£${String(entry.fee).trim()}`)}</em>` : ""}</p>`
         : "";
     const statusBadge = admin() ? `<span class="hs-writing-status ${entry.published === false ? "draft" : "live"}">${entry.published === false ? "Draft — not public yet" : "Published"}</span>` : "";
     const adminControls = admin()
@@ -307,12 +309,15 @@
     const displayFee = fee && !/^[£€$]/.test(fee) ? `£${fee}` : fee;
     const formerClub = entry.formerClub || "";
     const newClub = entry.newClub || entry.club || "";
+    const formerGrade = entry.formerClubGrade || "";
+    const newGrade = entry.newClubGrade || entry.grade || "";
     const route = formerClub || newClub
       ? `${formerClub ? esc(formerClub) : ""}${formerClub && newClub ? `<span class="hs-transfer-route-arrow" aria-label="to">→</span>` : ""}${newClub ? esc(newClub) : ""}`
       : esc(entry.club || "Transfer");
     const facts = [
       displayFee ? `<span><small>Fee</small><strong>${esc(displayFee)}</strong></span>` : "",
-      type === "grades" && entry.grade ? `<span class="hs-transfer-grade"><small>Grade</small><strong>${esc(entry.grade)}</strong></span>` : "",
+      type === "grades" && formerGrade ? `<span class="hs-transfer-grade"><small>${esc(formerClub || "Former club")}</small><strong>${esc(formerGrade)}</strong></span>` : "",
+      type === "grades" && newGrade ? `<span class="hs-transfer-grade"><small>${esc(newClub || "New club")}</small><strong>${esc(newGrade)}</strong></span>` : "",
     ].filter(Boolean).join("");
     return `<details class="hs-transfer-index-card" data-writing-type="transfer" data-writing-index="${index}">
       <summary>
@@ -389,7 +394,7 @@
     const importanceIndex = new Map(
       clubImportance.map((club, index) => [slug(club), index]),
     );
-    const clubs = [...new Set(all.map(({ entry }) => entry.newClub || entry.club).filter(Boolean))].sort((a, b) => {
+    const clubs = [...new Set(all.flatMap(({ entry }) => [entry.formerClub, entry.newClub || entry.club]).filter(Boolean))].sort((a, b) => {
       const aRank = importanceIndex.get(slug(a));
       const bRank = importanceIndex.get(slug(b));
       if (aRank !== undefined || bRank !== undefined) {
@@ -401,11 +406,11 @@
     const visible =
       state.transferClub === "all"
         ? all
-        : all.filter(({ entry }) => slug(entry.newClub || entry.club) === state.transferClub);
+        : all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((club) => slug(club) === state.transferClub));
     root.className = type === "grades" ? "hs-writing-shell hs-transfer-grades-centered" : "hs-writing-shell";
     const clubCounts = new Map(clubs.map((club) => [
       club,
-      all.filter(({ entry }) => slug(entry.newClub || entry.club) === slug(club)).length,
+      all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((team) => slug(team) === slug(club))).length,
     ]));
     const gradeSelector = `<div class="hs-transfer-grade-filter">
         <label for="hsTransferGradeTeam">Team</label>
