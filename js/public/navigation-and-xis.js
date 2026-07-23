@@ -738,6 +738,9 @@
           })),
         ].filter((tier) => tier.members.length);
       }
+      window.HSClubImportanceOrder = function () {
+        return getXITiers("club").flatMap((tier) => tier.members || []);
+      };
       function renderClubTierCard(club, tierIndex, memberIndex, tiers) {
         return `<div class="xi-tier-card-wrap">${clubCardHTML(club)}${xiTierCardControls("club", club.name, tierIndex, memberIndex, tiers)}</div>`;
       }

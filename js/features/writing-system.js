@@ -306,10 +306,22 @@
         index,
       }))
       .filter(({ entry }) => live(entry) && entry.type === state.transfer);
+    const clubImportance = window.HSClubImportanceOrder?.() || [];
+    const importanceIndex = new Map(
+      clubImportance.map((club, index) => [slug(club), index]),
+    );
     const clubs = uniqueOptions(
       all.map((item) => item.entry),
       ["club"],
-    );
+    ).sort((a, b) => {
+      const aRank = importanceIndex.get(slug(a));
+      const bRank = importanceIndex.get(slug(b));
+      if (aRank !== undefined || bRank !== undefined) {
+        return (aRank ?? Number.MAX_SAFE_INTEGER) -
+          (bRank ?? Number.MAX_SAFE_INTEGER);
+      }
+      return a.localeCompare(b);
+    });
     const visible =
       state.transferClub === "all"
         ? all

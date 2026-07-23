@@ -886,6 +886,8 @@ test("Diaries, Editorials, Transfers, and Betting share one writing system", () 
   assert.match(system, /event\.key\.toLowerCase\(\) === "b"/);
   assert.match(system, /event\.key\.toLowerCase\(\) === "u"/);
   assert.match(system, /reason: "writing-save"/);
+  assert.match(system, /HSClubImportanceOrder/);
+  assert.match(system, /importanceIndex/);
   assert.match(system, /<u>\$1<\/u>/);
   assert.match(content, /function editorialHTML/);
   assert.match(styles, /\.hs-writing-shell/);
