@@ -221,6 +221,14 @@ body > nav {
   backdrop-filter: blur(10px);
 }
 
+/* Secondary tabs belong to their page content. Keep only the primary site
+   navigation fixed, including after a tab click rerenders its tab strip. */
+body .page .sub-tabs,
+body .page .hs-rankings-era-tabs {
+  position: static !important;
+  top: auto !important;
+}
+
 @media (max-width: 768px) {
   :root {
     --hs-persistent-nav-height: 58px;
