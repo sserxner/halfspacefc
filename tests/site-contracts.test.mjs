@@ -116,6 +116,8 @@ test("football player cards use compact summaries and international caps and goa
   const cards = read("css/rankings/ranking-player-card-style.css");
   assert.match(features, /legacyAssociations/);
   assert.match(features, /Caps \(Goals\)/);
+  assert.match(features, /Transfer value/);
+  assert.match(features, /rank-profile-view-feature/);
   assert.match(features, /rpcInternationalCaps/);
   assert.match(features, /rpcInternationalGoals/);
   assert.match(features, /Total titles won/);
@@ -404,6 +406,13 @@ test("admins add reader players once and visually position every formation", () 
   assert.match(reader, /data-pool-name/);
   assert.match(reader, /data-pool-positions/);
   assert.match(reader, /Set reader players \(add once\)/);
+  assert.match(reader, /excluded/);
+  assert.match(reader, /modal\._originalNames/);
+  assert.match(reader, /"AM", "CAM", "LAM", "RAM", "10"/);
+  assert.match(reader, /\["CB", "LCB", "RCB"\]\.includes\(slot\)/);
+  assert.match(reader, /\["DM", "CDM", "CM", "LCM", "RCM", "CLM"\]\.includes\(slot\)/);
+  assert.match(reader, /\["LAM", "LM", "LW"\]\.includes\(slot\)/);
+  assert.match(reader, /\["RAM", "RM", "RW"\]\.includes\(slot\)/);
   assert.match(reader, /Edit reader pitch layout/);
   assert.match(reader, /function rankingPool/);
   assert.match(reader, /function cardPool\(entity\)/);
@@ -525,10 +534,10 @@ test("player-card autofill separates international honours and preserves owner-e
   assert.match(features, /needsVerifiedFacts/);
   assert.doesNotMatch(features, /if \(!hasExistingCard\)/);
   assert.match(pilot, /const internationalTitles = \[\]/);
-  assert.match(
-    pilot,
-    /if \(found\) return found\[2\];\s*if \(NON_TOP_5_LEAGUE_RE\.test\(raw\)\)/,
-  );
+  assert.match(pilot, /if \(found\) return found\[2\];\s*return raw/);
+  assert.doesNotMatch(pilot, /Non Top 5 League/);
+  assert.match(pilot, /UEFA Nations League/);
+  assert.match(pilot, /FIFA Club World Cup/);
   assert.match(pilot, /careerTeamTitleTotal\(stints, teamTitles, internationalTitles\)/);
   assert.match(pilot, /cachedRecord\?\.schemaVersion === DATA_SCHEMA_VERSION/);
   assert.match(pilot, /const sanitizedBundledRecord = sanitizeDraftRecord\(bundledRecord\)/);
@@ -706,6 +715,9 @@ test("team titles are consolidated into a counted expandable breakdown", () => {
 	  assert.match(features, /const yearText = datedSuffix\?\.\[2\] \|\| ""/);
 	  assert.match(features, /countMatch \? Number\(countMatch\[1\]\) : years\.length \|\| 1/);
 	  assert.match(features, /Club \/ country/);
+	  assert.doesNotMatch(features, /Non Top 5 League/);
+	  assert.match(features, /UEFA Conference League/);
+	  assert.match(features, /return base/);
 	});
 
 test("blank player-card fields stay absent and legacy cards remain supported", () => {
@@ -783,7 +795,7 @@ test("reader XIs enforce valid selection and direct device-image saving", () => 
   assert.match(template, /reader-xi-polish\.css\?v=40\.9/);
   assert.match(reader, /image\/png/);
   assert.match(reader, /insertAdjacentElement\("afterend", actions\)/);
-  assert.match(template, /reader-xi\.js\?v=40\.8/);
+  assert.match(template, /reader-xi\.js\?v=40\.10/);
   assert.match(template, /id="hsMediaToolbarButton"/);
 });
 

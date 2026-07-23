@@ -98,16 +98,16 @@
     const positions = [];
     const add = (...items) => items.forEach((item) => { if (!positions.includes(item)) positions.push(item); });
     if (/\b(?:goalkeeper|keeper|gk)\b/.test(text)) add("GK");
-    if (/\b(?:centre back|center back|central defender|defender|cb|lcb|rcb)\b/.test(text)) add("CB");
+    if (/\b(?:centre back|center back|central defender|defender|cb|lcb|rcb)\b/.test(text)) add("CB", "LCB", "RCB");
     if (/\b(?:right back|right wing back|rb|rwb)\b/.test(text)) add("RB", "RWB");
     if (/\b(?:left back|left wing back|lb|lwb)\b/.test(text)) add("LB", "LWB");
     if (/\b(?:full back|fullback|fb|wing back|wingback)\b/.test(text)) add("RB", "LB", "RWB", "LWB");
-    if (/\b(?:defensive midfielder|holding midfielder|dm|cdm)\b/.test(text)) add("DM", "CM");
-    if (/\b(?:central midfielder|centre midfielder|midfielder|cm|lcm|rcm|number 8|no 8)\b/.test(text)) add("CM", "DM");
-    if (/\b(?:attacking midfielder|playmaker|am|cam|number 10|no 10|10)\b/.test(text)) add("AM", "CAM", "10");
-    if (/\b(?:left winger|left wing|lw|lm)\b/.test(text)) add("LW", "LM");
-    if (/\b(?:right winger|right wing|rw|rm)\b/.test(text)) add("RW", "RM");
-    if (/\b(?:winger|wide forward|w)\b/.test(text)) add("LW", "RW", "LM", "RM");
+    if (/\b(?:defensive midfielder|holding midfielder|dm|cdm)\b/.test(text)) add("DM", "CDM", "CM");
+    if (/\b(?:central midfielder|centre midfielder|midfielder|cm|lcm|rcm|clm|number 8|no 8)\b/.test(text)) add("CM", "LCM", "RCM", "CLM", "DM");
+    if (/\b(?:attacking midfielder|playmaker|am|cam|lam|ram|number 10|no 10|10)\b/.test(text)) add("AM", "CAM", "LAM", "RAM", "10");
+    if (/\b(?:left winger|left wing|lw|lm)\b/.test(text)) add("LW", "LM", "LAM");
+    if (/\b(?:right winger|right wing|rw|rm)\b/.test(text)) add("RW", "RM", "RAM");
+    if (/\b(?:winger|wide forward|wide midfielder|w)\b/.test(text)) add("LW", "RW", "LM", "RM", "LAM", "RAM");
     if (/\b(?:forward|striker|centre forward|center forward|cf|st|f)\b/.test(text)) add("ST", "CF", "F");
     return positions;
   }
@@ -117,7 +117,7 @@
     cb: ["CB"],
     fb: ["RB", "LB", "RWB", "LWB"],
     cm: ["DM", "CM"],
-    am: ["AM", "CAM", "10"],
+    am: ["AM", "CAM", "LAM", "RAM", "10"],
     w: ["RW", "LW", "RM", "LM"],
     f: ["ST", "CF", "F"],
   };
@@ -207,6 +207,9 @@
       map.set(key,current);
     });
     configuredPool(entity).forEach((player) => map.set(keyName(player.name), player));
+    const store = typeof getData === "function" ? getData("reader_xi_pools_v1", {}) : {};
+    const excluded = new Set((store?.[poolKey(entity)]?.excluded || []).map(keyName));
+    excluded.forEach((name) => map.delete(name));
     return [...map.values()].sort((a,b) => a.name.localeCompare(b.name));
   }
 
@@ -253,6 +256,9 @@
     </section>`;
     modal._entity = entity;
     modal._container = container;
+    modal._originalNames = players.map((player) => player.name);
+    const poolStore = typeof getData === "function" ? getData("reader_xi_pools_v1", {}) : {};
+    modal._excluded = poolStore?.[poolKey(entity)]?.excluded || [];
     document.body.appendChild(modal);
   }
 
@@ -265,7 +271,7 @@
     modal.querySelectorAll(".hs-reader-pool-row").forEach((row) => {
       const name = clean(row.querySelector("[data-pool-name]")?.value);
       const eligible = clean(row.querySelector("[data-pool-positions]")?.value)
-        .split(/[\n,]+/)
+        .split(/[\n,/|]+/)
         .map((value) => clean(value).toUpperCase())
         .filter(Boolean);
       if (!name) return;
@@ -274,7 +280,13 @@
       });
     });
     const store = typeof getData === "function" ? getData("reader_xi_pools_v1", {}) : {};
-    store[poolKey(modal._entity)] = { positions };
+    const visible = new Set(Object.values(positions).flat().map(keyName));
+    const excluded = new Set((modal._excluded || []).map(keyName));
+    (modal._originalNames || []).forEach((name) => {
+      if (!visible.has(keyName(name))) excluded.add(keyName(name));
+    });
+    visible.forEach((name) => excluded.delete(name));
+    store[poolKey(modal._entity)] = { positions, excluded: [...excluded] };
     if (typeof setData === "function") setData("reader_xi_pools_v1", store);
     window.HSAutosave?.markReady?.("Draft ready");
     modal.remove();
@@ -366,13 +378,21 @@
   function compatible(player, position) {
     if (!position) return true;
     if (!player.positions.length) return true;
-    const groups = [
-      ["GK"], ["CB", "LCB", "RCB"], ["LB", "LWB"], ["RB", "RWB"],
-      ["DM", "CDM", "CM", "LCM", "RCM", "CLM"], ["AM", "CAM", "LAM", "RAM", "10"],
-      ["LM", "LW"], ["RM", "RW"], ["ST", "CF", "F"]
-    ];
-    const group = groups.find((items) => items.includes(position));
-    return player.positions.some((item) => item === position || (group && group.includes(item)));
+    const slot = clean(position).toUpperCase();
+    const accepted = new Set([slot]);
+    const add = (...roles) => roles.forEach((role) => accepted.add(role));
+    if (["CB", "LCB", "RCB"].includes(slot)) add("CB", "LCB", "RCB");
+    if (["LB", "LWB"].includes(slot)) add("LB", "LWB");
+    if (["RB", "RWB"].includes(slot)) add("RB", "RWB");
+    if (["FB", "WB"].includes(slot)) add("RB", "LB", "RWB", "LWB", "FB", "WB");
+    if (["DM", "CDM", "CM", "LCM", "RCM", "CLM"].includes(slot))
+      add("DM", "CDM", "CM", "LCM", "RCM", "CLM");
+    if (["AM", "CAM", "10"].includes(slot)) add("AM", "CAM", "LAM", "RAM", "10");
+    if (["LAM", "LM", "LW"].includes(slot)) add("AM", "CAM", "LAM", "10", "LM", "LW", "W");
+    if (["RAM", "RM", "RW"].includes(slot)) add("AM", "CAM", "RAM", "10", "RM", "RW", "W");
+    if (slot === "W") add("LAM", "RAM", "LM", "RM", "LW", "RW", "W");
+    if (["ST", "CF", "F"].includes(slot)) add("ST", "CF", "F");
+    return player.positions.some((item) => accepted.has(clean(item).toUpperCase()));
   }
 
   function formationKeys(entity) {

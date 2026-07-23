@@ -1,5 +1,5 @@
 (function () {
-  const DATA_SCHEMA_VERSION = 10;
+  const DATA_SCHEMA_VERSION = 11;
   const records = {
     "lionel-messi": {
       currentClub: "Inter Miami",
@@ -120,17 +120,18 @@
     [/^serie a$/i, 8, "Serie A"],
     [/^bundesliga$/i, 9, "Bundesliga"],
     [/^ligue 1$/i, 10, "Ligue 1"],
-    [/^non top 5 league$/i, 11, "Non Top 5 League"],
-    [/^(?:uefa\s+)?europa league$|^uefa cup$/i, 12, "Europa League"],
-    [/^fa cup$/i, 13, "FA Cup"],
-    [/^copa del rey$/i, 14, "Copa del Rey"],
-    [/^coppa italia$/i, 15, "Coppa Italia"],
-    [/^dfb[-\s]?pokal$/i, 16, "DFB Pokal"],
-    [/^coupe de france$/i, 17, "Coupe de France"],
-    [/^efl cup$|^english league cup$|^league cup$|^carabao cup$/i, 18, "English League Cup"],
+    [/^fa cup$/i, 11, "FA Cup"],
+    [/^efl cup$|^english league cup$|^league cup$|^carabao cup$/i, 11, "English League Cup"],
+    [/^copa del rey$/i, 11, "Copa del Rey"],
+    [/^coppa italia$/i, 11, "Coppa Italia"],
+    [/^dfb[-\s]?pokal$/i, 11, "DFB Pokal"],
+    [/^coupe de france$/i, 11, "Coupe de France"],
+    [/^(?:uefa\s+)?europa league$|^uefa cup$/i, 12, "UEFA Europa League"],
+    [/^(?:uefa\s+)?conference league$|^uefa europa conference league$/i, 13, "UEFA Conference League"],
+    [/^(?:uefa\s+)?nations league$/i, 14, "UEFA Nations League"],
+    [/^(?:fifa\s+)?club world cup$/i, 15, "FIFA Club World Cup"],
   ];
-  const TEAM_TITLE_REJECT = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist|club world cup|intercontinental|super cup|supercopa|community shield|charity shield|troph[eé]e des champions|supercoppa|nations league|confederations cup|recopa|fifa club world cup/i;
-  const NON_TOP_5_LEAGUE_RE = /primeira liga|liga portugal|eredivisie|süper lig|super lig|scottish premiership|belgian pro league|jupiler|austrian bundesliga|russian premier league|ukrainian premier league|super league greece|swiss super league|major league soccer|\bmls\b|saudi pro league|brasileir|campeonato brasileiro|argentine primera|primera divisi[oó]n|liga mx|a-league|championship/i;
+  const TEAM_TITLE_REJECT = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist/i;
   const titleItems = (value) => {
     if (Array.isArray(value)) return value.flatMap(titleItems);
     return clean(value).split(/\s*[;|]\s*/).map((item) => item.trim()).filter(Boolean);
@@ -142,7 +143,6 @@
   };
   function normalizedTeamTitle(value) {
     const raw = clean(value)
-      .replace(/^[^:]{2,70}:\s*/, "")
       .replace(/\[[^\]]*]/g, "")
       .replace(/\s*[×x]\s*\d+\b/i, "")
       .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
@@ -152,8 +152,7 @@
     if (!raw || TEAM_TITLE_REJECT.test(raw)) return "";
     const found = TEAM_TITLE_RULES.find(([rule]) => rule.test(raw));
     if (found) return found[2];
-    if (NON_TOP_5_LEAGUE_RE.test(raw)) return "Non Top 5 League";
-    return "";
+    return raw;
   }
   const titleOrder = (name) => TEAM_TITLE_RULES.find(([, , label]) => label === name)?.[1] || 99;
   function sanitizeTeamTitles(titles) {

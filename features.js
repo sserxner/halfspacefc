@@ -814,13 +814,15 @@
           }).join("")}</div></section>`;
         };
         const profileFactsHTML = (card, isCurrentPlayer) => {
-          if (!isCurrentPlayer) return "";
           const facts = [
-            ["Current club", card.currentClub],
-            ["Age", calculatedAge(card.dateOfBirth) || card.age],
+            ["Current club", isCurrentPlayer ? card.currentClub : ""],
+            ["Age", isCurrentPlayer ? calculatedAge(card.dateOfBirth) || card.age : ""],
+            ["National team", card.nationalTeam || card.nationality],
+            ["Caps (Goals)", card.internationalCaps || card.internationalGoals ? `${card.internationalCaps || "—"} (${card.internationalGoals || "—"})` : ""],
+            ["Transfer value", isCurrentPlayer ? card.transferValue : ""],
           ].filter(([, value]) => String(value || "").trim());
           return facts.length
-            ? `<section class="rank-profile-section"><div class="rank-profile-label">Current Profile</div><div class="rank-profile-facts">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div></section>`
+            ? `<section class="rank-profile-section rank-profile-overview"><div class="rank-profile-label">Player Overview</div><div class="rank-profile-facts">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div></section>`
             : "";
         };
         const internationalHTML = (card) => {
@@ -848,21 +850,22 @@
             [/^copa am[eé]rica$/i, 4, "Copa America"],
             [/^africa cup of nations$|^african cup of nations$|^afcon$/i, 5, "African Cup of Nations"],
             [/^premier league$/i, 6, "Premier League"],
-            [/^la liga$/i, 6, "La Liga"],
-            [/^serie a$/i, 6, "Serie A"],
-            [/^bundesliga$/i, 6, "Bundesliga"],
-            [/^ligue 1$/i, 6, "Ligue 1"],
-            [/^non top 5 league$/i, 6, "Non Top 5 League"],
-            [/^(?:uefa\s+)?europa league$|^uefa cup$/i, 7, "Europa League"],
-            [/^fa cup$/i, 8, "FA Cup"],
-            [/^copa del rey$/i, 8, "Copa Del Rey"],
-            [/^coppa italia$/i, 8, "Coppa Italia"],
-            [/^dfb[-\s]?pokal$/i, 8, "DFB Pokal"],
-            [/^coupe de france$/i, 8, "Coupe De France"],
-            [/^efl cup$|^english league cup$|^league cup$/i, 9, "English League Cup"],
+            [/^la liga$/i, 7, "La Liga"],
+            [/^serie a$/i, 8, "Serie A"],
+            [/^bundesliga$/i, 9, "Bundesliga"],
+            [/^ligue 1$/i, 10, "Ligue 1"],
+            [/^fa cup$/i, 11, "FA Cup"],
+            [/^efl cup$|^english league cup$|^league cup$|^carabao cup$/i, 11, "English League Cup"],
+            [/^copa del rey$/i, 11, "Copa del Rey"],
+            [/^coppa italia$/i, 11, "Coppa Italia"],
+            [/^dfb[-\s]?pokal$/i, 11, "DFB Pokal"],
+            [/^coupe de france$/i, 11, "Coupe de France"],
+            [/^(?:uefa\s+)?europa league$|^uefa cup$/i, 12, "UEFA Europa League"],
+            [/^(?:uefa\s+)?conference league$|^uefa europa conference league$/i, 13, "UEFA Conference League"],
+            [/^(?:uefa\s+)?nations league$/i, 14, "UEFA Nations League"],
+            [/^(?:fifa\s+)?club world cup$/i, 15, "FIFA Club World Cup"],
           ];
-          const reject = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist|club world cup|intercontinental|super cup|supercopa|community shield|charity shield|troph[eé]e des champions|supercoppa|nations league|confederations cup|recopa|carabao cup|fifa club world cup/i;
-          const nonTopFive = /primeira liga|liga portugal|eredivisie|süper lig|super lig|scottish premiership|belgian pro league|jupiler|austrian bundesliga|russian premier league|ukrainian premier league|super league greece|swiss super league|major league soccer|\bmls\b|saudi pro league|brasileir|campeonato brasileiro|argentine primera|primera divisi[oó]n|liga mx|a-league|championship/i;
+          const reject = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist/i;
           const allowedTitle = (value) => {
             const base = String(value || "")
               .replace(/^[^:]{2,70}:\s*/, "")
@@ -874,8 +877,7 @@
             if (!base || reject.test(base)) return "";
             const found = rules.find(([rule]) => rule.test(base));
             if (found) return found[2];
-            if (nonTopFive.test(base)) return "Non Top 5 League";
-            return "";
+            return base;
           };
           const titleRank = (name) => rules.find(([, , label]) => label === name)?.[1] || 99;
 	          const grouped = new Map();
@@ -1016,15 +1018,14 @@
             <div class="rank-profile-body">
               ${adminMode && !structuredProfileStarted ? `<section class="rank-profile-admin-empty"><strong>New player profile fields are ready</strong><span>Add career-map stops, international stats, team titles, notable awards and your Half Space view.</span><button type="button" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Set up player card</button></section>` : ""}
               ${profileFactsHTML(c, isCurrentPlayer)}
+              ${blurb ? `<section class="rank-profile-section rank-profile-view-feature"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}
               ${careerMapHTML(stints)}
               ${!stints.length && timeline ? `<section class="rank-profile-section"><div class="rank-profile-label">Club Map</div><div class="rank-profile-copy rank-profile-preline">${esc(timeline)}</div></section>` : ""}
               ${stats.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Stats</div><div class="rank-profile-stats">${stats.map(([l, v]) => `<div class="rank-profile-stat"><div class="rank-profile-stat-value">${esc(v || "—")}</div><div class="rank-profile-stat-label">${esc(l)}</div></div>`).join("")}</div></section>` : ""}
-              ${internationalHTML(c)}
               ${teamHonoursHTML(c, stints, teamTitles)}
               ${shouldHydrateHonours ? '<section class="rank-profile-section rank-profile-honours-loading"><div class="rank-profile-label">Team Trophies</div><div class="rank-profile-copy">Loading verified career trophies…</div></section>' : ""}
               ${awardsHTML(awards)}
               ${!awards.length && individualTitles.length ? `<section class="rank-profile-section"><div class="rank-profile-label">Notable Individual Awards</div><div class="rank-profile-honors">${individualTitles.map((title) => `<span class="rank-profile-honor">${esc(title)}</span>`).join("")}</div></section>` : ""}
-              ${blurb ? `<section class="rank-profile-section"><div class="rank-profile-label">Half Space View</div><div class="rank-profile-copy rank-profile-preline">${esc(blurb)}</div></section>` : ""}
               ${isCurrentPlayer && comparisons ? `<section class="rank-profile-section"><div class="rank-profile-label">Player Comps</div><div class="rank-profile-copy rank-profile-preline">${esc(comparisons)}</div></section>` : ""}
               ${isCurrentPlayer && nextMove ? `<section class="rank-profile-section"><div class="rank-profile-label">Next Move</div><div class="rank-profile-copy rank-profile-preline">${esc(nextMove)}</div></section>` : ""}
               ${adminMode ? `<button class="admin-add-btn" onclick="closeRankProfile();rankEditCard('${esc(k)}',${t},${e})">Edit player card</button>` : ""}
