@@ -46,6 +46,7 @@
       function renderHomePostFeed() {
         const feed = document.getElementById("homePostFeed");
         if (!feed) return;
+        if (feed.querySelector(".hs-home-reading-layout")) return;
         const posts = getData("blog_posts", []);
         const visible = adminMode
           ? posts

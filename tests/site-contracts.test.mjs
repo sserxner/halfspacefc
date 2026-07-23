@@ -107,6 +107,24 @@ test("Transfer recommendations and grades are separate destination pages", () =>
   assert.match(writing, /function renderTransferPage\(type, rootId\)/);
 });
 
+test("Transfer grades use the centered reading layout", () => {
+  const writingSystem = read("js/features/writing-system.js");
+  const writingStyles = read("css/features/writing-system.css");
+  assert.match(writingSystem, /type === "grades" \? "hs-writing-shell hs-transfer-grades-centered"/);
+  assert.match(writingStyles, /\.hs-writing-shell\.hs-transfer-grades-centered/);
+  assert.match(writingSystem, /function transferIndexCard/);
+  assert.match(writingSystem, /entry\.fee/);
+  assert.match(writingSystem, /entry\.grade/);
+  assert.match(writingSystem, /hs-transfer-team-index/);
+  assert.match(writingSystem, /visible\.map\(\(\{ entry, index \}\) => transferIndexCard/);
+});
+
+test("Betting Corner uses a compact linked index before full analysis", () => {
+  const writingSystem = read("js/features/writing-system.js");
+  assert.match(writingSystem, /function bettingIndexCard/);
+  assert.match(writingSystem, /all\.map\(\(\{ entry, index \}\) => bettingIndexCard/);
+});
+
 test("football player cards use compact summaries and international caps and goals", () => {
   const features = read("features.js");
   const cards = read("css/rankings/ranking-player-card-style.css");
@@ -203,6 +221,11 @@ test("homepage nav is neutral and Streets introduction is editor-controlled", ()
   const streets = read("src/components/streets-wont-forget.html");
   assert.match(architecture, /if \(centuryActive \|\| presentActive\)/);
   assert.match(streets, /data-editable="streets_intro"/);
+});
+
+test("legacy blog rendering cannot blank the pre-rendered homepage", () => {
+  const publicContent = read("js/public/content.js");
+  assert.ok(publicContent.includes('if (feed.querySelector(".hs-home-reading-layout")) return;'));
 });
 
 test("profile copy link sits quietly at the end of the player card", () => {

@@ -294,6 +294,34 @@
     return `<button type="button" class="${active === value ? "active" : ""}" onclick="${handler}('${esc(value)}')">${esc(label)}</button>`;
   }
 
+  function transferIndexCard(type, entry, index) {
+    const name = entry.player || entry.title || transferLabel(type);
+    const facts = [
+      entry.fee ? `<span><small>Fee</small><strong>${esc(entry.fee)}</strong></span>` : "",
+      type === "grades" && entry.grade ? `<span class="hs-transfer-grade"><small>Grade</small><strong>${esc(entry.grade)}</strong></span>` : "",
+    ].filter(Boolean).join("");
+    return `<details class="hs-transfer-index-card" data-writing-type="transfer" data-writing-index="${index}">
+      <summary>
+        <span class="hs-transfer-index-name"><small>${esc(entry.club || "Transfer")}</small><strong>${esc(name)}</strong></span>
+        <span class="hs-transfer-index-facts">${facts}</span>
+        <span class="hs-transfer-index-open">Read review</span>
+      </summary>
+      <div class="hs-transfer-full-review">${articleCard("transfer", entry, index)}</div>
+    </details>`;
+  }
+
+  function bettingIndexCard(entry, index) {
+    const result = entry.result && entry.result !== "pending" ? entry.result : "Pending";
+    return `<details class="hs-betting-index-card" data-writing-type="betting" data-writing-index="${index}">
+      <summary>
+        <span><small>${esc([leagueLabel(entry.league), entry.round].filter(Boolean).join(" · "))}</small><strong>${esc(entry.title || entry.pick || "Betting pick")}</strong></span>
+        <span class="hs-betting-index-facts">${entry.pick ? `<b>${esc(entry.pick)}</b>` : ""}${entry.odds ? `<b>${esc(entry.odds)}</b>` : ""}<b class="${esc(String(result).toLowerCase())}">${esc(result)}</b></span>
+        <span class="hs-transfer-index-open">Read analysis</span>
+      </summary>
+      <div class="hs-transfer-full-review">${articleCard("betting", entry, index)}</div>
+    </details>`;
+  }
+
   function uniqueOptions(items, keys) {
     return [...new Set(items.flatMap((entry) => tagsFor(entry, keys)).filter(Boolean))].sort((a, b) =>
       a.localeCompare(b),
@@ -363,17 +391,21 @@
       state.transferClub === "all"
         ? all
         : all.filter(({ entry }) => slug(entry.club) === state.transferClub);
-    root.className = "hs-writing-shell";
-    root.innerHTML = `<aside class="hs-writing-sidebar">
+    root.className = type === "grades" ? "hs-writing-shell hs-transfer-grades-centered" : "hs-writing-shell";
+    const clubCounts = new Map(clubs.map((club) => [
+      club,
+      all.filter(({ entry }) => slug(entry.club) === slug(club)).length,
+    ]));
+    root.innerHTML = `<aside class="hs-writing-sidebar hs-transfer-team-index">
         <h3>${transferLabel(type)} by team</h3>
         <div class="hs-writing-filter-list">
-          ${filterButton("All teams", "all", state.transferClub, "HSWritingSystem.filterTransferClub")}
-          ${clubs.map((club) => filterButton(club, slug(club), state.transferClub, "HSWritingSystem.filterTransferClub")).join("")}
+          ${filterButton(`All teams (${all.length})`, "all", state.transferClub, "HSWritingSystem.filterTransferClub")}
+          ${clubs.map((club) => filterButton(`${club} (${clubCounts.get(club)})`, slug(club), state.transferClub, "HSWritingSystem.filterTransferClub")).join("")}
         </div>
         ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.addTransfer('${type}')">+ New ${transferLabel(type).toLowerCase()}</button>` : ""}
       </aside>
-      <main class="hs-writing-feed">
-        ${visible.length ? visible.map(({ entry, index }) => articleCard("transfer", entry, index)).join("") : `<div class="empty-state"><p>No ${transferLabel(type).toLowerCase()}s yet.</p></div>`}
+      <main class="hs-writing-feed hs-transfer-index">
+        ${visible.length ? visible.map(({ entry, index }) => transferIndexCard(type, entry, index)).join("") : `<div class="empty-state"><p>No ${transferLabel(type).toLowerCase()}s yet.</p></div>`}
       </main>`;
   }
 
@@ -438,7 +470,7 @@
     root.className = "hs-writing-feed betting";
     root.innerHTML = `${tracker(all)}
       ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('betting')">+ New betting piece</button>` : ""}
-      ${all.length ? all.map(({ entry, index }) => articleCard("betting", entry, index)).join("") : `<div class="empty-state"><p>${configs.betting.empty}</p></div>`}`;
+      ${all.length ? all.map(({ entry, index }) => bettingIndexCard(entry, index)).join("") : `<div class="empty-state"><p>${configs.betting.empty}</p></div>`}`;
   }
 
   function renderHomeFeatured() {

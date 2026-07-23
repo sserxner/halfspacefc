@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { extractBakedData, homepageMarkup, injectHomepage } from "./prerender-homepage.mjs";
 
 const root = path.resolve(process.argv[2] || ".");
 const templatePath = path.join(root, "src", "index.template.html");
@@ -17,5 +18,6 @@ for (const match of includes) {
 }
 
 if (includePattern.test(html)) throw new Error("Unresolved HTML component include");
+html = injectHomepage(html, homepageMarkup(extractBakedData(html)));
 await writeFile(outputPath, html, "utf8");
 console.log(`Assembled ${includes.length} components into ${path.basename(outputPath)}.`);
