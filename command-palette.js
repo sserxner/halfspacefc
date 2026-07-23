@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const MAX_RESULTS = 18;
+  const MAX_RESULTS = 80;
   const RECENT_KEY = "hs_command_recent_v1";
   const MAX_RECENTS = 7;
 
@@ -305,7 +305,7 @@
               player.centuryRank = Math.min(player.centuryRank, rank);
             else if (section === "overall" && era === "now")
               player.presentRank = Math.min(player.presentRank, rank);
-            else if (section !== "overall")
+            else if (section !== "overall" && era === "century")
               player.positionRank = Math.min(player.positionRank, rank);
 
             players.set(identity, player);
@@ -552,9 +552,9 @@
     }
 
     const allItems = buildItems();
-    const exactCountryQuery = allItems.some(
+    const exactXIQuery = allItems.some(
       (item) =>
-        item.type === "Country XI" &&
+        (item.type === "Country XI" || item.type === "Club XI") &&
         normalize(item.title) === normalize(query),
     );
 
@@ -564,7 +564,7 @@
       .filter((entry) => entry.score >= 0)
       .sort((a, b) => {
         if (
-          exactCountryQuery &&
+          exactXIQuery &&
           a.item.type === "Player" &&
           b.item.type === "Player"
         ) {
@@ -602,13 +602,13 @@
       grouped.get(group).push({ item, index });
     });
 
-    const exactCountryXI = currentResults.find(
+    const exactXI = currentResults.find(
       (item) =>
-        item.type === "Country XI" &&
+        (item.type === "Country XI" || item.type === "Club XI") &&
         normalize(item.title) === normalize(query),
     );
 
-    const displayGroupOrder = exactCountryXI
+    const displayGroupOrder = exactXI
       ? ["XIs", ...GROUP_ORDER.filter((group) => group !== "XIs")]
       : GROUP_ORDER;
 
@@ -893,10 +893,13 @@
         outline: 0;
         background: transparent;
         color: #fff;
-        font: 600 1rem var(--sans);
+        font: 700 1rem var(--serif);
       }
 
-      #hsCommandInput::placeholder { color: rgba(255,255,255,.4); }
+      #hsCommandInput::placeholder {
+        color: rgba(255,255,255,.4);
+        font-family: var(--serif);
+      }
 
       .hs-command-panel { position: relative; }
 

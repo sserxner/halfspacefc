@@ -348,7 +348,11 @@ test("search, media, profiles, and backups retain their storage contracts", () =
   assert.match(search, /player\.presentRank/);
   assert.match(search, /player\.positionRank/);
   assert.match(search, /function comparePlayerRank/);
-  assert.match(search, /exactCountryQuery/);
+  assert.match(search, /exactXIQuery/);
+  assert.match(search, /item\.type === "Country XI" \|\| item\.type === "Club XI"/);
+  assert.match(search, /section !== "overall" && era === "century"/);
+  assert.match(search, /const MAX_RESULTS = 80/);
+  assert.match(search, /font: 700 1rem var\(--serif\)/);
   const media = read("media-manager.js");
   assert.match(media, /media_library_v1/);
   assert.match(media, /alt/);
@@ -732,6 +736,15 @@ test("Club and country XI search share navigation and rank-ordered player pools"
   assert.match(reader, /function rankingOrder\(\)/);
   assert.match(reader, /ranking_overall_\$\{era\}/);
   assert.match(reader, /const order = rankingOrder\(\)/);
+});
+
+test("global search ranks club player matches editorially and keeps deep results scrollable", () => {
+  const app = read("app.js");
+  assert.match(app, /const rankedSearchPlayers = new Map\(\)/);
+  assert.match(app, /sec === "overall" && era === "century"\s*\? \[0, rank\]/);
+  assert.match(app, /sec === "overall" && era === "now"\s*\? \[1, rank\]/);
+  assert.match(app, /era === "century"\s*\? \[2, rank\]/);
+  assert.match(app, /\.slice\(0, 200\)/);
 });
 
 test("regional XI pages are owner-managed and player-card editing closes from the top", () => {

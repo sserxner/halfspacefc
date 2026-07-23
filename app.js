@@ -1499,37 +1499,73 @@
               },
             });
           });
-          PLAYER_SECTIONS.forEach((sec) =>
-            ["century", "now"].forEach((era) => {
-              const d = rankGet(sec + "_" + era);
-              (d.tiers || []).forEach((t) =>
-                (t.entries || []).forEach((e) => {
-                  if (
-                    [e.name, e.detail, e.note]
-                      .join(" ")
-                      .toLowerCase()
-                      .includes(q)
-                  )
-                    hits.push({
-                      name: e.name,
-                      meta:
-                        (era === "now"
-                          ? "Present Rankings"
-                          : "21st Century Rankings") +
-                        " · " +
-                        LABELS[sec],
-                      go: () => {
-                        showPage(
-                          era === "now" ? "present-rankings" : "rankings",
-                        );
-                        era === "now"
-                          ? showPresentRanking(sec)
-                          : showRankingSection(sec);
-                      },
-                    });
-                }),
-              );
-            }),
+          const rankedSearchPlayers = new Map();
+          const addRankedSearchPlayer = (e, sec, era, rank) => {
+            if (
+              ![e.name, e.detail, e.note]
+                .join(" ")
+                .toLowerCase()
+                .includes(q)
+            )
+              return;
+            const key = String(e.name || "").trim().toLowerCase();
+            if (!key) return;
+            const priority =
+              sec === "overall" && era === "century"
+                ? [0, rank]
+                : sec === "overall" && era === "now"
+                  ? [1, rank]
+                  : era === "century"
+                    ? [2, rank]
+                    : [3, rank];
+            const previous = rankedSearchPlayers.get(key);
+            if (
+              previous &&
+              (previous.priority[0] < priority[0] ||
+                (previous.priority[0] === priority[0] &&
+                  previous.priority[1] <= priority[1]))
+            )
+              return;
+            rankedSearchPlayers.set(key, {
+              name: e.name,
+              meta:
+                (era === "now"
+                  ? "Present Rankings"
+                  : "21st Century Rankings") +
+                " · " +
+                LABELS[sec],
+              priority,
+              go: () => {
+                showPage(
+                  era === "now" ? "present-rankings" : "rankings",
+                );
+                era === "now"
+                  ? showPresentRanking(sec)
+                  : showRankingSection(sec);
+              },
+            });
+          };
+          ["century", "now"].forEach((era) => {
+            ["overall", ...PLAYER_SECTIONS.filter((sec) => sec !== "overall")].forEach(
+              (sec) => {
+                let rank = 0;
+                const d = rankGet(sec + "_" + era);
+                (d.tiers || []).forEach((t) =>
+                  (t.entries || []).forEach((e) => {
+                    addRankedSearchPlayer(e, sec, era, rank);
+                    rank += 1;
+                  }),
+                );
+              },
+            );
+          });
+          hits.push(
+            ...[...rankedSearchPlayers.values()].sort(
+              (a, b) =>
+                a.priority[0] - b.priority[0] ||
+                a.priority[1] - b.priority[1] ||
+                a.name.localeCompare(b.name),
+            ),
           );
           const md = rankGet("mgr_century");
           (md.tiers || []).forEach((t) =>
@@ -1583,7 +1619,7 @@
           });
           out.innerHTML = hits.length
             ? hits
-                .slice(0, 30)
+                .slice(0, 200)
                 .map(
                   (h, i) =>
                     '<button class="search-result" data-i="' +
