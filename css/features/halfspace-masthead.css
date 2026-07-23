@@ -47,30 +47,134 @@ html::after {
     url("../../assets/music-cat-stevens.webp");
 }
 
-/* The real masthead is moved above navigation once the complete document is
-   ready. Show its published image in that exact space during parsing so the
-   first paint never begins with navigation or blank space alone. */
-html:not(.hs-flow-ready) body::before {
+/* Apply section artwork from this head-loaded stylesheet. The fuller card
+   treatments remain in the writing system, but the page image itself must be
+   present before the large embedded content payload finishes parsing. */
+:is(
+  #page-betting,
+  #page-editorials,
+  #page-diary,
+  #page-transfer-recs,
+  #page-transfer-grades,
+  #page-rankings,
+  #page-present-rankings,
+  #page-positions,
+  #page-tv,
+  #page-nba,
+  #page-music,
+  #page-club-xi:has(#club-list-view:not([style*="display: none"]))
+) {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-betting {
+  --hs-page-art: url("../../assets/betting-corner-paqueta.avif");
+  --hs-page-art-position: 58% 16%;
+}
+
+#page-editorials {
+  --hs-page-art: url("../../assets/editorials-opinion-simon-jordan.webp");
+  --hs-page-art-position: 52% 16%;
+}
+
+#page-diary {
+  --hs-page-art: url("../../assets/editorials-matchday-diaries-thompson-acosta.jpg");
+  --hs-page-art-position: 50% 16%;
+}
+
+#page-transfer-recs {
+  --hs-page-art: url("../../assets/transfer-recs-wenger-dein.jpg");
+  --hs-page-art-position: 58% 16%;
+}
+
+#page-transfer-grades {
+  --hs-page-art: url("../../assets/transfer-grades-brian-clough.webp");
+  --hs-page-art-position: center top;
+}
+
+#page-rankings,
+#page-present-rankings {
+  --hs-page-art: url("../../assets/rankings-johan-cruyff.webp");
+  --hs-page-art-position: 58% 16%;
+}
+
+#page-club-xi {
+  --hs-page-art: url("../../assets/build-xi-main-jose-mourinho.webp");
+  --hs-page-art-position: 56% top;
+}
+
+#page-positions {
+  --hs-page-art: url("../../assets/position-guide-mikel-arteta.webp");
+  --hs-page-art-position: center 14%;
+}
+
+#page-tv {
+  --hs-page-art: url("../../assets/tv-tony-soprano.jpg");
+  --hs-page-art-position: center 18%;
+}
+
+#page-nba {
+  --hs-page-art: url("../../assets/nba-allen-iverson.avif");
+  --hs-page-art-position: center 16%;
+}
+
+#page-music {
+  --hs-page-art: url("../../assets/music-cat-stevens.webp");
+  --hs-page-art-position: center 14%;
+}
+
+:is(
+  #page-betting,
+  #page-editorials,
+  #page-diary,
+  #page-transfer-recs,
+  #page-transfer-grades,
+  #page-rankings,
+  #page-present-rankings,
+  #page-positions,
+  #page-tv,
+  #page-nba,
+  #page-music,
+  #page-club-xi:has(#club-list-view:not([style*="display: none"]))
+)::before {
   content: "";
-  display: block;
-  width: 100%;
-  min-height: clamp(220px, 33.333vw, 724px);
-  background-color: #0b281e;
-  background-image: var(--hs-initial-masthead-image);
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    var(--hs-page-art) var(--hs-page-art-position) / cover fixed no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
 }
 
-/* As soon as the published hero reaches the parser, it replaces the stand-in
-   entirely. Navigation stays out of that transient layout until the hero is
-   synchronously moved above it, so neither element can stack or swap places. */
-html:not(.hs-flow-ready) body:has(#page-home > .hero)::before {
-  display: none;
-}
-
-html:not(.hs-flow-ready) body:has(#page-home > .hero) > nav {
-  display: none !important;
+@media (max-width: 760px) {
+  :is(
+    #page-betting,
+    #page-editorials,
+    #page-diary,
+    #page-transfer-recs,
+    #page-transfer-grades,
+    #page-rankings,
+    #page-present-rankings,
+    #page-positions,
+    #page-tv,
+    #page-nba,
+    #page-music,
+    #page-club-xi:has(#club-list-view:not([style*="display: none"]))
+  )::before {
+    background-attachment: scroll;
+    opacity: 0.58;
+  }
 }
 
 .hero::before {
