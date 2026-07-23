@@ -662,6 +662,10 @@ test("the delivered homepage places the masthead before navigation without a loa
   assert.match(builder, /hs-is-home/);
   const html = read("index.html");
   assert.ok(html.indexOf("hs-floating-masthead") < html.indexOf("<nav>"));
+  assert.ok(
+    html.indexOf("css/features/masthead-nav-flow.css?v=5") <
+      html.indexOf("</head>"),
+  );
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
