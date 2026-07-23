@@ -1,6 +1,27 @@
       // ================================================================
       // ADMIN PANEL — verified through Supabase site_admins
       // ================================================================
+      let hsPublishedBaselineSha = null;
+      const hsPublishedBaselineReady = (async function () {
+        try {
+          const response = await fetch(window.location.href, { cache: "no-store" });
+          if (!response.ok) return null;
+          const source = await response.text();
+          const encoder = new TextEncoder();
+          const sourceBytes = encoder.encode(source);
+          const bytes = encoder.encode(
+            "blob " + sourceBytes.byteLength + "\0" + source,
+          );
+          const digest = await crypto.subtle.digest("SHA-1", bytes);
+          hsPublishedBaselineSha = Array.from(new Uint8Array(digest))
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("");
+        } catch (error) {
+          console.warn("Could not record the loaded site version:", error);
+        }
+        return hsPublishedBaselineSha;
+      })();
+
       function activateAdminMode() {
         adminMode = true;
         document.body.classList.add("admin-active");
@@ -422,7 +443,7 @@
           );
           if (btn) btn.textContent = "⏳ Uploading…";
           let putResp;
-          for (let attempt = 0; attempt < 2; attempt += 1) {
+          for (let attempt = 0; attempt < 1; attempt += 1) {
             const getResp = await githubFetch(
               "https://api.github.com/repos/" +
                 REPO +
@@ -453,6 +474,17 @@
             }
             if (!getResp.ok) throw new Error("Could not read the latest live version (HTTP " + getResp.status + ").");
             const fileData = await getResp.json();
+            await hsPublishedBaselineReady;
+            if (!hsPublishedBaselineSha) {
+              throw new Error(
+                "The loaded site version could not be verified. Nothing was overwritten. Reload the site and try again.",
+              );
+            }
+            if (fileData.sha !== hsPublishedBaselineSha) {
+              throw new Error(
+                "The live site changed after this page was opened. Nothing was overwritten. Reload the site, confirm the newer changes, then publish again.",
+              );
+            }
             putResp = await githubFetch(
               "https://api.github.com/repos/" + REPO + "/contents/" + FILE,
               {
@@ -471,9 +503,13 @@
               },
             );
             if (putResp.ok || putResp.status !== 409) break;
-            if (btn) btn.textContent = "⏳ Syncing latest version…";
+            throw new Error(
+              "The live site changed while you were publishing. Nothing was overwritten. Reload the site, confirm the newer changes, then publish again.",
+            );
           }
 	          if (putResp.ok) {
+	            const putResult = await putResp.clone().json();
+	            if (putResult?.content?.sha) hsPublishedBaselineSha = putResult.content.sha;
 	            siteData = publishData;
 	            window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(publishData));
 	            if (typeof saveData === "function") saveData({ markChanges: false });
