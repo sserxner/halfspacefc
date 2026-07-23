@@ -9,7 +9,7 @@ const bakedPattern = /<script id="baked_data">[\s\S]*?<\/script>/;
 const liveIndex = execFileSync("git", ["show", ":2:index.html"], {
   cwd: root,
   encoding: "utf8",
-  maxBuffer: 10 * 1024 * 1024,
+  maxBuffer: 64 * 1024 * 1024,
 });
 const liveBakedData = liveIndex.match(bakedPattern)?.[0];
 if (!liveBakedData) {

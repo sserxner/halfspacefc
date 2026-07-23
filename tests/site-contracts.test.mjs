@@ -312,6 +312,7 @@ test("deployment automatically rebuilds generated-index conflicts", () => {
   assert.match(deploy, /resolve-generated-index\.mjs/);
   assert.match(deploy, /tools\/build-site\.mjs/);
   assert.match(resolver, /git", \["show", ":2:index\.html"\]/);
+  assert.match(resolver, /maxBuffer: 64 \* 1024 \* 1024/);
   assert.match(resolver, /Latest live content was preserved/);
 });
 
