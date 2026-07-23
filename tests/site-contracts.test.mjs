@@ -1121,4 +1121,5 @@ test("homepage masthead collapses after scrolling", () => {
   assert.match(flow, /window\.scrollY > 140/);
   assert.match(flow, /hs-masthead-collapsed/);
   assert.match(styles, /hs-masthead-collapsed[\s\S]*max-height:\s*0/);
+  assert.match(styles, /body\s*\{[\s\S]*padding-top:\s*0\s*!important/);
 });

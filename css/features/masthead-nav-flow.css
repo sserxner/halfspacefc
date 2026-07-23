@@ -1,4 +1,8 @@
 /* Batch 2 V3: masthead first, navigation/search below, then collapse on scroll. */
+body {
+  padding-top: 0 !important;
+}
+
 body.hs-is-home > .hero.hs-floating-masthead {
   display: grid;
   max-height: 420px;
