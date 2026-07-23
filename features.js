@@ -207,7 +207,7 @@
             ? "Stories"
             : t === "diary"
               ? "Diaries"
-              : "Transfer Recommendations";
+              : "Transfer Recs";
         }
         function excerptText(s, n = 300) {
           const t = String(s || "")
@@ -337,7 +337,7 @@
           const tabs = [
             ["stories", "Stories"],
             ["diaries", "Diaries"],
-            ["transfers", "Transfer Recommendations"],
+            ["transfers", "Transfer Recs"],
             ["headlines", "Headlines"],
             ["featured", "Featured Story"],
           ];
@@ -2236,7 +2236,7 @@
           const labels = [
             ["stories", "Stories"],
             ["diaries", "Diaries"],
-            ["transfers", "Transfer Recommendations"],
+            ["transfers", "Transfer Recs"],
             ["music", "Music"],
             ["headlines", "Headlines"],
             ["featured", "Featured Story"],

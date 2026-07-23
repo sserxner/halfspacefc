@@ -4,9 +4,10 @@
   const CONFIG_KEY = "masthead_composer_v1";
   const HISTORY_KEY = "masthead_composer_history_v1";
   const MEDIA_KEY = "media_library_v1";
-  const CONFIG_VERSION = 3;
+  const CONFIG_VERSION = 5;
   const BASE_IMAGE = "blank";
   const LEGACY_BASE_IMAGE = "assets/halfspace-masthead-v1.png";
+  const CURATED_PUBLIC_IMAGE = new URL("assets/halfspace-masthead-editorial-v3.jpg?v=1", document.baseURI).href;
   const BUILTIN_LIBRARY = [
     ["approved_central_dribbler", "Central dribbler", "central-dribbler.png", 347, 641],
     ["approved_manager_left", "Manager — hands on head", "manager-left.png", 1448, 1086],
@@ -42,6 +43,30 @@
     builtin: true,
     createdAt: "2026-07-18T00:00:00.000Z",
   }));
+  BUILTIN_LIBRARY.push(...[
+    ["photo_wenger", "Arsène Wenger — Old Trafford", "wenger-old-trafford.avif", 1200, 896],
+    ["photo_suarez", "Luis Suárez — Liverpool", "web-liverpool-1-getty.avif", 1200, 900],
+    ["photo_rooney", "Wayne Rooney — celebration", "r229804_1296x729_16-9.jpg", 1296, 729],
+    ["photo_messi", "Lionel Messi — dribbling", "leo-messi-dribbling.jpg", 611, 722],
+    ["photo_vardy", "Jamie Vardy — strike", "4030.avif", 465, 279],
+    ["photo_pep", "Pep Guardiola — hands on head", "w640xh480_REU_2307446.jpg", 640, 480],
+    ["photo_yaya", "Yaya Touré — celebration", "yaya-toure-1.avif", 2048, 1536],
+    ["photo_neymar", "Neymar — Santos bow", "just-a-picture-from-prime-neymar-at-santos-bowing-in-front-v0-6ux60c9ml5ld1.webp", 640, 1132],
+    ["photo_zidane", "Zinedine Zidane — chipped penalty", "EcexWXCWoAQsuyu.jpg", 1080, 1080],
+    ["photo_villa", "David Villa — Spain seven", "OURYOEVKLYOZRDLIJVQFG5JKU4.webp", 485, 321],
+    ["photo_henry", "Thierry Henry — Highbury", "maxresdefault.jpg", 1280, 720],
+  ].map(([id, title, file, width, height]) => ({
+    id,
+    title,
+    alt: title,
+    src: `assets/masthead-originals/${file}`,
+    width,
+    height,
+    collection: "Masthead originals",
+    tags: ["masthead", "original", "photo"],
+    builtin: true,
+    createdAt: "2026-07-23T00:00:00.000Z",
+  })));
   const SIZE = {
     desktop: { width: 2172, height: 724, label: "Desktop" },
     mobile: { width: 1080, height: 720, label: "Mobile" },
@@ -199,10 +224,77 @@
     mobile: emptyLayout("mobile"),
     updatedAt: new Date().toISOString(),
   });
+  const CURATED_MASTHEAD = {
+    desktop: [
+      ["photo_wenger", "Box 1 — Wenger", -0.6, 0, 17.8, 51.5, 1],
+      ["photo_suarez", "Box 2 — Suárez", 16.1, 0, 17.8, 51.5, 2],
+      ["photo_rooney", "Box 3 — Rooney", 32.8, 0, 17.8, 51.5, 3],
+      ["photo_messi", "Box 4 — Messi", 49.5, 0, 17.8, 51.5, 4],
+      ["photo_vardy", "Box 5 — Vardy", 66.2, 0, 17.8, 51.5, 5],
+      ["photo_pep", "Box 6 — Guardiola", 82.9, 0, 17.8, 51.5, 6],
+      ["photo_yaya", "Box 7 — Touré", -0.6, 48.5, 21.2, 51.5, 7],
+      ["photo_neymar", "Box 8 — Neymar", 19.4, 48.5, 21.2, 51.5, 8],
+      ["photo_zidane", "Box 9 — Zidane", 39.4, 48.5, 21.2, 51.5, 9],
+      ["photo_villa", "Box 10 — Villa", 59.4, 48.5, 21.2, 51.5, 10],
+      ["photo_henry", "Box 11 — Henry", 79.4, 48.5, 21.2, 51.5, 11],
+    ],
+    mobile: [
+      ["photo_wenger", "Box 1 — Wenger", -1, 0, 35, 26.5, 1],
+      ["photo_suarez", "Box 2 — Suárez", 32.3, 0, 35, 26.5, 2],
+      ["photo_rooney", "Box 3 — Rooney", 65.6, 0, 35, 26.5, 3],
+      ["photo_messi", "Box 4 — Messi", -1, 24.5, 35, 27.5, 4],
+      ["photo_vardy", "Box 5 — Vardy", 32.3, 24.5, 35, 27.5, 5],
+      ["photo_pep", "Box 6 — Guardiola", 65.6, 24.5, 35, 27.5, 6],
+      ["photo_yaya", "Box 7 — Touré", -1, 50, 35, 27, 7],
+      ["photo_neymar", "Box 8 — Neymar", 32.3, 50, 35, 27, 8],
+      ["photo_zidane", "Box 9 — Zidane", 65.6, 50, 35, 27, 9],
+      ["photo_villa", "Box 10 — Villa", 15.6, 75, 35, 25, 10],
+      ["photo_henry", "Box 11 — Henry", 49, 75, 35, 25, 11],
+    ],
+  };
+  function curatedLayers(mode) {
+    return CURATED_MASTHEAD[mode].map(([assetId, name, x, y, width, height, z]) => {
+      const desktopTop = mode === "desktop" && z <= 6;
+      const desktopBottom = mode === "desktop" && z >= 7;
+      const rowStart = mode === "desktop" ? z === 1 || z === 7 : [1, 4, 7, 10].includes(z);
+      if (desktopTop) {
+        const cell = 100 / 6;
+        const overlap = 5.5;
+        x = (z - 1) * cell - (rowStart ? 0 : overlap);
+        width = cell + (rowStart ? 0 : overlap);
+      } else if (desktopBottom) {
+        const cell = 20;
+        const overlap = 6.8;
+        x = (z - 7) * cell - (rowStart ? 0 : overlap);
+        width = cell + (rowStart ? 0 : overlap);
+      }
+      return normalizedLayer({
+        id: `curated_${mode}_${assetId}`,
+        assetId,
+        name,
+        x, y, width, height, z,
+        slot: true,
+        fit: "cover",
+        lockAspect: false,
+        zoom: 106,
+        finish: "original",
+        blend: "normal",
+        brightness: 96,
+        contrast: 102,
+        saturation: 94,
+        sepia: 0,
+        hue: 0,
+        glow: 0,
+        dissolveLeft: rowStart ? 0 : 22,
+        dissolveRight: 0,
+      });
+    });
+  }
   function normalizedConfig(value) {
     const base = defaultConfig();
     const input = value && typeof value === "object" ? value : {};
-    const migrateAutomaticEffects = (Number(input.version) || 1) < CONFIG_VERSION;
+    const incomingVersion = Number(input.version) || 1;
+    const migrateAutomaticEffects = incomingVersion < 3;
     ["desktop", "mobile"].forEach((mode) => {
       const incoming = input[mode] || {};
       base[mode] = Object.assign(base[mode], incoming);
@@ -213,6 +305,19 @@
       base[mode].layers = Array.isArray(base[mode].layers)
         ? base[mode].layers.map((layer) => normalizedLayer(layer, { migrateAutomaticEffects }))
         : [];
+      if (incomingVersion < 5) {
+        base[mode].layers = curatedLayers(mode);
+        base[mode].flattened = "";
+        base[mode].renderedAt = "";
+        base[mode].atmosphere = "clean";
+        base[mode].atmosphereOpacity = 0;
+        base[mode].coverPreset = "custom";
+        base[mode].titleSize = mode === "desktop" ? 20 : 17;
+        base[mode].titleY = mode === "desktop" ? 55 : 50;
+        base[mode].titleColor = "#f4eedf";
+        base[mode].taglineY = mode === "desktop" ? 69 : 60;
+        base[mode].taglineColor = "#f2df9b";
+      }
     });
     base.version = CONFIG_VERSION;
     base.updatedAt = input.updatedAt || base.updatedAt;
@@ -224,7 +329,7 @@
       id: uid(), assetId: "", name: "Masthead figure",
       x: 42, y: 14, width: 16, height: 70, rotation: 0,
       fit: "contain", zoom: 100, focusX: 50, focusY: 50,
-      opacity: 100, flipX: false, locked: false, hidden: false, lockAspect: true,
+      opacity: 100, flipX: false, locked: false, hidden: false, lockAspect: true, slot: false,
       z: 1, finish: "original", blend: "normal",
       brightness: 100, contrast: 100, saturation: 100, sepia: 0, hue: 0, glow: 0,
       dissolveLeft: 0, dissolveRight: 0, dissolveTop: 0, dissolveBottom: 0,
@@ -563,6 +668,22 @@
   function addAsset(assetId, shouldRender = true) {
     const asset = media().find((item) => item.id === assetId);
     if (!asset) return;
+    const selected = selectedLayer();
+    if (selected?.slot) {
+      pushUndo();
+      selected.assetId = asset.id;
+      selected.name = selected.name.replace(/—.*$/, `— ${asset.title || "Photo"}`);
+      selected.fit = "cover";
+      selected.zoom = 100;
+      selected.focusX = 50;
+      selected.focusY = 50;
+      layout().flattened = "";
+      if (shouldRender) {
+        renderAll();
+        status(`${asset.title} now fills the selected box. Adjust zoom and crop focus on the right.`, "success");
+      }
+      return;
+    }
     pushUndo();
     const modeSize = SIZE[state.mode];
     const aspect = asset.width && asset.height ? asset.width / asset.height : 1;
@@ -655,9 +776,9 @@
         return am - bm || String(b.createdAt || "").localeCompare(String(a.createdAt || ""));
       });
     grid.innerHTML = all.length ? all.map((asset) => `
-      <button type="button" data-mc-add="${esc(asset.id)}" title="Add ${esc(asset.title)} to the masthead">
+      <button type="button" data-mc-add="${esc(asset.id)}" title="${selectedLayer()?.slot ? "Place" : "Add"} ${esc(asset.title)} ${selectedLayer()?.slot ? "in the selected box" : "on the masthead"}">
         <img src="${esc(asset.src)}" alt="${esc(asset.alt || asset.title || "Library image")}">
-        <span>${esc(asset.title || "Untitled")}</span><small>${esc(asset.collection || "Media")}</small>
+        <span>${esc(asset.title || "Untitled")}</span><small>${selectedLayer()?.slot ? "Use in selected box" : esc(asset.collection || "Media")}</small>
       </button>`).join("") : `<div class="hs-mc-library-empty"><strong>Your library is ready</strong><span>Add, paste, or choose an image from Media.</span></div>`;
   }
 
@@ -720,7 +841,7 @@
         ${layerList()}`;
     } else {
       root.innerHTML = `
-        <div class="hs-mc-panel-title"><span>Selected layer</span><h3>${esc(item.name)}</h3><p>Positioning never alters the original library file.</p></div>
+        <div class="hs-mc-panel-title"><span>${item.slot ? "Selected image box" : "Selected layer"}</span><h3>${esc(item.name)}</h3><p>${item.slot ? "Choose any photo at left to replace this box; its position stays intact." : "Positioning never alters the original library file."}</p></div>
         <label class="hs-mc-text"><span>Layer name</span><input data-mc-layer-field="name" value="${esc(item.name)}"></label>
         <div class="hs-mc-button-row">
           <button data-mc-layer-action="back">Send back</button><button data-mc-layer-action="front">Bring front</button>
@@ -1196,7 +1317,6 @@
     context.imageSmoothingQuality = "high";
     drawBlankBase(context, size.width, size.height);
     await document.fonts?.ready;
-    drawBrandTitle(context, size.width, size.height, current);
     const ordered = [...current.layers].filter((item) => !item.hidden).sort((a, b) => (a.z || 0) - (b.z || 0));
     for (const layer of ordered) {
       const src = srcFor(layer);
@@ -1233,6 +1353,7 @@
       context.restore();
     }
     drawAtmosphere(context, current, size.width, size.height);
+    drawBrandTitle(context, size.width, size.height, current);
     return canvas;
   }
   async function renderAndUse() {
@@ -1289,7 +1410,7 @@
     if (!heroes.length) return;
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
-    const flattened = config[mode]?.flattened || (mode === "mobile" ? config.desktop?.flattened : "");
+    const flattened = config[mode]?.flattened || CURATED_PUBLIC_IMAGE;
     document.documentElement.classList.toggle(
       "hs-initial-masthead-composed",
       Boolean(flattened),

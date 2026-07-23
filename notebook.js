@@ -16,7 +16,7 @@
   };
   const WRITE_CONFIGS = {
     diary: {key:"diary_entries", label:"Matchday Diary"},
-    transfer: {key:"transfer_recommendations_v1", label:"Transfer Recommendation"},
+    transfer: {key:"transfer_recommendations_v1", label:"Transfer Rec"},
     editorial: {key:"editorial_entries_v1", label:"Editorial"},
     betting: {key:"betting_entries_v1", label:"Betting Corner"},
   };
@@ -203,7 +203,7 @@
       </div></section>
       <section class="hs-notebook-embeds"><header><h3>Media and tactics</h3><div><button data-note-media>+ Media</button><select data-note-board-select><option value="">Saved tactics board…</option>${boards().map((board) => `<option value="${esc(board.id)}">${esc(board.title)}</option>`).join("")}</select><button data-note-board>+ Board</button></div></header><div>${assetRows(item)}</div></section>
       <section class="hs-notebook-history"><details><summary>Revision history (${(item.revisions || []).length})</summary><div>${revisions(item)}</div></details></section>
-      <footer><span data-notebook-status>Saved privately</span><button data-note-save>Save version</button><button data-note-convert="transfer">Copy to Transfer Recommendation</button><button data-note-convert="diary">Copy to Matchday Diary</button><button data-note-convert="editorial">Copy to Editorial</button><button data-note-convert="betting">Copy to Betting Corner</button><button class="primary" data-note-convert="editorial" data-note-publish="true">Publish Editorial</button><button class="primary" data-note-convert="betting" data-note-publish="true">Publish Betting</button></footer>`;
+      <footer><span data-notebook-status>Saved privately</span><button data-note-save>Save version</button><button data-note-convert="transfer">Copy to Transfer Rec</button><button data-note-convert="diary">Copy to Matchday Diary</button><button data-note-convert="editorial">Copy to Editorial</button><button data-note-convert="betting">Copy to Betting Corner</button><button class="primary" data-note-convert="editorial" data-note-publish="true">Publish Editorial</button><button class="primary" data-note-convert="betting" data-note-publish="true">Publish Betting</button></footer>`;
   }
   function render() { renderList(); renderEditor(); }
   function ensureUI() {

@@ -10,9 +10,54 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   box-shadow: var(--hs-focus);
 }
 .topnav .nav-item, .topnav .nav-dropdown > button { letter-spacing: .075em; }
-.dropdown-menu { border: 1px solid rgba(255,255,255,.1); border-radius: 0 0 var(--hs-radius) var(--hs-radius); box-shadow: 0 18px 38px rgba(0,0,0,.23); }
+.nav-tab-band {
+  width: 100%;
+  padding-inline: 1.5rem !important;
+  gap: clamp(.45rem, 1.6vw, 1.65rem) !important;
+  justify-content: center !important;
+}
+.nav-tab-band > .nav-tab,
+.nav-tab-band > .nav-dropdown {
+  flex: 0 1 auto;
+}
+.nav-dropdown-menu, .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: min(320px, calc(100vw - 2rem));
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 0 0 var(--hs-radius) var(--hs-radius);
+  box-shadow: 0 18px 38px rgba(0,0,0,.23);
+}
+.nav-dropdown:hover > .nav-dropdown-menu,
+.nav-dropdown:focus-within > .nav-dropdown-menu,
+.nav-dropdown.open > .nav-dropdown-menu { display: flex; }
+.nav-dropdown-menu button {
+  display: block;
+  width: auto !important;
+  min-width: 100%;
+  padding-inline: .75rem !important;
+  text-align: left;
+  white-space: nowrap;
+}
+.nav-dropdown-menu button:hover, .nav-dropdown-menu button:focus-visible,
 .dropdown-menu button:hover, .dropdown-menu button:focus-visible { background: rgba(255,255,255,.09); color: #fff; }
 .hero { position: relative; min-height: clamp(270px, 29vw, 510px); box-shadow: inset 0 -90px 90px rgba(4,25,14,.24); }
+.sub-tabs {
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  vertical-align: top;
+}
+.sub-tabs .sub-tab {
+  flex: 0 0 auto;
+  padding-inline: clamp(.58rem, 1vw, .85rem) !important;
+}
 .section { padding-block: clamp(2.5rem, 5vw, 4.75rem); }
 .section-title { letter-spacing: -.02em; }
 .card, .ranking-card, .hs-writing-card, .hs-home-feature { border-radius: var(--hs-radius); box-shadow: var(--hs-shadow); }
@@ -35,6 +80,13 @@ footer [contenteditable="false"] { cursor: default !important; border-bottom: 0 
   .ranking-tabs button, .era-tabs button { flex: 0 0 auto; min-height: 44px; }
   .hs-footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .2rem .8rem; }
   .hs-footer-links button { min-height: 44px; }
+}
+
+@media (min-width: 761px) and (max-width: 1080px) {
+  .nav-tab-band {
+    padding-inline: 1rem !important;
+    gap: clamp(.2rem, .8vw, .65rem) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

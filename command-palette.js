@@ -114,7 +114,7 @@
   const PAGE_ACTIONS = [
     ["home", "Home"],
     ["diary", "Matchday Diary"],
-    ["transfers", "Transfer Recommendations"],
+    ["transfers", "Transfer Recs"],
     ["present-rankings", "Present Rankings"],
     ["rankings", "21st Century Rankings"],
     ["club-xi", "Club XIs"],

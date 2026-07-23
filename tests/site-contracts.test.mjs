@@ -6,7 +6,7 @@ import vm from "node:vm";
 import { html, read, root, assertIncludes } from "./helpers/site-fixture.mjs";
 
 test("primary pages and navigation controls remain available", () => {
-  assertIncludes(assert, html, ["page-home", "page-present-rankings", "page-transfers", "page-rankings", "page-country-xi", "page-club-xi", "page-positions", "page-tv", "page-nba", "page-music", "page-contact", "page-diary"], "Missing page");
+  assertIncludes(assert, html, ["page-home", "page-present-rankings", "page-transfer-recs", "page-transfer-grades", "page-rankings", "page-country-xi", "page-club-xi", "page-positions", "page-tv", "page-nba", "page-music", "page-contact", "page-diary"], "Missing page");
   const navigation = read("js/public/navigation-and-xis.js");
   assert.match(navigation, /function showPage\(/);
   assert.match(navigation, /addEventListener\("popstate"/);
@@ -93,22 +93,18 @@ test("Present Day rankings use the full ranking editor controls", () => {
   assert.match(app, /window\.HSRankingEditor\?\.decorate/);
 });
 
-test("Transfers are split into recs, rumors, and grades", () => {
-  const app = read("app.js");
-  const transfers = read("components/transfer-recommendations.html");
+test("Transfer recommendations and grades are separate destination pages", () => {
   const sourceTransfers = read("src/components/transfer-recommendations.html");
   const template = read("src/index.template.html");
-  assert.match(transfers, /section-title">Transfers/);
-  assert.match(sourceTransfers, /section-title">Transfers/);
-  assert.match(transfers, /data-transfer-tab="recs"/);
-  assert.match(transfers, /data-transfer-tab="rumors"/);
-  assert.match(transfers, /data-transfer-tab="grades"/);
-  assert.match(sourceTransfers, /data-transfer-tab="grades"[\s\S]*data-transfer-tab="recs"[\s\S]*data-transfer-tab="rumors"/);
-  assert.match(app, /const TRANSFER_TABS/);
-  assert.match(app, /window\.showTransferTab/);
-  assert.match(app, /normalizeTransferType\(x\.type\) === activeTransferTab/);
-  assert.match(app, /Transfers ·/);
-  assert.match(template, /showPage\('transfers'\)[\s\S]*Transfers/);
+  const writing = read("js/features/writing-system.js");
+  assert.match(sourceTransfers, /id="page-transfer-recs"/);
+  assert.match(sourceTransfers, /id="page-transfer-grades"/);
+  assert.match(sourceTransfers, /section-title">Transfer Recs/);
+  assert.match(sourceTransfers, /section-title">Transfer Grades/);
+  assert.doesNotMatch(sourceTransfers, /data-transfer-tab/);
+  assert.match(template, /showTransferPage\('recs'\)/);
+  assert.match(template, /showTransferPage\('grades'\)/);
+  assert.match(writing, /function renderTransferPage\(type, rootId\)/);
 });
 
 test("football player cards use compact summaries and international caps and goals", () => {
@@ -918,7 +914,9 @@ test("Diaries, Editorials, Transfers, and Betting share one writing system", () 
   assert.match(system, /<u>\$1<\/u>/);
   assert.match(homepage, /HSHomepageFeature\.open/);
   assert.match(homepage, /headlineOrder/);
-  assert.match(homepage, /showTransferTab/);
+  assert.match(homepage, /showTransferPage/);
+  assert.match(homepage, /headlineVisible !== false/);
+  assert.match(homepage, /\.slice\(0, 7\)/);
   assert.match(homepage, /moveHeadline/);
   assert.match(homepage, /HSHomepageFeature\.move/);
   assert.match(content, /function editorialHTML/);
@@ -951,7 +949,7 @@ test("Notebook stays private while supporting recovery and deliberate conversion
   assert.match(notebook, /HSMediaManager/);
   assert.match(notebook, /tacticsBoardEmbeds/);
   assert.match(notebook, /Copy to Matchday Diary/);
-  assert.match(notebook, /Copy to Transfer Recommendation/);
+  assert.match(notebook, /Copy to Transfer Rec/);
   assert.match(notebook, /HSEditorialComposer/);
   assert.match(studio, /\["notebook", "Notebook"\]/);
   assert.match(template, /notebook\.js/);
@@ -991,7 +989,10 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /approved_fourteen/);
   assert.match(composer, /Clean green-and-gold canvas \+ independent layers/);
   assert.match(composer, /hs-initial-masthead-composed/);
-  assert.match(mastheadStyles, /\.hs-initial-masthead-composed \.hero h1/);
+  assert.match(mastheadStyles, /\.hero h1/);
+  assert.match(mastheadStyles, /font: 700 clamp\(3\.2rem, 9vw, 7rem\) \/ 0\.92 var\(--serif\)/);
+  assert.doesNotMatch(mastheadStyles, /\.hs-initial-masthead-composed \.hero h1[\s\S]*?clip: rect/);
+  assert.match(template, /halfspace-masthead-editorial-v3\.jpg/);
   assert.match(composer, /data-mc-mode="desktop"/);
   assert.match(composer, /data-mc-mode="mobile"/);
   assert.match(composer, /Dissolve into banner/);
@@ -1007,7 +1008,12 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /taglineTracking/);
   assert.match(composer, /media_library_v1/);
   assert.match(composer, /masthead_composer_history_v1/);
-  assert.match(composer, /const CONFIG_VERSION = 3/);
+  assert.match(composer, /const CONFIG_VERSION = 5/);
+  assert.match(composer, /Masthead originals/);
+  assert.match(composer, /Crop focus — horizontal/);
+  assert.match(composer, /Crop focus — vertical/);
+  assert.match(composer, /CURATED_PUBLIC_IMAGE/);
+  assert.match(composer, /CURATED_MASTHEAD/);
   assert.match(composer, /Brazilian football archive/);
   assert.match(composer, /applyArchiveLook/);
   assert.match(composer, /finish: "original"/);

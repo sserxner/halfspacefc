@@ -19,7 +19,7 @@
     },
     {
       type: "transfer",
-      label: "Transfer Recommendation",
+      label: "Transfer Rec",
       key: "transfer_recommendations_v1",
       title: (item) =>
         [item.club, item.title].filter(Boolean).join(" — ") ||

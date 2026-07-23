@@ -156,7 +156,10 @@
     const items = allEntries();
     const feature = chooseFeatured(items);
     const ordered = items
-      .filter((item) => live(item.entry) && !(item.type === feature?.type && item.index === feature?.index))
+      .filter((item) =>
+        live(item.entry) &&
+        item.entry?.headlineVisible !== false &&
+        !(item.type === feature?.type && item.index === feature?.index))
       .sort(headlineSort);
     const from = ordered.findIndex((item) => item.type === type && item.index === Number(index));
     const to = from + Number(direction);
@@ -237,9 +240,12 @@
       return;
     }
     const latest = items
-      .filter((item) => live(item.entry) && !(item.type === feature.type && item.index === feature.index))
+      .filter((item) =>
+        live(item.entry) &&
+        item.entry?.headlineVisible !== false &&
+        !(item.type === feature.type && item.index === feature.index))
       .sort(headlineSort)
-      .slice(0, 8);
+      .slice(0, 7);
     applyFont();
     root.innerHTML = `${controls(items, feature)}
       <section class="hs-home-reading-layout">
@@ -319,10 +325,11 @@
     const item = allEntries().find((candidate) => candidate.type === type && candidate.index === Number(index));
     if (!item) return;
     if (type === "transfer") {
-      window.HSWritingSystem?.showTransferTab?.(item.entry?.type === "grades" ? "grades" : "recs");
+      window.HSWritingSystem?.showTransferPage?.(item.entry?.type === "grades" ? "grades" : "recs");
       window.HSWritingSystem?.filterTransferClub?.("all");
+    } else {
+      window.showPage?.(item.cfg.page);
     }
-    window.showPage?.(item.cfg.page);
     setTimeout(() => {
       document.querySelector(`[data-writing-type="${type}"][data-writing-index="${Number(index)}"]`)
         ?.scrollIntoView({ behavior: "smooth", block: "start" });

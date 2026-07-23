@@ -5,7 +5,7 @@
   const ORIGIN = "https://halfspacefc.com";
   const PAGE_LABELS = {
     diary: "Matchday Diary",
-    transfers: "Transfer Recommendations",
+    transfers: "Transfer Recs",
     "present-rankings": "Present Rankings",
     rankings: "21st Century Rankings",
     "club-xi": "Club XIs",
@@ -104,7 +104,7 @@
     return [
       ["story", "blog_posts", "Story"],
       ["diary", "diary_entries", "Diary"],
-      ["transfer", "transfer_recommendations_v1", "Transfer Recommendation"],
+      ["transfer", "transfer_recommendations_v1", "Transfer Rec"],
     ];
   }
 

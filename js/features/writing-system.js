@@ -334,15 +334,15 @@
     return type === "grades" ? "Transfer Grade" : "Transfer Rec";
   }
 
-  function renderTransfers() {
-    const root = document.getElementById("transferRecommendations");
+  function renderTransferPage(type, rootId) {
+    const root = document.getElementById(rootId);
     if (!root) return;
     const all = records("transfer")
       .map((entry, index) => ({
         entry: { ...entry, type: entry.type === "grades" ? "grades" : "recs" },
         index,
       }))
-      .filter(({ entry }) => live(entry) && entry.type === state.transfer);
+      .filter(({ entry }) => live(entry) && entry.type === type);
     const clubImportance = window.HSClubImportanceOrder?.() || [];
     const importanceIndex = new Map(
       clubImportance.map((club, index) => [slug(club), index]),
@@ -363,19 +363,23 @@
       state.transferClub === "all"
         ? all
         : all.filter(({ entry }) => slug(entry.club) === state.transferClub);
-    syncTransferTabs();
     root.className = "hs-writing-shell";
     root.innerHTML = `<aside class="hs-writing-sidebar">
-        <h3>${transferLabel(state.transfer)} by team</h3>
+        <h3>${transferLabel(type)} by team</h3>
         <div class="hs-writing-filter-list">
           ${filterButton("All teams", "all", state.transferClub, "HSWritingSystem.filterTransferClub")}
           ${clubs.map((club) => filterButton(club, slug(club), state.transferClub, "HSWritingSystem.filterTransferClub")).join("")}
         </div>
-        ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('transfer')">+ New ${transferLabel(state.transfer).toLowerCase()}</button>` : ""}
+        ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.addTransfer('${type}')">+ New ${transferLabel(type).toLowerCase()}</button>` : ""}
       </aside>
       <main class="hs-writing-feed">
-        ${visible.length ? visible.map(({ entry, index }) => articleCard("transfer", entry, index)).join("") : `<div class="empty-state"><p>No ${transferLabel(state.transfer).toLowerCase()}s yet.</p></div>`}
+        ${visible.length ? visible.map(({ entry, index }) => articleCard("transfer", entry, index)).join("") : `<div class="empty-state"><p>No ${transferLabel(type).toLowerCase()}s yet.</p></div>`}
       </main>`;
+  }
+
+  function renderTransfers() {
+    renderTransferPage("recs", "transferRecommendations");
+    renderTransferPage("grades", "transferGrades");
   }
 
   function renderEditorials() {
@@ -437,13 +441,6 @@
       ${all.length ? all.map(({ entry, index }) => articleCard("betting", entry, index)).join("") : `<div class="empty-state"><p>${configs.betting.empty}</p></div>`}`;
   }
 
-  function syncTransferTabs() {
-    const tabs = document.getElementById("transferTabs");
-    if (!tabs) return;
-    tabs.innerHTML = `<button class="sub-tab ${state.transfer === "recs" ? "active" : ""}" data-transfer-tab="recs" onclick="HSWritingSystem.showTransferTab('recs')">Recs</button>
-      <button class="sub-tab ${state.transfer === "grades" ? "active" : ""}" data-transfer-tab="grades" onclick="HSWritingSystem.showTransferTab('grades')">Grades</button>`;
-  }
-
   function renderHomeFeatured() {
     if (window.HSHomepageFeature && typeof window.HSHomepageFeature.scheduleRender === "function") {
       window.HSHomepageFeature.scheduleRender();
@@ -488,6 +485,7 @@
       <header><div><span>Half Space Studio</span><h2>Writing</h2></div><button class="hs-write-big-close" type="button" data-write-close aria-label="Close editor">× Close</button></header>
       <div class="hs-write-form"></div>
       <label class="hs-write-featured"><input type="checkbox" data-write-featured> Feature this on the homepage</label>
+      <label class="hs-write-featured"><input type="checkbox" data-write-headline> Include this piece in Headlines</label>
       <section class="hs-write-media-fields">
         <div class="hs-write-cover-preview" data-write-cover-preview></div>
         <label><span>Cover photo</span><input data-write-field="coverImage" data-write-cover placeholder="Choose an image or paste its URL"></label>
@@ -532,6 +530,7 @@
             betType: type === "betting" ? "weekly" : undefined,
             result: type === "betting" ? "pending" : undefined,
             published: false,
+            headlineVisible: true,
           };
     editor = { type, index, record };
     const root = document.getElementById("hsWritingEditor");
@@ -544,6 +543,7 @@
     root.querySelector('[data-write-field="coverAlt"]').value = record.coverAlt || "";
     updateCoverPreview();
     root.querySelector("[data-write-featured]").checked = Boolean(record.featured);
+    root.querySelector("[data-write-headline]").checked = record.headlineVisible !== false;
     setEditorStatus("");
     setEditorBusy(false);
     root.classList.add("open");
@@ -563,6 +563,10 @@
     if (!editor) return;
     if (event.target.matches("[data-write-featured]")) {
       editor.record.featured = event.target.checked;
+      return;
+    }
+    if (event.target.matches("[data-write-headline]")) {
+      editor.record.headlineVisible = event.target.checked;
       return;
     }
     const field = event.target.closest?.("[data-write-field]");
@@ -771,8 +775,8 @@
         `<div class="nav-dropdown hs-transfer-dropdown">
           <button aria-expanded="false" aria-haspopup="true" class="nav-tab nav-dropdown-toggle" type="button">Transfers ▾</button>
           <div class="nav-dropdown-menu" role="menu">
-            <button type="button" onclick="HSWritingSystem.showTransferTab('recs');showPage('transfers')">Recs</button>
-            <button type="button" onclick="HSWritingSystem.showTransferTab('grades');showPage('transfers')">Grades</button>
+            <button type="button" onclick="HSWritingSystem.showTransferPage('recs')">Transfer Recs</button>
+            <button type="button" onclick="HSWritingSystem.showTransferPage('grades')">Transfer Grades</button>
           </div>
         </div>`,
       );
@@ -786,9 +790,14 @@
     const previous = window.showPage;
     if (typeof previous !== "function") return;
     window.showPage = function (id, mode) {
-      previous(id, mode);
+      if (id !== "transfers") previous(id, mode);
       if (id === "diary") renderDiary();
-      if (id === "transfers") renderTransfers();
+      if (id === "transfers") {
+        state.transfer = "recs";
+        previous("transfer-recs", mode);
+        renderTransfers();
+      }
+      if (id === "transfer-recs" || id === "transfer-grades") renderTransfers();
       if (id === "editorials") renderEditorials();
       if (id === "betting") renderBetting();
       highlightNav(id);
@@ -803,7 +812,7 @@
         (id === "betting" && text.includes("betting")) ||
         (id === "editorials" && text.includes("editorials")) ||
         (id === "diary" && text.includes("matchday")) ||
-        (id === "transfers" && text.includes("transfers"));
+        ((id === "transfers" || id === "transfer-recs" || id === "transfer-grades") && text.includes("transfers"));
       node.classList.toggle("active", active);
     });
   }
@@ -858,10 +867,18 @@
       state.transferClub = value;
       renderTransfers();
     },
-    showTransferTab(type) {
+    addTransfer(type) {
+      state.transfer = type === "grades" ? "grades" : "recs";
+      openEditor("transfer", -1);
+    },
+    showTransferPage(type) {
       state.transfer = type === "grades" ? "grades" : "recs";
       state.transferClub = "all";
+      showPage(state.transfer === "grades" ? "transfer-grades" : "transfer-recs");
       renderTransfers();
+    },
+    showTransferTab(type) {
+      this.showTransferPage(type);
     },
     showBetting(league) {
       state.betting = league === "ucl" ? "ucl" : "pl";

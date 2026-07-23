@@ -4,7 +4,7 @@
   const STORE_KEY = "seo_metadata_v1";
   const ORIGIN = "https://halfspacefc.com";
   const PAGE_LABELS = {
-    home: "Home", diary: "Matchday Diary", transfers: "Transfer Recommendations",
+    home: "Home", diary: "Matchday Diary", transfers: "Transfer Recs",
     "present-rankings": "Present Rankings", rankings: "21st Century Rankings",
     "club-xi": "Club XIs", "country-xi": "Country XIs", "continental-xi": "Continental XIs",
     managers: "Managers", positions: "Positions", scouting: "Scouting",

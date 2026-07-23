@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   isolation: isolate;
   background-color: #0b281e;
   background-image: var(
@@ -26,13 +26,7 @@
 .hero::before {
   z-index: 0;
   opacity: 1;
-  background:
-    linear-gradient(rgba(7, 24, 19, 0.24), rgba(7, 24, 19, 0.36)),
-    radial-gradient(circle at 50% 54%, transparent 0 25%, rgba(185, 145, 63, 0.1) 25.2% 25.5%, transparent 25.8%),
-    radial-gradient(circle at 50% 54%, transparent 0 46%, rgba(185, 145, 63, 0.06) 46.2% 46.5%, transparent 46.8%),
-    linear-gradient(29deg, transparent 0 47.8%, rgba(185, 145, 63, 0.045) 48% 48.15%, transparent 48.35%),
-    linear-gradient(-29deg, transparent 0 47.8%, rgba(185, 145, 63, 0.045) 48% 48.15%, transparent 48.35%),
-    linear-gradient(to bottom, transparent 66%, rgba(4, 18, 10, 0.18) 82%, rgba(4, 18, 10, 0.72) 100%) !important;
+  background: linear-gradient(rgba(8, 20, 14, 0.04), rgba(8, 20, 14, 0.1)) !important;
 }
 
 .hero::after {
@@ -41,12 +35,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.2;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(185, 145, 63, 0.28) 0 1px, transparent 1.3px),
-    radial-gradient(circle at 70% 62%, rgba(242, 232, 210, 0.12) 0 1px, transparent 1.4px);
-  background-size: 29px 31px, 41px 37px;
-  mix-blend-mode: screen;
+  opacity: 0;
 }
 
 .hero-eyebrow,
@@ -65,13 +54,15 @@
   clip: auto !important;
   white-space: normal !important;
   border: 0 !important;
-  color: #f2e8d2;
+  color: #f4eedf;
+  background: transparent;
+  border: 0 !important;
   font: 700 clamp(3.2rem, 9vw, 7rem) / 0.92 var(--serif);
   letter-spacing: -0.045em;
   text-shadow:
-    0 2px 0 rgba(99, 62, 7, 0.26),
-    0 9px 38px rgba(0, 0, 0, 0.64),
-    0 0 20px rgba(185, 145, 63, 0.1);
+    0 2px 1px rgba(5, 24, 15, 0.9),
+    0 7px 28px rgba(3, 15, 9, 0.82);
+  box-shadow: none;
 }
 
 .hero > p:not(.hero-eyebrow) {
@@ -82,24 +73,35 @@
   padding: 0.25rem 0.7rem;
   border-bottom: 0 !important;
   border-radius: 999px;
-  color: rgba(216, 199, 163, 0.9);
+  color: #f2df9b;
   background: transparent;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 2px 12px rgba(3, 15, 9, 0.9);
   backdrop-filter: none;
 }
 
+/* A composed masthead keeps the original Averia wordmark live and integrated
+   with the image field. Never visually clip it into a flattened asset. */
 .hero.hs-masthead-composed h1,
-.hero.hs-masthead-composed > p:not(.hero-eyebrow),
-.hs-initial-masthead-composed .hero h1,
-.hs-initial-masthead-composed .hero > p:not(.hero-eyebrow) {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  margin: -1px !important;
+.hs-initial-masthead-composed .hero h1 {
+  position: relative !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 0 0.15rem !important;
   padding: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+.hero.hs-masthead-composed > p:not(.hero-eyebrow),
+.hs-initial-masthead-composed .hero > p:not(.hero-eyebrow) {
+  position: relative !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
 }
 
 @media (max-width: 700px) {
