@@ -1118,8 +1118,10 @@ test("homepage masthead collapses after scrolling", () => {
   const styles = read("css/features/masthead-nav-flow.css");
   assert.match(template, /masthead-nav-flow\.css/);
   assert.match(template, /masthead-nav-flow\.js/);
-  assert.match(flow, /window\.scrollY > 140/);
+  assert.match(flow, /window\.scrollY \/ Math\.max\(260, naturalHeight\)/);
+  assert.match(flow, /--hs-masthead-scroll-height/);
   assert.match(flow, /hs-masthead-collapsed/);
+  assert.match(styles, /--hs-masthead-scroll-progress/);
   assert.match(styles, /hs-masthead-collapsed[\s\S]*max-height:\s*0/);
   assert.match(styles, /body\s*\{[\s\S]*padding-top:\s*0\s*!important/);
 });

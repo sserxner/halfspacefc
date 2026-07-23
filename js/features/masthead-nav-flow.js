@@ -17,7 +17,15 @@
 
   function syncState() {
     document.body.classList.toggle("hs-is-home", isHomeActive());
-    document.body.classList.toggle("hs-masthead-collapsed", window.scrollY > 140);
+    const hero = document.querySelector("body > .hero.hs-floating-masthead");
+    if (hero) {
+      const naturalHeight = Number(hero.dataset.hsNaturalHeight) || hero.scrollHeight;
+      if (!hero.dataset.hsNaturalHeight && naturalHeight) hero.dataset.hsNaturalHeight = String(naturalHeight);
+      const progress = Math.min(1, Math.max(0, window.scrollY / Math.max(260, naturalHeight)));
+      hero.style.setProperty("--hs-masthead-scroll-progress", String(progress));
+      hero.style.setProperty("--hs-masthead-scroll-height", `${Math.max(0, naturalHeight * (1 - progress))}px`);
+      document.body.classList.toggle("hs-masthead-collapsed", progress >= 0.995);
+    }
   }
 
   function patchShowPage() {
