@@ -995,10 +995,448 @@ details[open] > summary .hs-transfer-index-open {
   backdrop-filter: blur(5px);
 }
 
+/* Editorials — Opinion: the same faded newsprint treatment, using Simon
+   Jordan as the page-specific image rather than a generic hero banner. */
+#page-editorials {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-editorials::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/editorials-opinion-simon-jordan.webp") center 22% / cover
+      fixed no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-editorials .section-header,
+#page-editorials .sub-tabs,
+#page-editorials .hs-writing-sidebar,
+#page-editorials .hs-writing-card {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Editorials — Matchday Diaries: Thompson and Acosta receive the same faded
+   editorial treatment while retaining the photograph's natural grain. */
+#page-diary {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-diary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/editorials-matchday-diaries-thompson-acosta.jpg") center
+      18% / cover fixed no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-diary .section-header,
+#page-diary .sub-tabs,
+#page-diary .hs-writing-sidebar,
+#page-diary .hs-writing-card {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Transfer Recs: Wenger and Dein sit beneath the long-form recommendations
+   as a faded record of the sporting-director relationship. */
+#page-transfer-recs {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-transfer-recs::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/transfer-recs-wenger-dein.jpg") center 18% / cover fixed
+      no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-transfer-recs .section-header,
+#page-transfer-recs .hs-writing-sidebar,
+#page-transfer-recs .hs-writing-card,
+#page-transfer-recs .hs-transfer-index-card {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Transfer Grades: Brian Clough remains centered beneath the compact grade
+   interface, with the source photograph softened into page atmosphere. */
+#page-transfer-grades {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-transfer-grades::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/transfer-grades-brian-clough.webp") center 16% / cover
+      fixed no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-transfer-grades .section-header,
+#page-transfer-grades .hs-transfer-grade-filter,
+#page-transfer-grades .hs-writing-card,
+#page-transfer-grades .hs-transfer-index-card {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Rankings: one Cruyff backdrop spans Present Day and 21st Century so the
+   visual atmosphere does not reset when readers switch eras. */
+#page-rankings,
+#page-present-rankings {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-rankings::before,
+#page-present-rankings::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/rankings-johan-cruyff.webp") 58% 16% / cover fixed
+      no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-rankings .hs-rankings-era-tabs,
+#page-present-rankings .hs-rankings-era-tabs,
+#page-rankings .sub-tabs,
+#page-present-rankings .sub-tabs,
+#page-rankings .section-header,
+#page-present-rankings .section-header,
+#page-rankings .tier-legend,
+#page-present-rankings .tier-legend,
+#page-rankings .ranking-row,
+#page-present-rankings .ranking-row {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Build an XI landing view: Mourinho appears only while the main club
+   selection screen is open, leaving individual XI detail views available for
+   their own future backgrounds. */
+#page-club-xi {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-club-xi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/build-xi-main-jose-mourinho.webp") 52% 16% / cover fixed
+      no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+}
+
+#page-club-xi:has(#club-list-view:not([style*="display: none"]))::before {
+  opacity: 0.66;
+}
+
+#page-club-xi .hs-build-xi-tabs,
+#page-club-xi #club-list-view .section-header,
+#page-club-xi #club-list-view .continent-group,
+#page-club-xi #club-list-view .xi-country-card {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Position Guide: Arteta is held centrally behind the role taxonomy, with
+   enough wash for dense position descriptions to remain effortless to read. */
+#page-positions {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-positions::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/position-guide-mikel-arteta.webp") center 14% / cover
+      fixed no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-positions .section-header,
+#page-positions .position-parent-card,
+#page-positions .position-subtype-list {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* TV: Tony Soprano's seated frame becomes a subdued backdrop for rankings
+   and reviews; the fade also softens the smaller source image at full width. */
+#page-tv {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-tv::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/tv-tony-soprano.jpg") center 18% / cover fixed no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-tv .section-header,
+#page-tv .sub-tabs,
+#page-tv .tier-label,
+#page-tv .rank-tier-entries,
+#page-tv .ranking-row,
+#page-tv .empty-state {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* NBA: Allen Iverson anchors the page while the cream wash keeps the
+   rankings and editorial controls comfortably legible. */
+#page-nba {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-nba::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/nba-allen-iverson.avif") center 16% / cover fixed
+      no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-nba .section-header,
+#page-nba .sub-tabs,
+#page-nba .nba-tier-head,
+#page-nba .nba-tier-body,
+#page-nba .nba-empty {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Music: Cat Stevens and his guitar sit behind the playlist collection with
+   the same warm, editorial fade used across the other section backdrops. */
+#page-music {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #f4f0e7;
+}
+
+#page-music::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 236, 0.72) 0%,
+      rgba(247, 244, 236, 0.84) 38%,
+      rgba(247, 244, 236, 0.92) 100%
+    ),
+    url("../../assets/music-cat-stevens.webp") center 14% / cover fixed
+      no-repeat;
+  filter: grayscale(42%) saturate(68%) contrast(88%);
+  opacity: 0.66;
+}
+
+#page-music .section-header,
+#page-music .music-card,
+#page-music .music-admin-top,
+#page-music .music-empty {
+  background-color: rgba(255, 253, 247, 0.9);
+  backdrop-filter: blur(5px);
+}
+
 @media (max-width: 760px) {
   #page-betting::before {
     background-attachment: scroll;
     background-position: 58% top;
+    opacity: 0.58;
+  }
+
+  #page-editorials::before {
+    background-attachment: scroll;
+    background-position: 52% top;
+    opacity: 0.58;
+  }
+
+  #page-diary::before {
+    background-attachment: scroll;
+    background-position: 50% top;
+    opacity: 0.58;
+  }
+
+  #page-transfer-recs::before {
+    background-attachment: scroll;
+    background-position: 58% top;
+    opacity: 0.58;
+  }
+
+  #page-transfer-grades::before {
+    background-attachment: scroll;
+    background-position: center top;
+    opacity: 0.58;
+  }
+
+  #page-rankings::before,
+  #page-present-rankings::before {
+    background-attachment: scroll;
+    background-position: 61% top;
+    opacity: 0.58;
+  }
+
+  #page-club-xi::before {
+    background-attachment: scroll;
+    background-position: 56% top;
+  }
+
+  #page-club-xi:has(#club-list-view:not([style*="display: none"]))::before {
+    opacity: 0.58;
+  }
+
+  #page-positions::before {
+    background-attachment: scroll;
+    background-position: center top;
+    opacity: 0.58;
+  }
+
+  #page-tv::before {
+    background-attachment: scroll;
+    background-position: 58% top;
+    opacity: 0.58;
+  }
+
+  #page-nba::before {
+    background-attachment: scroll;
+    background-position: 55% top;
+    opacity: 0.58;
+  }
+
+  #page-music::before {
+    background-attachment: scroll;
+    background-position: 48% top;
     opacity: 0.58;
   }
 }
