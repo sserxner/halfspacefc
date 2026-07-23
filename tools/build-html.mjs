@@ -19,5 +19,23 @@ for (const match of includes) {
 
 if (includePattern.test(html)) throw new Error("Unresolved HTML component include");
 html = injectHomepage(html, homepageMarkup(extractBakedData(html)));
+
+// The masthead must precede navigation in the delivered HTML. Leaving it
+// nested in #page-home makes the browser paint navigation first, then visibly
+// jump when masthead-nav-flow.js moves it after load.
+const mastheadPattern = /(\s*<div class="hero\b[^>]*>[\s\S]*?<\/div>)/;
+const mastheadMatch = html.match(mastheadPattern);
+if (!mastheadMatch) throw new Error("Homepage masthead was not found");
+let masthead = mastheadMatch[1]
+  .replace('class="hero ', 'class="hero hs-floating-masthead ')
+  .replace('class="hero"', 'class="hero hs-floating-masthead"');
+html = html.replace(mastheadPattern, "");
+html = html.replace(/<body([^>]*)>/, (full, attributes) => {
+  if (/\bclass="/.test(attributes)) {
+    return `<body${attributes.replace(/\bclass="([^"]*)"/, (_match, classes) => `class="${classes} hs-is-home"`)}>${masthead}`;
+  }
+  return `<body class="hs-is-home"${attributes}>${masthead}`;
+});
+
 await writeFile(outputPath, html, "utf8");
 console.log(`Assembled ${includes.length} components into ${path.basename(outputPath)}.`);

@@ -47,7 +47,9 @@
     Object.entries(PAGE_LABELS).forEach(([id, title]) => result.push({
       id: `page:${id}`, type: "page", label: "Section", title,
       defaults: { title: id === "home" ? "Half Space | Rankings and Ramblings" : `${title} | Half Space`,
-        description: id === "home" ? "Independent football rankings, XIs, analysis, scouting, and sporting arguments from Half Space." : `${title} from Half Space.`, canonical: id === "home" ? canonical("/") : managedCanonical(`page:${id}`, slug(title)) }
+        description: id === "home" ? "Independent football rankings, XIs, analysis, scouting, and sporting arguments from Half Space." : `${title} from Half Space.`,
+        socialImage: id === "home" ? canonical("/assets/halfspace-masthead-editorial-v3.jpg?v=1") : "",
+        canonical: id === "home" ? canonical("/") : managedCanonical(`page:${id}`, slug(title)) }
     }));
     Object.entries(RANKINGS).forEach(([section, [title, route]]) => {
       const data = rankData(section);

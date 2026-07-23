@@ -209,6 +209,50 @@
 
       function buildExportHTML(contentData = siteData) {
         const exportRoot = document.documentElement.cloneNode(true);
+        // The published index always represents the homepage to link-preview
+        // crawlers. Never bake whichever SPA view happened to be open while
+        // the owner clicked Publish (which previously leaked "Italy XI").
+        const homeDefaults = {
+          title: "Half Space | Rankings and Ramblings",
+          description: "Independent football rankings, XIs, analysis, scouting, and sporting arguments from Half Space.",
+          socialImage: "https://halfspacefc.com/assets/halfspace-masthead-editorial-v3.jpg?v=1",
+          canonical: "https://halfspacefc.com/",
+        };
+        const savedHome = contentData?.seo_metadata_v1?.["page:home"] || {};
+        const homeMeta = { ...homeDefaults, ...savedHome };
+        const setMeta = (selector, attributes, content) => {
+          let node = exportRoot.querySelector(selector);
+          if (!node) {
+            node = document.createElement("meta");
+            Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
+            exportRoot.querySelector("head")?.appendChild(node);
+          }
+          node.setAttribute("content", content);
+        };
+        exportRoot.querySelector("title").textContent = homeMeta.title || homeDefaults.title;
+        setMeta('meta[name="description"]', { name: "description" }, homeMeta.description || homeDefaults.description);
+        setMeta('meta[property="og:type"]', { property: "og:type" }, "website");
+        setMeta('meta[property="og:site_name"]', { property: "og:site_name" }, "Half Space");
+        setMeta('meta[property="og:title"]', { property: "og:title" }, homeMeta.socialTitle || homeMeta.title || homeDefaults.title);
+        setMeta('meta[property="og:description"]', { property: "og:description" }, homeMeta.socialDescription || homeMeta.description || homeDefaults.description);
+        setMeta('meta[property="og:url"]', { property: "og:url" }, homeMeta.canonical || homeDefaults.canonical);
+        setMeta('meta[property="og:image"]', { property: "og:image" }, homeMeta.socialImage || homeDefaults.socialImage);
+        setMeta('meta[property="og:image:secure_url"]', { property: "og:image:secure_url" }, homeMeta.socialImage || homeDefaults.socialImage);
+        setMeta('meta[property="og:image:type"]', { property: "og:image:type" }, "image/jpeg");
+        setMeta('meta[property="og:image:width"]', { property: "og:image:width" }, "2172");
+        setMeta('meta[property="og:image:height"]', { property: "og:image:height" }, "724");
+        setMeta('meta[property="og:image:alt"]', { property: "og:image:alt" }, "Half Space football masthead");
+        setMeta('meta[name="twitter:card"]', { name: "twitter:card" }, "summary_large_image");
+        setMeta('meta[name="twitter:title"]', { name: "twitter:title" }, homeMeta.socialTitle || homeMeta.title || homeDefaults.title);
+        setMeta('meta[name="twitter:description"]', { name: "twitter:description" }, homeMeta.socialDescription || homeMeta.description || homeDefaults.description);
+        setMeta('meta[name="twitter:image"]', { name: "twitter:image" }, homeMeta.socialImage || homeDefaults.socialImage);
+        let canonicalLink = exportRoot.querySelector('link[rel="canonical"]');
+        if (!canonicalLink) {
+          canonicalLink = document.createElement("link");
+          canonicalLink.rel = "canonical";
+          exportRoot.querySelector("head")?.appendChild(canonicalLink);
+        }
+        canonicalLink.href = homeMeta.canonical || homeDefaults.canonical;
         // Media Manager is admin chrome. Its image previews would otherwise
         // duplicate every uploaded image inside the exported HTML.
         exportRoot.querySelectorAll(".hs-media-field-button").forEach((node) => node.remove());

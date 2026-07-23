@@ -269,6 +269,20 @@ test("publishing keeps safeguards, retry handling, and a pre-publish backup", ()
   assert.match(publishing, /cache: "no-store"/);
 });
 
+test("homepage link previews stay branded and cannot inherit the open SPA view", () => {
+  const template = read("src/index.template.html");
+  const seo = read("seo-manager.js");
+  const publishing = read("js/admin/auth-and-publishing.js");
+  assert.match(template, /property="og:title" content="Half Space \| Rankings and Ramblings"/);
+  assert.match(template, /property="og:image" content="https:\/\/halfspacefc\.com\/assets\/halfspace-masthead-editorial-v3\.jpg\?v=1"/);
+  assert.match(template, /name="twitter:card" content="summary_large_image"/);
+  assert.match(template, /rel="canonical" href="https:\/\/halfspacefc\.com\/"/);
+  assert.doesNotMatch(template, /Italy XI \| Half Space/);
+  assert.match(seo, /socialImage: id === "home"/);
+  assert.match(publishing, /contentData\?\.seo_metadata_v1\?\.\["page:home"\]/);
+  assert.match(publishing, /Never bake whichever SPA view happened to be open/);
+});
+
 test("publishing merges compact drafts onto the complete published baseline", () => {
   const publishing = read("js/admin/auth-and-publishing.js");
   assert.match(publishing, /const publishedBaseline/);
@@ -639,6 +653,15 @@ test("masthead and the consolidated primary navigation exist at first paint", ()
     navigation,
     /document\.addEventListener\("DOMContentLoaded", syncXIProfiles\)/,
   );
+});
+
+test("the delivered homepage places the masthead before navigation without a load-time jump", () => {
+  const builder = read("tools/build-html.mjs");
+  assert.match(builder, /The masthead must precede navigation in the delivered HTML/);
+  assert.match(builder, /hs-floating-masthead/);
+  assert.match(builder, /hs-is-home/);
+  const html = read("index.html");
+  assert.ok(html.indexOf("hs-floating-masthead") < html.indexOf("<nav>"));
 });
 
 test("pilot career facts calculate age and identify league-only totals", () => {
