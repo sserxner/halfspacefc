@@ -319,6 +319,13 @@
       type === "grades" && formerGrade ? `<span class="hs-transfer-grade"><small>${esc(formerClub || "Former club")}</small><strong>${esc(formerGrade)}</strong></span>` : "",
       type === "grades" && newGrade ? `<span class="hs-transfer-grade"><small>${esc(newClub || "New club")}</small><strong>${esc(newGrade)}</strong></span>` : "",
     ].filter(Boolean).join("");
+    if (type === "grades") {
+      return `<button type="button" class="hs-transfer-index-card hs-transfer-grade-card" data-writing-type="transfer" data-writing-index="${index}" onclick="HSWritingSystem.openTransferGrade(${index})">
+        <span class="hs-transfer-index-name"><small>${route}</small><strong>${esc(name)}</strong></span>
+        <span class="hs-transfer-index-facts">${facts}</span>
+        <span class="hs-transfer-index-open">View grade</span>
+      </button>`;
+    }
     return `<details class="hs-transfer-index-card" data-writing-type="transfer" data-writing-index="${index}">
       <summary>
         <span class="hs-transfer-index-name"><small>${route}</small><strong>${esc(name)}</strong></span>
@@ -327,6 +334,27 @@
       </summary>
       <div class="hs-transfer-full-review">${articleCard("transfer", entry, index)}</div>
     </details>`;
+  }
+
+  function closeTransferGrade() {
+    document.getElementById("hsTransferGradeDrawer")?.remove();
+  }
+
+  function openTransferGrade(index) {
+    const entry = records("transfer")[Number(index)];
+    if (!entry || entry.type !== "grades" || !live(entry)) return;
+    closeTransferGrade();
+    const drawer = document.createElement("div");
+    drawer.id = "hsTransferGradeDrawer";
+    drawer.className = "rank-profile-backdrop hs-transfer-grade-backdrop";
+    drawer.innerHTML = `<aside class="rank-profile-drawer hs-transfer-grade-drawer" aria-label="${esc(entry.player || entry.title || "Transfer grade")} review">
+      <button class="rank-profile-close" type="button" onclick="HSWritingSystem.closeTransferGrade()" aria-label="Close transfer grade">×</button>
+      <div class="rank-profile-body">${articleCard("transfer", entry, Number(index))}</div>
+    </aside>`;
+    drawer.addEventListener("click", (event) => {
+      if (event.target === drawer) closeTransferGrade();
+    });
+    document.body.appendChild(drawer);
   }
 
   function bettingIndexCard(entry, index) {
@@ -893,6 +921,9 @@
     window.editDiaryEntry = (index) => openEditor("diary", Number(index));
     window.addTransferRecommendation = () => openEditor("transfer");
     window.editTransferRecommendation = (index) => openEditor("transfer", Number(index));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeTransferGrade();
+    });
     renderAll();
   }
 
@@ -927,6 +958,8 @@
       state.transfer = type === "grades" ? "grades" : "recs";
       openEditor("transfer", -1);
     },
+    openTransferGrade,
+    closeTransferGrade,
     showTransferPage(type) {
       state.transfer = type === "grades" ? "grades" : "recs";
       state.transferClub = "all";

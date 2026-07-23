@@ -56,7 +56,8 @@
 }
 
 .hs-transfer-index-card > summary,
-.hs-betting-index-card > summary {
+.hs-betting-index-card > summary,
+.hs-transfer-grade-card {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) auto auto;
   gap: 1rem;
@@ -64,6 +65,15 @@
   padding: 0.85rem 1rem;
   cursor: pointer;
   list-style: none;
+}
+
+.hs-transfer-grade-card {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
 .hs-transfer-index-card > summary::-webkit-details-marker,
@@ -225,6 +235,29 @@ details[open] > summary .hs-transfer-index-open {
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+.hs-transfer-grade-drawer {
+  position: relative;
+}
+
+.hs-transfer-grade-drawer > .rank-profile-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 4;
+  background: #173d28;
+  color: #fff9dc;
+}
+
+.hs-transfer-grade-drawer .rank-profile-body {
+  padding-top: 4.5rem;
+}
+
+.hs-transfer-grade-drawer .hs-writing-card {
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 .hs-transfer-team-index {
