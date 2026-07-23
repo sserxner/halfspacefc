@@ -104,6 +104,20 @@
   white-space: normal !important;
 }
 
+/* Admin-rendered images already contain the editable title and tagline.
+   Suppress only the duplicate live copy for that rendered-image state. */
+.hero.hs-masthead-flattened h1,
+.hero.hs-masthead-flattened > p:not(.hero-eyebrow) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+}
+
 @media (max-width: 700px) {
   .hero {
     min-height: 260px;

@@ -1410,13 +1410,15 @@
     if (!heroes.length) return;
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
-    const flattened = config[mode]?.flattened || CURATED_PUBLIC_IMAGE;
+    const customFlattened = config[mode]?.flattened || "";
+    const flattened = customFlattened || CURATED_PUBLIC_IMAGE;
     document.documentElement.classList.toggle(
       "hs-initial-masthead-composed",
       Boolean(flattened),
     );
     heroes.forEach((hero) => {
       hero.classList.toggle("hs-masthead-composed", Boolean(flattened));
+      hero.classList.toggle("hs-masthead-flattened", Boolean(customFlattened));
       if (flattened) hero.style.setProperty("--hs-masthead-image", `url(${JSON.stringify(flattened)})`);
       else hero.style.removeProperty("--hs-masthead-image");
     });

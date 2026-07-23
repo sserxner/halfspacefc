@@ -991,7 +991,9 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /hs-initial-masthead-composed/);
   assert.match(mastheadStyles, /\.hero h1/);
   assert.match(mastheadStyles, /font: 700 clamp\(3\.2rem, 9vw, 7rem\) \/ 0\.92 var\(--serif\)/);
-  assert.doesNotMatch(mastheadStyles, /\.hs-initial-masthead-composed \.hero h1[\s\S]*?clip: rect/);
+  assert.match(mastheadStyles, /\.hs-initial-masthead-composed \.hero h1[\s\S]*?clip: auto/);
+  assert.match(mastheadStyles, /\.hero\.hs-masthead-flattened h1[\s\S]*?clip: rect/);
+  assert.match(composer, /hero\.classList\.toggle\("hs-masthead-flattened"/);
   assert.match(template, /halfspace-masthead-editorial-v3\.jpg/);
   assert.match(composer, /data-mc-mode="desktop"/);
   assert.match(composer, /data-mc-mode="mobile"/);
