@@ -1022,6 +1022,8 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(composer, /Crop focus — horizontal/);
   assert.match(composer, /Crop focus — vertical/);
   assert.match(composer, /CURATED_PUBLIC_IMAGE/);
+  assert.match(composer, /if \(!customFlattened\) return/);
+  assert.doesNotMatch(composer, /customFlattened \|\| CURATED_PUBLIC_IMAGE/);
   assert.match(composer, /CURATED_MASTHEAD/);
   assert.match(composer, /Brazilian football archive/);
   assert.match(composer, /applyArchiveLook/);

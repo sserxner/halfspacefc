@@ -1411,7 +1411,10 @@
     const config = publicConfig();
     const mode = window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop";
     const customFlattened = config[mode]?.flattened || "";
-    const flattened = customFlattened || CURATED_PUBLIC_IMAGE;
+    // The published HTML already contains the authoritative masthead. Leave
+    // it untouched unless the owner has deliberately saved a newer render.
+    if (!customFlattened) return;
+    const flattened = customFlattened;
     document.documentElement.classList.toggle(
       "hs-initial-masthead-composed",
       Boolean(flattened),
