@@ -221,6 +221,13 @@ test("publishing keeps safeguards, retry handling, and a pre-publish backup", ()
   assert.match(publishing, /cache: "no-store"/);
 });
 
+test("publishing merges compact drafts onto the complete published baseline", () => {
+  const publishing = read("js/admin/auth-and-publishing.js");
+  assert.match(publishing, /const publishedBaseline/);
+  assert.match(publishing, /Object\.assign\([\s\S]*publishedBaseline[\s\S]*activeDraft/);
+  assert.match(publishing, /Publishing stopped because the prepared site was missing existing content/);
+});
+
 test("admin saves avoid browser storage quota failures", () => {
   const editor = read("js/admin/editor.js");
   const autosave = read("autosave.js");

@@ -391,7 +391,29 @@
             typeof window.HSData.getDraft() === "object"
               ? window.HSData.getDraft()
               : siteData;
-          const publishData = JSON.parse(JSON.stringify(activeDraft));
+          const publishedBaseline =
+            window.HSData?.getPublished?.() &&
+            typeof window.HSData.getPublished() === "object"
+              ? window.HSData.getPublished()
+              : window.__HALFSPACE_DATA__ || {};
+          // A compact browser draft contains only changed keys. Publishing it
+          // directly would erase every untouched collection from index.html.
+          // Always start with the complete baked baseline and layer edits over it.
+          const publishData = Object.assign(
+            {},
+            JSON.parse(JSON.stringify(publishedBaseline)),
+            JSON.parse(JSON.stringify(activeDraft)),
+          );
+          const baselineKeyCount = Object.keys(publishedBaseline).length;
+          const publishKeyCount = Object.keys(publishData).length;
+          if (
+            baselineKeyCount >= 20 &&
+            publishKeyCount < Math.floor(baselineKeyCount * 0.9)
+          ) {
+            throw new Error(
+              "Publishing stopped because the prepared site was missing existing content. Nothing was uploaded.",
+            );
+          }
           publishData.__content_revision_v1 = new Date().toISOString();
           publishData.__content_edit_clock_v1 = {};
           const html = buildExportHTML(publishData);
