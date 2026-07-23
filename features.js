@@ -1304,7 +1304,7 @@
 
 // ranking-card-unification-script
 (function () {
-        const SECTIONS = ["overall", "gk", "cb", "fb", "cm", "am", "w", "f"];
+        const SECTIONS = ["overall", "gk", "cb", "fb", "cm", "am", "w", "f", "mgr"];
         const LABELS = {
           overall: "Top 100",
           gk: "GKs",
@@ -1312,8 +1312,9 @@
           fb: "FBs",
           cm: "CMs",
           am: "AM / 10s",
-          w: "W",
-          f: "F",
+          w: "Ws",
+          f: "Fs",
+          mgr: "Managers",
         };
         let activePresentCardSection = "overall";
         const POSITION_LABELS = {

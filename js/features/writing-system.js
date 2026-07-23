@@ -112,6 +112,8 @@
         ["title", "Title", "text"],
         ["date", "Date", "date"],
         ["player", "Player", "text"],
+        ["formerClub", "Former club", "text"],
+        ["newClub", "New club", "text"],
         ["fee", "Fee / Value", "text"],
         ["grade", "Grade", "text"],
       ],
@@ -268,6 +270,10 @@
       .map((tag) => `<span>${esc(tag)}</span>`)
       .join("");
     const body = bodyHTML(entry.body);
+    const transaction =
+      type === "transfer" && (entry.formerClub || entry.newClub)
+        ? `<p class="hs-transfer-transaction"><span>${esc(entry.formerClub || "")}</span>${entry.formerClub && (entry.newClub || entry.club) ? `<b aria-label="to">→</b>` : ""}<span>${esc(entry.newClub || entry.club || "")}</span>${entry.fee ? `<em>${esc(/^[£€$]/.test(String(entry.fee).trim()) ? String(entry.fee).trim() : `£${String(entry.fee).trim()}`)}</em>` : ""}</p>`
+        : "";
     const statusBadge = admin() ? `<span class="hs-writing-status ${entry.published === false ? "draft" : "live"}">${entry.published === false ? "Draft — not public yet" : "Published"}</span>` : "";
     const adminControls = admin()
       ? `<div class="hs-writing-actions">
@@ -284,6 +290,7 @@
         ${meta ? `<p class="hs-writing-meta">${esc(meta)}</p>` : ""}
         ${statusBadge}
         ${tags ? `<div class="hs-writing-tags">${tags}</div>` : ""}
+        ${transaction}
       </header>
       <div class="hs-writing-body">${body || `<p>${esc(entry.excerpt || "")}</p>`}</div>
       ${adminControls}
@@ -296,13 +303,20 @@
 
   function transferIndexCard(type, entry, index) {
     const name = entry.player || entry.title || transferLabel(type);
+    const fee = String(entry.fee || "").trim();
+    const displayFee = fee && !/^[£€$]/.test(fee) ? `£${fee}` : fee;
+    const formerClub = entry.formerClub || "";
+    const newClub = entry.newClub || entry.club || "";
+    const route = formerClub || newClub
+      ? `${formerClub ? esc(formerClub) : ""}${formerClub && newClub ? `<span class="hs-transfer-route-arrow" aria-label="to">→</span>` : ""}${newClub ? esc(newClub) : ""}`
+      : esc(entry.club || "Transfer");
     const facts = [
-      entry.fee ? `<span><small>Fee</small><strong>${esc(entry.fee)}</strong></span>` : "",
+      displayFee ? `<span><small>Fee</small><strong>${esc(displayFee)}</strong></span>` : "",
       type === "grades" && entry.grade ? `<span class="hs-transfer-grade"><small>Grade</small><strong>${esc(entry.grade)}</strong></span>` : "",
     ].filter(Boolean).join("");
     return `<details class="hs-transfer-index-card" data-writing-type="transfer" data-writing-index="${index}">
       <summary>
-        <span class="hs-transfer-index-name"><small>${esc(entry.club || "Transfer")}</small><strong>${esc(name)}</strong></span>
+        <span class="hs-transfer-index-name"><small>${route}</small><strong>${esc(name)}</strong></span>
         <span class="hs-transfer-index-facts">${facts}</span>
         <span class="hs-transfer-index-open">Read review</span>
       </summary>
@@ -375,10 +389,7 @@
     const importanceIndex = new Map(
       clubImportance.map((club, index) => [slug(club), index]),
     );
-    const clubs = uniqueOptions(
-      all.map((item) => item.entry),
-      ["club"],
-    ).sort((a, b) => {
+    const clubs = [...new Set(all.map(({ entry }) => entry.newClub || entry.club).filter(Boolean))].sort((a, b) => {
       const aRank = importanceIndex.get(slug(a));
       const bRank = importanceIndex.get(slug(b));
       if (aRank !== undefined || bRank !== undefined) {
@@ -390,20 +401,28 @@
     const visible =
       state.transferClub === "all"
         ? all
-        : all.filter(({ entry }) => slug(entry.club) === state.transferClub);
+        : all.filter(({ entry }) => slug(entry.newClub || entry.club) === state.transferClub);
     root.className = type === "grades" ? "hs-writing-shell hs-transfer-grades-centered" : "hs-writing-shell";
     const clubCounts = new Map(clubs.map((club) => [
       club,
-      all.filter(({ entry }) => slug(entry.club) === slug(club)).length,
+      all.filter(({ entry }) => slug(entry.newClub || entry.club) === slug(club)).length,
     ]));
-    root.innerHTML = `<aside class="hs-writing-sidebar hs-transfer-team-index">
+    const gradeSelector = `<div class="hs-transfer-grade-filter">
+        <label for="hsTransferGradeTeam">Team</label>
+        <select id="hsTransferGradeTeam" onchange="HSWritingSystem.filterTransferClub(this.value)">
+          <option value="all">All teams (${all.length})</option>
+          ${clubs.map((club) => `<option value="${esc(slug(club))}" ${state.transferClub === slug(club) ? "selected" : ""}>${esc(club)} (${clubCounts.get(club)})</option>`).join("")}
+        </select>
+      </div>`;
+    root.innerHTML = `${type === "grades" ? gradeSelector : `<aside class="hs-writing-sidebar hs-transfer-team-index">
         <h3>${transferLabel(type)} by team</h3>
         <div class="hs-writing-filter-list">
           ${filterButton(`All teams (${all.length})`, "all", state.transferClub, "HSWritingSystem.filterTransferClub")}
           ${clubs.map((club) => filterButton(`${club} (${clubCounts.get(club)})`, slug(club), state.transferClub, "HSWritingSystem.filterTransferClub")).join("")}
         </div>
         ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.addTransfer('${type}')">+ New ${transferLabel(type).toLowerCase()}</button>` : ""}
-      </aside>
+      </aside>`}
+      ${type === "grades" && admin() ? `<button class="admin-add-btn hs-transfer-grade-add" onclick="HSWritingSystem.addTransfer('grades')">+ New transfer grade</button>` : ""}
       <main class="hs-writing-feed hs-transfer-index">
         ${visible.length ? visible.map(({ entry, index }) => transferIndexCard(type, entry, index)).join("") : `<div class="empty-state"><p>No ${transferLabel(type).toLowerCase()}s yet.</p></div>`}
       </main>`;

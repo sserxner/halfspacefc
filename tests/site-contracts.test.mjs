@@ -62,15 +62,17 @@ test("navigation and ranking-position tabs remain available while scrolling", ()
   assert.match(masthead, /overflow-x:\s*auto/);
 });
 
-test("positional ranking tabs use compact W and F labels", () => {
+test("positional ranking tabs use Ws and Fs labels and Present Day includes managers", () => {
   const present = read("src/components/present-rankings.html");
   const century = read("src/components/rankings.html");
   const features = read("features.js");
-  assert.match(present, /data-sec="w">W<\/button>/);
-  assert.match(present, /data-sec="f">F<\/button>/);
-  assert.match(century, /showRankingSection\('w'\)[\s\S]*?>\s*W\s*<\/button>/);
-  assert.match(century, /showRankingSection\('f'\)[\s\S]*?>\s*F\s*<\/button>/);
-  assert.match(features, /w:\s*"W",\s*f:\s*"F"/);
+  assert.match(present, /data-sec="w">Ws<\/button>/);
+  assert.match(present, /data-sec="f">Fs<\/button>/);
+  assert.match(present, /data-sec="mgr">Managers<\/button>/);
+  assert.match(century, /showRankingSection\('w'\)[\s\S]*?>\s*Ws\s*<\/button>/);
+  assert.match(century, /showRankingSection\('f'\)[\s\S]*?>\s*Fs\s*<\/button>/);
+  assert.match(features, /w:\s*"Ws",\s*f:\s*"Fs",\s*mgr:\s*"Managers"/);
+  assert.match(features, /"f", "mgr"/);
 });
 
 test("adding an existing Present Day player refreshes the visible ranking", () => {
@@ -115,6 +117,11 @@ test("Transfer grades use the centered reading layout", () => {
   assert.match(writingSystem, /function transferIndexCard/);
   assert.match(writingSystem, /entry\.fee/);
   assert.match(writingSystem, /entry\.grade/);
+  assert.match(writingSystem, /formerClub/);
+  assert.match(writingSystem, /newClub/);
+  assert.match(writingSystem, /hs-transfer-route-arrow/);
+  assert.match(writingSystem, /hs-transfer-grade-filter/);
+  assert.match(writingSystem, /<select id="hsTransferGradeTeam"/);
   assert.match(writingSystem, /hs-transfer-team-index/);
   assert.match(writingSystem, /visible\.map\(\(\{ entry, index \}\) => transferIndexCard/);
 });
@@ -667,8 +674,8 @@ test("Present Day Top 100 has explicit display-name and position editing", () =>
   assert.match(editor, /entry\.displayPosition = displayPosition/);
   assert.match(editor, /const entry = \{ \.\.\.previous, name, detail, note, xi \}/);
   assert.match(features, /entry\?\.displayPosition \|\| entry\?\.position/);
-  assert.match(features, /w: "W"/);
-  assert.match(features, /f: "F"/);
+  assert.match(features, /w: "Ws"/);
+  assert.match(features, /f: "Fs"/);
 });
 
 test("Positions admin can manage the large cards as well as sub-positions", () => {
