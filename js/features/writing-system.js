@@ -394,22 +394,21 @@
   }
 
   function renderHomeFeatured() {
-    const root = document.getElementById("homePostFeed");
-    if (!root) return;
-    const candidates = [
-      ...records("diary").map((entry, index) => ({ type: "diary", entry, index })),
-      ...records("editorial").map((entry, index) => ({ type: "editorial", entry, index })),
-      ...records("transfer").map((entry, index) => ({ type: "transfer", entry, index })),
-      ...records("betting").map((entry, index) => ({ type: "betting", entry, index })),
-    ].filter(({ entry }) => live(entry));
-    const featured =
-      candidates.find(({ entry }) => entry.featured === true) ||
-      candidates.sort((a, b) => (Date.parse(b.entry.date) || 0) - (Date.parse(a.entry.date) || 0))[0];
-    if (!featured) return;
-    root.innerHTML = `<section class="hs-home-feature">
-      <p class="hs-writing-kicker">Featured story</p>
-      ${articleCard(featured.type, featured.entry, featured.index, { featured: true })}
-    </section>`;
+    if (window.HSHomepageFeature && typeof window.HSHomepageFeature.scheduleRender === "function") {
+      window.HSHomepageFeature.scheduleRender();
+      return;
+    }
+    if (window.HSHomepageFeature && typeof window.HSHomepageFeature.render === "function") {
+      window.HSHomepageFeature.render();
+      return;
+    }
+    setTimeout(() => {
+      if (window.HSHomepageFeature && typeof window.HSHomepageFeature.scheduleRender === "function") {
+        window.HSHomepageFeature.scheduleRender();
+      } else if (window.HSHomepageFeature && typeof window.HSHomepageFeature.render === "function") {
+        window.HSHomepageFeature.render();
+      }
+    }, 0);
   }
 
   let editor = null;

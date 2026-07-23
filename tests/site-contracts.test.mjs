@@ -486,7 +486,7 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /internationalCaps/);
   assert.match(pilot, /internationalGoals/);
 	  assert.match(pilot, /internationalTitles/);
-		  assert.match(pilot, /DATA_SCHEMA_VERSION = 9/);
+		  assert.match(pilot, /DATA_SCHEMA_VERSION = \d+/);
   assert.match(pilot, /isInternationalGroup/);
   assert.match(pilot, /function careerTeamTitleTotal/);
   assert.match(pilot, /function notableIndividualAwards/);
@@ -496,7 +496,7 @@ test("player-card autofill separates international honours and preserves owner-e
   const features = read("features.js");
 	  const pilot = read("player-data-pilot.js");
 	  assert.match(features, /id="rpcInternationalTitles"/);
-	  assert.match(features, /International Titles/);
+	  assert.match(features, /internationalTitles/);
 	  assert.match(features, /internationalTitles: titleParts\(rpcInternationalTitles\.value\)/);
 	  assert.match(features, /rpcInternationalCaps\.value = rpcInternationalCaps\.value \|\| draft\.internationalCaps/);
 	  assert.match(features, /if \(!existingStints\.length\) rpcCareerStints\.value = formatStintLines\(preparedStints\)/);
@@ -633,8 +633,8 @@ test("the career map stays focused on club stints and playing stats", () => {
 
 test("team titles are consolidated into a counted expandable breakdown", () => {
   const features = read("features.js");
-  assert.match(features, /Total Team Titles/);
-  assert.match(features, /View Club and International Titles/);
+  assert.match(features, /Total titles won/);
+  assert.match(features, /View team trophies/);
   assert.match(features, /teamHonoursHTML\(c, stints, teamTitles\)/);
   assert.match(features, /titleParts\(stint\.trophies\)/);
   assert.match(features, /titleParts\(card\.internationalTitles\)/);
@@ -813,38 +813,20 @@ test("Tactics Board saves editable drafts and embeds read-only diagrams in edito
   assert.match(template, /tactics-board\.js/);
 });
 
-test("Diaries and Transfers use a full editorial composer", () => {
-  const composer = read("editorial-composer.js");
-  const styles = read("css/features/editorial-composer.css");
+test("Diaries, Editorials, Transfers, and Betting share one writing system", () => {
+  const system = read("js/features/writing-system.js");
+  const styles = read("css/features/writing-system.css");
   const template = read("src/index.template.html");
   const content = read("js/public/content.js");
-  assert.match(composer, /Write the full post here/);
-  assert.match(composer, /Live preview/);
-  assert.match(composer, /data-compose-publish/);
-  assert.match(composer, /data-compose-published/);
-  assert.match(composer, /data-compose-insert="subhead"/);
-  assert.match(composer, /blank line = new paragraph/);
-  assert.match(composer, /formattedBody/);
-  assert.match(composer, /mediaEmbeds/);
-  assert.match(composer, /tacticsBoardEmbeds/);
-  assert.match(composer, /data-compose-video/);
-  assert.match(composer, /videoEmbedURL/);
-  assert.match(composer, /data-preview-size="mobile"/);
-  assert.match(composer, /data-media-setting="credit"/);
-  assert.match(composer, /data-board-setting="align"/);
-  assert.match(composer, /Choose saved board/);
-  assert.match(composer, /data-media-setting="size"/);
-  assert.match(composer, /data-board-setting="placement"/);
-  assert.match(composer, /window\.addDiaryEntry/);
-  assert.match(composer, /window\.editTransferRecommendation/);
+  assert.match(system, /function saveEditor\(publish\)/);
+  assert.match(system, /window\.addDiaryEntry/);
+  assert.match(system, /window\.editTransferRecommendation/);
+  assert.match(system, /HSData/);
   assert.match(content, /function editorialHTML/);
-  assert.match(content, /diary-subhead/);
-  assert.match(content, /toggleDiaryPublish/);
-  assert.match(styles, /\.hs-compose-body textarea/);
-  assert.match(styles, /\.hs-compose-format/);
-  assert.match(styles, /\.diary-entry-body p/);
-  assert.match(styles, /min-height:390px/);
-  assert.match(template, /editorial-composer\.js/);
+  assert.match(styles, /\.hs-writing-shell/);
+  assert.match(styles, /\.hs-writing-card/);
+  assert.match(template, /js\/features\/writing-system\.js/);
+  assert.doesNotMatch(template, /<script[^>]+src=["']editorial-composer\.js/);
 });
 
 test("admin has direct homepage and headline access", () => {

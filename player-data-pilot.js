@@ -1,5 +1,5 @@
 (function () {
-  const DATA_SCHEMA_VERSION = 9;
+  const DATA_SCHEMA_VERSION = 10;
   const records = {
     "lionel-messi": {
       currentClub: "Inter Miami",
@@ -107,6 +107,70 @@
     return /(?:^|\s)(?:b|ii|u\s*\d{2}|under\s*\d{2}|reserves?|reserve team|academy|youth|primavera|juvenil|jong)(?:\s|$)/i.test(team) ||
       /\b(?:castilla|barcelona atletic|juventus next gen|milan futuro)\b/i.test(team);
   }
+  const TEAM_TITLE_RULES = [
+    [/^(?:fifa\s+)?world cup$/i, 1, "FIFA World Cup"],
+    [/^(?:uefa\s+)?champions league$|^european cup$/i, 2, "UEFA Champions League"],
+    [/^uefa european championship$|^european championship$|^uefa euro$|^euro$/i, 3, "European Championship"],
+    [/^copa am[eé]rica$/i, 4, "Copa America"],
+    [/^africa cup of nations$|^african cup of nations$|^afcon$/i, 5, "African Cup of Nations"],
+    [/^premier league$/i, 6, "Premier League"],
+    [/^la liga$/i, 7, "La Liga"],
+    [/^serie a$/i, 8, "Serie A"],
+    [/^bundesliga$/i, 9, "Bundesliga"],
+    [/^ligue 1$/i, 10, "Ligue 1"],
+    [/^non top 5 league$/i, 11, "Non Top 5 League"],
+    [/^(?:uefa\s+)?europa league$|^uefa cup$/i, 12, "Europa League"],
+    [/^fa cup$/i, 13, "FA Cup"],
+    [/^copa del rey$/i, 14, "Copa del Rey"],
+    [/^coppa italia$/i, 15, "Coppa Italia"],
+    [/^dfb[-\s]?pokal$/i, 16, "DFB Pokal"],
+    [/^coupe de france$/i, 17, "Coupe de France"],
+    [/^efl cup$|^english league cup$|^league cup$|^carabao cup$/i, 18, "English League Cup"],
+  ];
+  const TEAM_TITLE_REJECT = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist|club world cup|intercontinental|super cup|supercopa|community shield|charity shield|troph[eé]e des champions|supercoppa|nations league|confederations cup|recopa|fifa club world cup/i;
+  const NON_TOP_5_LEAGUE_RE = /primeira liga|liga portugal|eredivisie|süper lig|super lig|scottish premiership|belgian pro league|jupiler|austrian bundesliga|russian premier league|ukrainian premier league|super league greece|swiss super league|major league soccer|\bmls\b|saudi pro league|brasileir|campeonato brasileiro|argentine primera|primera divisi[oó]n|liga mx|a-league|championship/i;
+  const titleItems = (value) => {
+    if (Array.isArray(value)) return value.flatMap(titleItems);
+    return clean(value).split(/\s*[;|]\s*/).map((item) => item.trim()).filter(Boolean);
+  };
+  const titleYears = (value) => [...clean(value).matchAll(/\b(?:19|20)\d{2}(?:[–—/-]\d{2,4})?\b/g)].map((match) => match[0]);
+  const titleCount = (value, years = []) => {
+    const match = clean(value).match(/[×x]\s*(\d+)/i) || clean(value).match(/\((\d+)\)\s*(?=[:—-]|$)/);
+    return match ? Number(match[1]) : Math.max(1, years.length || 1);
+  };
+  function normalizedTeamTitle(value) {
+    const raw = clean(value)
+      .replace(/^[^:]{2,70}:\s*/, "")
+      .replace(/\[[^\]]*]/g, "")
+      .replace(/\s*[×x]\s*\d+\s*$/i, "")
+      .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
+      .replace(/\s*[—:-]\s*(?:19|20)\d{2}.*$/i, "")
+      .replace(/\s+(?:winners?|champions?)$/i, "")
+      .trim();
+    if (!raw || TEAM_TITLE_REJECT.test(raw)) return "";
+    if (NON_TOP_5_LEAGUE_RE.test(raw)) return "Non Top 5 League";
+    const found = TEAM_TITLE_RULES.find(([rule]) => rule.test(raw));
+    return found ? found[2] : "";
+  }
+  const titleOrder = (name) => TEAM_TITLE_RULES.find(([, , label]) => label === name)?.[1] || 99;
+  function sanitizeTeamTitles(titles) {
+    const grouped = new Map();
+    titleItems(titles).forEach((item) => {
+      const name = normalizedTeamTitle(item);
+      if (!name) return;
+      const years = titleYears(item);
+      const group = grouped.get(name) || { name, count: 0, years: new Set() };
+      group.count += titleCount(item, years);
+      years.forEach((year) => group.years.add(year));
+      grouped.set(name, group);
+    });
+    return [...grouped.values()]
+      .sort((a, b) => titleOrder(a.name) - titleOrder(b.name) || a.name.localeCompare(b.name))
+      .map((group) => {
+        const years = [...group.years].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        return `${group.name} x${Math.max(1, group.count)}${years.length ? ` — ${years.join(", ")}` : ""}`;
+      });
+  }
   function isMajorIndividualAward(award) {
     const title = normalized(award?.name ?? award).replace(/[^a-z0-9' -]+/g, " ").replace(/\s+/g, " ").trim();
     if (!title || /\b(?:young|youth|under[- ]?\d{2}|team of the|squad of the|nominee|shortlist|runner up|second place|third place|bronze|silver)\b/.test(title)) return false;
@@ -125,7 +189,8 @@
     return countryContext && /\b(?:player|footballer) of the year\b/.test(title);
   }
   const sanitizeCareerStints = (stints) => (Array.isArray(stints) ? stints : [])
-    .filter((stint) => stint && typeof stint === "object" && !isReserveOrDevelopmentTeam(stint.club));
+    .filter((stint) => stint && typeof stint === "object" && !isReserveOrDevelopmentTeam(stint.club))
+    .map((stint) => ({ ...stint, trophies: sanitizeTeamTitles(stint.trophies) }));
   const sanitizeIndividualAwards = (awards) => (Array.isArray(awards) ? awards : [])
     .filter((award) => award && typeof award === "object" && isMajorIndividualAward(award))
     .filter((award, index, list) => {
@@ -137,6 +202,8 @@
     if (!record || typeof record !== "object") return null;
     const sanitized = JSON.parse(JSON.stringify(record));
     sanitized.careerStints = sanitizeCareerStints(sanitized.careerStints);
+    sanitized.teamTitles = sanitizeTeamTitles(sanitized.teamTitles);
+    sanitized.internationalTitles = sanitizeTeamTitles(sanitized.internationalTitles);
     sanitized.individualAwards = sanitizeIndividualAwards(sanitized.individualAwards);
     sanitized.schemaVersion = DATA_SCHEMA_VERSION;
     return sanitized;
@@ -356,10 +423,12 @@
       if (!honor) return;
       if (individual) awards.push({name:honor,club:"",year:""});
       else {
+        const cleanHonor = sanitizeTeamTitles(honor)[0];
+        if (!cleanHonor) return;
         const stint = matchingStint(group);
-        if (stint && !stint.trophies.includes(honor)) stint.trophies.push(honor);
+        if (stint && !stint.trophies.includes(cleanHonor)) stint.trophies.push(cleanHonor);
         if (!stint) {
-          const labelledHonor = group ? `${group}: ${honor}` : honor;
+          const labelledHonor = group ? `${group}: ${cleanHonor}` : cleanHonor;
           const destination = isInternationalGroup(group) ? internationalTitles : teamTitles;
           if (!destination.includes(labelledHonor)) destination.push(labelledHonor);
         }

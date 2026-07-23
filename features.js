@@ -812,6 +812,42 @@
           return `<section class="rank-profile-section"><div class="rank-profile-label">International</div>${facts.length ? `<div class="rank-profile-facts rank-profile-facts-compact">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>` : ""}</section>`;
         };
 	        const teamHonoursHTML = (card, stints, legacyTitles) => {
+          const rules = [
+            [/^(?:fifa\s+)?world cup$/i, 1, "FIFA World Cup"],
+            [/^(?:uefa\s+)?champions league$|^european cup$/i, 2, "UEFA Champions League"],
+            [/^uefa european championship$|^european championship$|^uefa euro$|^euro$/i, 3, "European Championship"],
+            [/^copa am[eé]rica$/i, 4, "Copa America"],
+            [/^africa cup of nations$|^african cup of nations$|^afcon$/i, 5, "African Cup of Nations"],
+            [/^premier league$/i, 6, "Premier League"],
+            [/^la liga$/i, 6, "La Liga"],
+            [/^serie a$/i, 6, "Serie A"],
+            [/^bundesliga$/i, 6, "Bundesliga"],
+            [/^ligue 1$/i, 6, "Ligue 1"],
+            [/^non top 5 league$/i, 6, "Non Top 5 League"],
+            [/^(?:uefa\s+)?europa league$|^uefa cup$/i, 7, "Europa League"],
+            [/^fa cup$/i, 8, "FA Cup"],
+            [/^copa del rey$/i, 8, "Copa Del Rey"],
+            [/^coppa italia$/i, 8, "Coppa Italia"],
+            [/^dfb[-\s]?pokal$/i, 8, "DFB Pokal"],
+            [/^coupe de france$/i, 8, "Coupe De France"],
+            [/^efl cup$|^english league cup$|^league cup$/i, 9, "English League Cup"],
+          ];
+          const reject = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist|club world cup|intercontinental|super cup|supercopa|community shield|charity shield|troph[eé]e des champions|supercoppa|nations league|confederations cup|recopa|carabao cup|fifa club world cup/i;
+          const nonTopFive = /primeira liga|liga portugal|eredivisie|süper lig|super lig|scottish premiership|belgian pro league|jupiler|austrian bundesliga|russian premier league|ukrainian premier league|super league greece|swiss super league|major league soccer|\bmls\b|saudi pro league|brasileir|campeonato brasileiro|argentine primera|primera divisi[oó]n|liga mx|a-league|championship/i;
+          const allowedTitle = (value) => {
+            const base = String(value || "")
+              .replace(/^[^:]{2,70}:\s*/, "")
+              .replace(/\s*[×x]\s*\d+\s*$/i, "")
+              .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
+              .replace(/\s*[—:-]\s*(?:19|20)\d{2}.*$/i, "")
+              .replace(/\s+(?:winners?|champions?)$/i, "")
+              .trim();
+            if (!base || reject.test(base)) return "";
+            if (nonTopFive.test(base)) return "Non Top 5 League";
+            const found = rules.find(([rule]) => rule.test(base));
+            return found ? found[2] : "";
+          };
+          const titleRank = (name) => rules.find(([, , label]) => label === name)?.[1] || 99;
 	          const grouped = new Map();
 	          const addTitle = (rawTitle, detail = "") => {
 	            const raw = String(rawTitle || "").trim();
@@ -819,10 +855,10 @@
 	            const datedSuffix = raw.match(/^(.*?)(?:\s*[:—]\s*)((?:(?:19|20)\d{2}(?:[–—/-]\d{2,4})?(?:\s*[,;]\s*)?)+)\s*$/);
 	            const yearText = datedSuffix?.[2] || "";
 	            const years = [...yearText.matchAll(/\b(?:19|20)\d{2}(?:[–—/-]\d{2,4})?\b/g)].map((year) => year[0]);
-	            const name = (datedSuffix?.[1] || raw)
+	            const name = allowedTitle((datedSuffix?.[1] || raw)
 	              .replace(/\s*[×x]\s*\d+\s*$/i, "")
 	              .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
-	              .trim();
+	              .trim());
 	            if (!name) return;
 	            const group = grouped.get(name.toLowerCase()) || { name, count: 0, years: [], details: [] };
 	            group.count += countMatch ? Number(countMatch[1]) : years.length || 1;
@@ -841,11 +877,11 @@
           titleParts(card.internationalTitles).forEach((title) =>
             addTitle(title, card.nationalTeam || card.nationality || "International"),
           );
-          const titles = [...grouped.values()];
+          const titles = [...grouped.values()].sort((a, b) => titleRank(a.name) - titleRank(b.name) || a.name.localeCompare(b.name));
           const calculatedTotal = titles.reduce((sum, title) => sum + title.count, 0);
           const total = String(card.careerTrophyTotal || calculatedTotal || "").trim();
           if (!total && !titles.length) return "";
-          return `<section class="rank-profile-section"><div class="rank-profile-label">Total Team Titles</div>${total ? `<div class="rank-profile-title-total"><span>Total titles won</span><strong>${esc(total)}</strong></div>` : ""}${titles.length ? `<details class="rank-profile-title-breakdown"><summary>View Club and International Titles</summary><div class="rank-profile-awards">${titles.map((title) => `<article class="rank-profile-award-group"><strong>${esc(title.name)}${title.count > 1 ? ` ×${title.count}` : ""}${title.years.length ? ` — ${esc(title.years.join(", "))}` : ""}</strong>${title.details.length ? `<details><summary>Club / country</summary><div>${title.details.map((detail) => `<span>${esc(detail)}</span>`).join("")}</div></details>` : ""}</article>`).join("")}</div></details>` : ""}</section>`;
+          return `<section class="rank-profile-section"><div class="rank-profile-label">Team Trophies</div>${total ? `<div class="rank-profile-title-total"><span>Total titles won</span><strong>${esc(total)}</strong></div>` : ""}${titles.length ? `<details class="rank-profile-title-breakdown"><summary>View team trophies</summary><div class="rank-profile-awards">${titles.map((title) => `<article class="rank-profile-award-group"><strong>${esc(title.name)} x${Math.max(1, title.count)}${title.years.length ? ` — ${esc(title.years.join(", "))}` : ""}</strong>${title.details.length ? `<details><summary>Club / country</summary><div>${title.details.map((detail) => `<span>${esc(detail)}</span>`).join("")}</div></details>` : ""}</article>`).join("")}</div></details>` : ""}</section>`;
         };
         const awardsHTML = (awards) => {
           if (!awards.length) return "";

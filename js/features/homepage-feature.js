@@ -42,6 +42,8 @@
     charter: 'Charter, "Bitstream Charter", "Sitka Text", Georgia, serif',
     inter: 'Inter, system-ui, sans-serif',
   };
+  let isRendering = false;
+  let observer = null;
 
   function bodyHTML(value) {
     const text = String(value || "").replace(/\r\n/g, "\n").trim();
@@ -86,6 +88,14 @@
     if (item.type === "diary") return [e.competition, e.fixture || e.matchweek, e.date].filter(Boolean).join(" · ");
     if (item.type === "editorial") return [e.topic, e.teams, e.competitions, e.date].filter(Boolean).join(" · ");
     return [e.type === "grades" ? "Transfer Grade" : "Transfer Rec", e.club, e.date].filter(Boolean).join(" · ");
+  }
+
+  function tagsFor(item) {
+    const e = item.entry || {};
+    const raw = [e.topic, e.teams, e.competitions, e.tags, e.club, e.competition]
+      .filter(Boolean)
+      .join(",");
+    return [...new Set(raw.split(",").map((tag) => tag.trim()).filter(Boolean))].slice(0, 6);
   }
 
   function chooseFeatured(items) {
@@ -143,10 +153,16 @@
   function render() {
     const root = document.getElementById("homePostFeed");
     if (!root) return;
+    removeOffHomeHeadlines();
+    if (!homePageIsActive(root)) return;
+    isRendering = true;
     const items = allEntries();
     const feature = chooseFeatured(items);
     if (!feature) {
       root.innerHTML = `<div class="empty-state"><p>Nothing published yet.</p></div>`;
+      setTimeout(() => {
+        isRendering = false;
+      }, 0);
       return;
     }
     const latest = items
@@ -156,17 +172,21 @@
     applyFont();
     root.innerHTML = `${controls(items, feature)}
       <section class="hs-home-reading-layout">
-        <article class="hs-home-lead-story">
-          <p class="hs-home-kicker">${esc(feature.cfg.label)}</p>
+        <article class="hs-home-lead-story hs-writing-card hs-writing-card-published featured">
+          <header>
+            <p class="hs-home-kicker hs-writing-kicker">${esc(feature.cfg.label)}</p>
           <h2>${esc(titleFor(feature))}</h2>
           <p class="hs-home-meta">${esc(metaFor(feature))}</p>
-          <div class="hs-home-body">${bodyHTML(feature.entry.body) || `<p>${esc(feature.entry.excerpt || "No body added yet.")}</p>`}</div>
+            ${tagsFor(feature).length ? `<div class="hs-writing-tags">${tagsFor(feature).map((tag) => `<span>${esc(tag)}</span>`).join("")}</div>` : ""}
+          </header>
+          <div class="hs-home-body hs-writing-body">${bodyHTML(feature.entry.body) || `<p>${esc(feature.entry.excerpt || "No body added yet.")}</p>`}</div>
         </article>
         <aside class="hs-home-latest-rail">
-          <h3>Latest</h3>
-          ${latest.length ? latest.map((item) => `<button type="button" onclick="showPage('${item.cfg.page}')"><span>${esc(item.cfg.label)}</span><strong>${esc(titleFor(item))}</strong><small>${esc(metaFor(item))}</small></button>`).join("") : `<p>No other pieces yet.</p>`}
+          <h3>Headlines</h3>
+          ${latest.length ? latest.map((item) => `<button type="button" onclick="showPage('${item.cfg.page}')"><span>${esc(item.cfg.label)}</span><strong>${esc(titleFor(item))}</strong><small>${esc(metaFor(item))}</small></button>`).join("") : `<p class="hs-home-no-headlines">No other pieces yet.</p>`}
         </aside>
       </section>`;
+    root.dataset.hsHomeFeatureAuthoritative = "1";
     document.getElementById("hsHomepageFeaturedApply")?.addEventListener("click", () => {
       setFeatured(document.getElementById("hsHomepageFeaturedSelect")?.value);
     });
@@ -174,25 +194,93 @@
       write(FONT_KEY, event.target.value);
       applyFont();
     });
+    setTimeout(() => {
+      isRendering = false;
+    }, 0);
+  }
+
+  function homePageIsActive(root) {
+    const home = document.getElementById("page-home");
+    if (home && root && !home.contains(root)) return false;
+    const page = home || root.closest(".page");
+    if (!page) return true;
+    if (page.hidden || page.getAttribute("aria-hidden") === "true") return false;
+    if (page.classList.contains("hidden") || page.classList.contains("is-hidden")) return false;
+    if (!page.classList.contains("active")) return false;
+    const style = window.getComputedStyle ? window.getComputedStyle(page) : null;
+    return !style || (style.display !== "none" && style.visibility !== "hidden");
+  }
+
+  function removeOffHomeHeadlines() {
+    document
+      .querySelectorAll(".page:not(#page-home) .hs-home-reading-layout, .page:not(#page-home) .hs-home-latest-rail")
+      .forEach((node) => node.remove());
+  }
+
+  function pageIsHomeActive() {
+    const home = document.getElementById("page-home");
+    if (!home) return true;
+    if (home.hidden || home.getAttribute("aria-hidden") === "true") return false;
+    if (home.classList.contains("hidden") || home.classList.contains("is-hidden")) return false;
+    if (!home.classList.contains("active")) return false;
+    const style = window.getComputedStyle ? window.getComputedStyle(home) : null;
+    return !style || (style.display !== "none" && style.visibility !== "hidden");
+  }
+
+  function scheduleRender() {
+    removeOffHomeHeadlines();
+    if (!pageIsHomeActive()) return;
+    if (typeof queueMicrotask === "function") queueMicrotask(render);
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(render);
+    setTimeout(render, 40);
+    setTimeout(render, 180);
   }
 
   function patchShowPage() {
-    if (window.HSHomepageFeaturePatched) return;
     const previous = window.showPage;
     if (typeof previous !== "function") return;
-    window.showPage = function (id, mode) {
+    if (previous.HSHomepageFeatureWrapper) return;
+    const wrapped = function (id, mode) {
       previous(id, mode);
-      if (id === "home") render();
+      removeOffHomeHeadlines();
+      if (id === "home") scheduleRender();
     };
+    wrapped.HSHomepageFeatureWrapper = true;
+    window.showPage = wrapped;
     window.HSHomepageFeaturePatched = true;
   }
 
+  function watchHomeRoot() {
+    if (observer) observer.disconnect();
+    const root = document.getElementById("homePostFeed");
+    if (!root || typeof MutationObserver !== "function") return;
+    observer = new MutationObserver(() => {
+      if (isRendering) return;
+      if (!homePageIsActive(root)) return;
+      if (!root.querySelector(".hs-home-reading-layout")) scheduleRender();
+    });
+    observer.observe(root, { childList: true });
+  }
+
   function init() {
+    window.HS_USE_HOMEPAGE_FEATURE_RENDERER = true;
+    window.HSHomepageFeature = { render, scheduleRender, setFeatured };
+    window.renderHomePostFeed = scheduleRender;
     patchShowPage();
+    watchHomeRoot();
     applyFont();
-    render();
-    window.addEventListener("storage", render);
-    window.HSHomepageFeature = { render, setFeatured };
+    scheduleRender();
+    window.addEventListener("storage", scheduleRender);
+    window.addEventListener("load", () => {
+      window.renderHomePostFeed = scheduleRender;
+      patchShowPage();
+      watchHomeRoot();
+      scheduleRender();
+    });
+    setTimeout(patchShowPage, 120);
+    setTimeout(patchShowPage, 400);
+    setTimeout(watchHomeRoot, 400);
+    document.addEventListener("halfspace:data-updated", scheduleRender);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

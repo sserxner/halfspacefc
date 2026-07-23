@@ -11,10 +11,13 @@
 
 .hs-writing-shell {
   display: grid;
-  grid-template-columns: minmax(120px, 170px) minmax(0, 1240px);
-  gap: clamp(0.85rem, 1.6vw, 1.45rem);
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1320px);
+  gap: clamp(1rem, 2vw, 1.8rem);
   align-items: start;
   justify-content: center;
+  width: min(1580px, calc(100vw - 64px));
+  max-width: none;
+  margin-inline: auto;
 }
 
 .hs-writing-sidebar {
@@ -436,43 +439,185 @@
   width: fit-content;
 }
 
-/* Batch 2 V4: diary/editorial/transfer articles need to read like articles, not narrow admin cards. */
+/* V5: one centered article system for Editorials, Diaries, Transfers and Betting. */
 #page-diary .content-wide,
 #page-editorials .content-wide,
 #page-transfers .content-wide,
 #page-betting .content-wide {
-  width: min(1640px, calc(100vw - 48px));
+  width: min(1280px, calc(100vw - 48px));
   max-width: none;
+  margin-inline: auto;
+}
+
+#page-diary .hs-writing-shell,
+#page-editorials .hs-writing-shell,
+#page-transfers .hs-writing-shell,
+#page-betting .hs-writing-shell {
+  grid-template-columns: minmax(150px, 220px) minmax(0, 940px);
+  width: min(1220px, calc(100vw - 48px));
+  max-width: none;
+  gap: clamp(1.25rem, 2.5vw, 2.5rem);
+  justify-content: center;
 }
 
 #page-diary .hs-writing-feed,
 #page-editorials .hs-writing-feed,
-#page-transfers .hs-writing-feed {
-  max-width: 1240px;
+#page-transfers .hs-writing-feed,
+#page-betting .hs-writing-feed {
+  max-width: none;
+}
+
+#page-diary .hs-writing-card,
+#page-editorials .hs-writing-card,
+#page-transfers .hs-writing-card,
+#page-betting .hs-writing-card {
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(2rem, 4vw, 4.2rem);
 }
 
 #page-diary .hs-writing-body,
 #page-editorials .hs-writing-body,
-#page-transfers .hs-writing-body {
-  max-width: 100ch;
+#page-transfers .hs-writing-body,
+#page-betting .hs-writing-body {
+  max-width: 78ch;
   margin-inline: 0;
 }
 
 #page-diary .hs-writing-body p,
 #page-editorials .hs-writing-body p,
-#page-transfers .hs-writing-body p {
+#page-transfers .hs-writing-body p,
+#page-betting .hs-writing-body p {
   margin-bottom: 1.18rem;
 }
 
 #page-diary .hs-writing-card h2,
 #page-editorials .hs-writing-card h2,
-#page-transfers .hs-writing-card h2 {
-  max-width: 20ch;
-  font-size: clamp(2.35rem, 4.2vw, 4.65rem);
+#page-transfers .hs-writing-card h2,
+#page-betting .hs-writing-card h2 {
+  max-width: 18ch;
+  font-size: clamp(2.15rem, 3.5vw, 4.15rem);
+}
+
+@media (max-width: 980px) {
+  .hs-writing-shell,
+  #page-diary .hs-writing-shell,
+  #page-editorials .hs-writing-shell,
+  #page-transfers .hs-writing-shell,
+  #page-betting .hs-writing-shell {
+    width: min(100%, calc(100vw - 28px));
+    grid-template-columns: 1fr;
+  }
+
+  .hs-writing-sidebar {
+    position: static;
+  }
+}
+
+/* V6: force every writing section onto the same professional article rail. */
+#page-diary .content-wide,
+#page-editorials .content-wide,
+#page-transfers .content-wide,
+#page-betting .content-wide {
+  width: min(1320px, calc(100vw - 48px)) !important;
+  max-width: none !important;
+  margin-inline: auto !important;
+}
+
+#page-diary .hs-writing-shell,
+#page-editorials .hs-writing-shell,
+#page-transfers .hs-writing-shell,
+#page-betting .hs-writing-shell {
+  display: grid !important;
+  grid-template-columns: minmax(190px, 250px) minmax(0, 940px) !important;
+  gap: clamp(1.5rem, 2.5vw, 2.6rem) !important;
+  align-items: start !important;
+  justify-content: center !important;
+  width: min(1260px, calc(100vw - 48px)) !important;
+  max-width: none !important;
+  margin: clamp(2rem, 4vw, 4rem) auto !important;
+}
+
+#page-diary .hs-writing-sidebar,
+#page-editorials .hs-writing-sidebar,
+#page-transfers .hs-writing-sidebar,
+#page-betting .hs-writing-sidebar {
+  width: 100% !important;
+  min-width: 0 !important;
+  position: sticky !important;
+  top: 7rem !important;
+}
+
+#page-diary .hs-writing-feed,
+#page-editorials .hs-writing-feed,
+#page-transfers .hs-writing-feed,
+#page-betting .hs-writing-feed {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
 }
 
 #page-diary .hs-writing-card,
 #page-editorials .hs-writing-card,
-#page-transfers .hs-writing-card {
-  padding-inline: clamp(2rem, 4vw, 4.8rem);
+#page-transfers .hs-writing-card,
+#page-betting .hs-writing-card {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  padding: clamp(2rem, 4vw, 4rem) clamp(2rem, 4.3vw, 4.6rem) !important;
+}
+
+#page-diary .hs-writing-card h2,
+#page-editorials .hs-writing-card h2,
+#page-transfers .hs-writing-card h2,
+#page-betting .hs-writing-card h2 {
+  max-width: 18ch !important;
+  font-size: clamp(2.25rem, 4vw, 4.4rem) !important;
+  line-height: 0.98 !important;
+}
+
+#page-diary .hs-writing-body,
+#page-editorials .hs-writing-body,
+#page-transfers .hs-writing-body,
+#page-betting .hs-writing-body {
+  width: 100% !important;
+  max-width: 78ch !important;
+  margin-inline: 0 !important;
+  font-size: clamp(1.05rem, 1.12vw, 1.18rem) !important;
+  line-height: 1.72 !important;
+}
+
+#page-diary .hs-writing-body p,
+#page-editorials .hs-writing-body p,
+#page-transfers .hs-writing-body p,
+#page-betting .hs-writing-body p {
+  max-width: none !important;
+  margin: 0 0 1.2rem !important;
+}
+
+@media (max-width: 980px) {
+  #page-diary .content-wide,
+  #page-editorials .content-wide,
+  #page-transfers .content-wide,
+  #page-betting .content-wide,
+  #page-diary .hs-writing-shell,
+  #page-editorials .hs-writing-shell,
+  #page-transfers .hs-writing-shell,
+  #page-betting .hs-writing-shell {
+    width: min(100%, calc(100vw - 28px)) !important;
+  }
+
+  #page-diary .hs-writing-shell,
+  #page-editorials .hs-writing-shell,
+  #page-transfers .hs-writing-shell,
+  #page-betting .hs-writing-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  #page-diary .hs-writing-sidebar,
+  #page-editorials .hs-writing-sidebar,
+  #page-transfers .hs-writing-sidebar,
+  #page-betting .hs-writing-sidebar {
+    position: static !important;
+  }
 }

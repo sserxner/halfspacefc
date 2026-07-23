@@ -1,5 +1,8 @@
 (() => {
   "use strict";
+  // The consolidated writing system owns every writing modal. Keep this
+  // compatibility file inert when both scripts exist in an older page build.
+  if (document.querySelector('script[src*="js/features/writing-system.js"]') || window.HSWritingSystem) return;
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const read = (key, fallback) => typeof getData === "function" ? getData(key, fallback) : window.HSData?.getDraft?.()?.[key] ?? fallback;
   const sameJSON = (left, right) => {
