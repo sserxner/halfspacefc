@@ -344,6 +344,42 @@ body .page .hs-rankings-era-tabs {
   top: auto !important;
 }
 
+/* Let Cruyff remain part of the Rankings composition instead of placing an
+   opaque white document over him. Controls get a soft parchment wash; rows
+   become lighter individual reading lines rather than pasted-on cards. */
+body :is(#page-rankings, #page-present-rankings) :is(
+  .hs-rankings-era-tabs,
+  .sub-tabs,
+  .section-header,
+  .tier-legend
+) {
+  background: rgba(250, 247, 239, 0.72) !important;
+  border-color: rgba(38, 68, 49, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(11, 37, 23, 0.06) !important;
+  backdrop-filter: blur(8px) saturate(82%);
+}
+
+body :is(#page-rankings, #page-present-rankings) .tier-label {
+  background: rgba(247, 243, 233, 0.58) !important;
+  border-bottom: 1px solid rgba(38, 68, 49, 0.1);
+  backdrop-filter: blur(6px);
+}
+
+body :is(#page-rankings, #page-present-rankings) .ranking-row {
+  margin-inline: 0 !important;
+  padding-inline: 0.48rem !important;
+  background: rgba(255, 253, 247, 0.68) !important;
+  border-bottom: 1px solid rgba(38, 68, 49, 0.09);
+  border-radius: 2px;
+  box-shadow: none !important;
+  backdrop-filter: blur(6px) saturate(82%);
+}
+
+body :is(#page-rankings, #page-present-rankings) .ranking-row:hover {
+  margin-inline: 0 !important;
+  background: rgba(255, 253, 247, 0.88) !important;
+}
+
 @media (max-width: 768px) {
   :root {
     --hs-persistent-nav-height: 58px;
