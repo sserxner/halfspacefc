@@ -332,12 +332,22 @@
         <span class="hs-transfer-index-facts">${facts}</span>
         <span class="hs-transfer-index-open">Read review</span>
       </summary>
-      <div class="hs-transfer-full-review">${articleCard("transfer", entry, index)}</div>
+      <div class="hs-transfer-full-review">${articleCard("transfer", entry, index)}
+        <button type="button" class="hs-transfer-close-review" onclick="HSWritingSystem.closeInlineReview(this)">Close review <span aria-hidden="true">↑</span></button>
+      </div>
     </details>`;
   }
 
   function closeTransferGrade() {
     document.getElementById("hsTransferGradeDrawer")?.remove();
+  }
+
+  function closeInlineReview(button) {
+    const review = button?.closest("details.hs-transfer-index-card");
+    if (!review) return;
+    review.removeAttribute("open");
+    review.scrollIntoView({ behavior: "smooth", block: "center" });
+    review.querySelector("summary")?.focus({ preventScroll: true });
   }
 
   function openTransferGrade(index) {
@@ -960,6 +970,7 @@
     },
     openTransferGrade,
     closeTransferGrade,
+    closeInlineReview,
     showTransferPage(type) {
       state.transfer = type === "grades" ? "grades" : "recs";
       state.transferClub = "all";

@@ -128,6 +128,9 @@ test("Transfer grades use the centered reading layout", () => {
   assert.match(writingSystem, /rank-profile-backdrop hs-transfer-grade-backdrop/);
   assert.match(writingSystem, /type === "grades"[\s\S]*openTransferGrade/);
   assert.match(writingSystem, /return `<details class="hs-transfer-index-card"/);
+  assert.match(writingSystem, /class="hs-transfer-close-review"/);
+  assert.match(writingSystem, /function closeInlineReview\(button\)/);
+  assert.match(writingSystem, /review\.removeAttribute\("open"\)/);
   assert.match(writingSystem, /hs-transfer-team-index/);
   assert.match(writingSystem, /visible\.map\(\(\{ entry, index \}\) => transferIndexCard/);
 });
