@@ -872,9 +872,10 @@
               .replace(/\s+(?:winners?|champions?)$/i, "")
               .trim();
             if (!base || reject.test(base)) return "";
-            if (nonTopFive.test(base)) return "Non Top 5 League";
             const found = rules.find(([rule]) => rule.test(base));
-            return found ? found[2] : "";
+            if (found) return found[2];
+            if (nonTopFive.test(base)) return "Non Top 5 League";
+            return "";
           };
           const titleRank = (name) => rules.find(([, , label]) => label === name)?.[1] || 99;
 	          const grouped = new Map();
@@ -970,6 +971,10 @@
             interestedClubs = c.interestedClubs || "",
             suggestedMove = c.suggestedMove || "",
             isCurrentPlayer = /_(now|current)$/.test(k) || Boolean(c.currentClub),
+            verifiedHonoursAvailable = Boolean(
+              window.HSVerifiedPlayerDrafts?.get?.(x.name) ||
+                window.HSVerifiedPlayerDrafts?.getHonours?.(x.name),
+            ),
             nextMove = [...new Set(parts([suggestedMove, interestedClubs].filter(Boolean).join("\n")))].join("\n"),
             playerReference = { key: k, tierIndex: t, entryIndex: e, name: x.name },
             structuredProfileStarted = Boolean(
@@ -986,7 +991,9 @@
             ),
             shouldHydrateHonours =
               !/_mgr(?:_|$)/.test(k) &&
-              !hasTeamHonours(c, stints) &&
+              !verifiedHonoursAvailable &&
+              (!hasTeamHonours(c, stints) ||
+                !titleParts(c.internationalTitles).length) &&
               window.HSVerifiedPlayerDrafts?.availableFor?.(x.name);
           let b = document.createElement("div");
           b.id = "rankProfileBackdrop";

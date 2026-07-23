@@ -525,6 +525,10 @@ test("player-card autofill separates international honours and preserves owner-e
   assert.match(features, /needsVerifiedFacts/);
   assert.doesNotMatch(features, /if \(!hasExistingCard\)/);
   assert.match(pilot, /const internationalTitles = \[\]/);
+  assert.match(
+    pilot,
+    /if \(found\) return found\[2\];\s*if \(NON_TOP_5_LEAGUE_RE\.test\(raw\)\)/,
+  );
   assert.match(pilot, /careerTeamTitleTotal\(stints, teamTitles, internationalTitles\)/);
   assert.match(pilot, /cachedRecord\?\.schemaVersion === DATA_SCHEMA_VERSION/);
   assert.match(pilot, /const sanitizedBundledRecord = sanitizeDraftRecord\(bundledRecord\)/);
@@ -534,6 +538,8 @@ test("player-card autofill separates international honours and preserves owner-e
     /window\.HSVerifiedPlayerDrafts\?\.get\?\.\(entry\?\.name\)/,
   );
   assert.match(features, /shouldHydrateHonours/);
+  assert.match(features, /verifiedHonoursAvailable/);
+  assert.match(features, /!titleParts\(c\.internationalTitles\)\.length/);
   assert.match(features, /HSVerifiedPlayerDrafts\s*\.queueHonours\(x\.name\)/);
   assert.match(features, /Loading verified career trophies/);
   assert.match(pilot, /async function prepareHonours\(name\)/);
@@ -873,6 +879,7 @@ test("Tactics Board saves editable drafts and embeds read-only diagrams in edito
 
 test("Diaries, Editorials, Transfers, and Betting share one writing system", () => {
   const system = read("js/features/writing-system.js");
+  const homepage = read("js/features/homepage-feature.js");
   const styles = read("css/features/writing-system.css");
   const template = read("src/index.template.html");
   const content = read("js/public/content.js");
@@ -882,6 +889,7 @@ test("Diaries, Editorials, Transfers, and Betting share one writing system", () 
   assert.match(system, /HSData/);
   assert.match(system, /data-insert="underline"/);
   assert.match(system, /data-insert="indent"/);
+  assert.doesNotMatch(system, /data-write-field="headlineOrder"/);
   assert.match(system, /event\.key === "Tab"/);
   assert.match(system, /event\.key\.toLowerCase\(\) === "b"/);
   assert.match(system, /event\.key\.toLowerCase\(\) === "u"/);
@@ -889,6 +897,11 @@ test("Diaries, Editorials, Transfers, and Betting share one writing system", () 
   assert.match(system, /HSClubImportanceOrder/);
   assert.match(system, /importanceIndex/);
   assert.match(system, /<u>\$1<\/u>/);
+  assert.match(homepage, /HSHomepageFeature\.open/);
+  assert.match(homepage, /headlineOrder/);
+  assert.match(homepage, /showTransferTab/);
+  assert.match(homepage, /moveHeadline/);
+  assert.match(homepage, /HSHomepageFeature\.move/);
   assert.match(content, /function editorialHTML/);
   assert.match(styles, /\.hs-writing-shell/);
   assert.match(styles, /\.hs-writing-card/);

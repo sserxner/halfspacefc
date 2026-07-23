@@ -109,6 +109,43 @@
     );
   }
 
+  function headlineSort(a, b) {
+    const aOrder = Number(a.entry?.headlineOrder);
+    const bOrder = Number(b.entry?.headlineOrder);
+    const aOrdered = Number.isFinite(aOrder) && aOrder > 0;
+    const bOrdered = Number.isFinite(bOrder) && bOrder > 0;
+    if (aOrdered && bOrdered && aOrder !== bOrder) return aOrder - bOrder;
+    if (aOrdered !== bOrdered) return aOrdered ? -1 : 1;
+    return (Date.parse(b.entry?.date) || b.entry?.updatedAt || 0) - (Date.parse(a.entry?.date) || a.entry?.updatedAt || 0);
+  }
+
+  function moveHeadline(type, index, direction) {
+    if (!admin()) return;
+    const items = allEntries();
+    const feature = chooseFeatured(items);
+    const ordered = items
+      .filter((item) => live(item.entry) && !(item.type === feature?.type && item.index === feature?.index))
+      .sort(headlineSort);
+    const from = ordered.findIndex((item) => item.type === type && item.index === Number(index));
+    const to = from + Number(direction);
+    if (from < 0 || to < 0 || to >= ordered.length) return;
+    [ordered[from], ordered[to]] = [ordered[to], ordered[from]];
+    const changedTypes = new Set();
+    ordered.forEach((item, position) => {
+      item.entry.headlineOrder = position + 1;
+      changedTypes.add(item.type);
+    });
+    changedTypes.forEach((kind) => {
+      const cfg = TYPES[kind];
+      const list = read(cfg.key, []);
+      ordered.filter((item) => item.type === kind).forEach((item) => {
+        if (list[item.index]) list[item.index].headlineOrder = item.entry.headlineOrder;
+      });
+      write(cfg.key, list);
+    });
+    render();
+  }
+
   function setFeatured(value) {
     const [type, rawIndex] = String(value || "").split(":");
     const index = Number(rawIndex);
@@ -169,7 +206,7 @@
     }
     const latest = items
       .filter((item) => live(item.entry) && !(item.type === feature.type && item.index === feature.index))
-      .sort((a, b) => (Date.parse(b.entry?.date) || b.entry?.updatedAt || 0) - (Date.parse(a.entry?.date) || a.entry?.updatedAt || 0))
+      .sort(headlineSort)
       .slice(0, 8);
     applyFont();
     root.innerHTML = `${controls(items, feature)}
@@ -185,7 +222,13 @@
         </article>
         <aside class="hs-home-latest-rail">
           <h3>Headlines</h3>
-          ${latest.length ? latest.map((item) => `<button type="button" onclick="showPage('${item.cfg.page}')"><span>${esc(item.cfg.label)}</span><strong>${esc(titleFor(item))}</strong><small>${esc(metaFor(item))}</small></button>`).join("") : `<p class="hs-home-no-headlines">No other pieces yet.</p>`}
+          ${latest.length ? latest.map((item, position) => `<div class="hs-home-headline-row">
+            <button class="hs-home-headline-link" type="button" onclick="HSHomepageFeature.open('${item.type}',${item.index})"><span>${esc(item.cfg.label)}</span><strong>${esc(titleFor(item))}</strong><small>${esc(metaFor(item))}</small></button>
+            ${admin() ? `<div class="hs-home-headline-order" aria-label="Reorder ${esc(titleFor(item))}">
+              <button type="button" title="Move headline up" aria-label="Move headline up" onclick="HSHomepageFeature.move('${item.type}',${item.index},-1)" ${position === 0 ? "disabled" : ""}>↑</button>
+              <button type="button" title="Move headline down" aria-label="Move headline down" onclick="HSHomepageFeature.move('${item.type}',${item.index},1)" ${position === latest.length - 1 ? "disabled" : ""}>↓</button>
+            </div>` : ""}
+          </div>`).join("") : `<p class="hs-home-no-headlines">No other pieces yet.</p>`}
         </aside>
       </section>`;
     root.dataset.hsHomeFeatureAuthoritative = "1";
@@ -238,6 +281,20 @@
     setTimeout(render, 180);
   }
 
+  function openItem(type, index) {
+    const item = allEntries().find((candidate) => candidate.type === type && candidate.index === Number(index));
+    if (!item) return;
+    if (type === "transfer") {
+      window.HSWritingSystem?.showTransferTab?.(item.entry?.type === "grades" ? "grades" : "recs");
+      window.HSWritingSystem?.filterTransferClub?.("all");
+    }
+    window.showPage?.(item.cfg.page);
+    setTimeout(() => {
+      document.querySelector(`[data-writing-type="${type}"][data-writing-index="${Number(index)}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
+
   function patchShowPage() {
     const previous = window.showPage;
     if (typeof previous !== "function") return;
@@ -266,7 +323,7 @@
 
   function init() {
     window.HS_USE_HOMEPAGE_FEATURE_RENDERER = true;
-    window.HSHomepageFeature = { render, scheduleRender, setFeatured };
+    window.HSHomepageFeature = { render, scheduleRender, setFeatured, open: openItem, move: moveHeadline };
     window.renderHomePostFeed = scheduleRender;
     patchShowPage();
     watchHomeRoot();

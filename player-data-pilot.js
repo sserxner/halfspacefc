@@ -150,9 +150,10 @@
       .replace(/\s+(?:winners?|champions?)$/i, "")
       .trim();
     if (!raw || TEAM_TITLE_REJECT.test(raw)) return "";
-    if (NON_TOP_5_LEAGUE_RE.test(raw)) return "Non Top 5 League";
     const found = TEAM_TITLE_RULES.find(([rule]) => rule.test(raw));
-    return found ? found[2] : "";
+    if (found) return found[2];
+    if (NON_TOP_5_LEAGUE_RE.test(raw)) return "Non Top 5 League";
+    return "";
   }
   const titleOrder = (name) => TEAM_TITLE_RULES.find(([, , label]) => label === name)?.[1] || 99;
   function sanitizeTeamTitles(titles) {
