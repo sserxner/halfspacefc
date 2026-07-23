@@ -141,6 +141,14 @@ test("Betting Corner uses a compact linked index before full analysis", () => {
   assert.match(writingSystem, /all\.map\(\(\{ entry, index \}\) => bettingIndexCard/);
 });
 
+test("Betting Corner uses the faded Paqueta page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-betting::before/);
+  assert.match(css, /betting-corner-paqueta\.avif/);
+  assert.match(css, /filter: grayscale\(42%\) saturate\(68%\) contrast\(88%\)/);
+  assert.match(css, /rgba\(247, 244, 236, 0\.92\)/);
+});
+
 test("football player cards use compact summaries and international caps and goals", () => {
   const features = read("features.js");
   const cards = read("css/rankings/ranking-player-card-style.css");
