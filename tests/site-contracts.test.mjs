@@ -247,6 +247,16 @@ test("homepage nav is neutral and Streets introduction is editor-controlled", ()
   assert.match(streets, /data-editable="streets_intro"/);
 });
 
+test("Misc navigation uses the requested Build an XI-first order", () => {
+  const template = read("src/index.template.html");
+  const menu = template.match(/<div class="nav-dropdown-menu" id="miscMenu"[\s\S]*?<\/div>/)?.[0] || "";
+  const labels = [...menu.matchAll(/<button[^>]*>([^<]+)<\/button>/g)].map((match) => match[1].trim());
+  assert.deepEqual(labels, ["Build an XI", "Position Guide", "TV", "NBA", "Music", "Contact"]);
+  assert.doesNotMatch(template, /class="nav-tab hs-xi-nav"/);
+  assert.match(template, /Misc — Build an XI/);
+  assert.match(template, /Misc — Position Guide/);
+});
+
 test("legacy blog rendering cannot blank the pre-rendered homepage", () => {
   const publicContent = read("js/public/content.js");
   assert.ok(publicContent.includes('if (feed.querySelector(".hs-home-reading-layout")) return;'));
