@@ -42,10 +42,12 @@
   }
 
   function init() {
+    /* Remove the first-paint stand-in before moving the real masthead. These
+       synchronous DOM changes are painted together, preventing a double hero. */
+    document.documentElement.classList.add("hs-flow-ready");
     moveMasthead();
     patchShowPage();
     syncState();
-    document.documentElement.classList.add("hs-flow-ready");
     window.addEventListener("scroll", syncState, { passive: true });
     window.addEventListener("resize", syncState);
   }
