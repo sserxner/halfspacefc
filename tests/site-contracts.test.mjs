@@ -54,10 +54,10 @@ test("Step 40 unifies rankings and promotes the XI workspace", () => {
   assert.match(read("src/components/rankings.html"), /data-rankings-era="present"/);
 });
 
-test("navigation and ranking-position tabs remain available while scrolling", () => {
+test("navigation remains available while ranking-position tabs stay in page flow", () => {
   const masthead = read("css/features/halfspace-masthead.css");
   assert.match(masthead, /body > nav[\s\S]*position:\s*fixed/);
-  assert.match(masthead, /#page-rankings #rankings-primary-tabs,[\s\S]*#page-present-rankings #present-primary-tabs[\s\S]*position:\s*sticky/);
+  assert.match(masthead, /#page-rankings #rankings-primary-tabs,[\s\S]*#page-present-rankings #present-primary-tabs[\s\S]*position:\s*static/);
   assert.match(masthead, /--hs-persistent-nav-height/);
   assert.match(masthead, /overflow-x:\s*auto/);
 });
@@ -147,6 +147,77 @@ test("Betting Corner uses the faded Paqueta page background", () => {
   assert.match(css, /betting-corner-paqueta\.avif/);
   assert.match(css, /filter: grayscale\(42%\) saturate\(68%\) contrast\(88%\)/);
   assert.match(css, /rgba\(247, 244, 236, 0\.92\)/);
+});
+
+test("Editorials Opinion uses the faded Simon Jordan page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-editorials::before/);
+  assert.match(css, /editorials-opinion-simon-jordan\.webp/);
+  assert.match(css, /#page-editorials \.hs-writing-card/);
+});
+
+test("Matchday Diaries uses the faded Thompson and Acosta page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-diary::before/);
+  assert.match(css, /editorials-matchday-diaries-thompson-acosta\.jpg/);
+  assert.match(css, /#page-diary \.hs-writing-card/);
+});
+
+test("Transfer Recs uses the faded Wenger and Dein page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-transfer-recs::before/);
+  assert.match(css, /transfer-recs-wenger-dein\.jpg/);
+  assert.match(css, /#page-transfer-recs \.hs-transfer-index-card/);
+});
+
+test("Transfer Grades uses the faded Brian Clough page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-transfer-grades::before/);
+  assert.match(css, /transfer-grades-brian-clough\.webp/);
+  assert.match(css, /#page-transfer-grades \.hs-transfer-grade-filter/);
+});
+
+test("both Rankings eras use the faded Johan Cruyff page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-rankings::before,\s*#page-present-rankings::before/);
+  assert.match(css, /rankings-johan-cruyff\.webp/);
+  assert.match(css, /#page-present-rankings \.ranking-row/);
+});
+
+test("Build an XI main view uses Mourinho without styling club detail views", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /build-xi-main-jose-mourinho\.webp/);
+  assert.match(css, /#page-club-xi:has\(#club-list-view:not\(\[style\*="display: none"\]\)\)::before/);
+  assert.match(css, /#page-club-xi #club-list-view \.xi-country-card/);
+  assert.doesNotMatch(css, /#page-club-xi #club-detail-view \.xi-country-card/);
+});
+
+test("Position Guide uses the faded Mikel Arteta page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-positions::before/);
+  assert.match(css, /position-guide-mikel-arteta\.webp/);
+  assert.match(css, /#page-positions \.position-parent-card/);
+});
+
+test("TV uses the faded Tony Soprano page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-tv::before/);
+  assert.match(css, /tv-tony-soprano\.jpg/);
+  assert.match(css, /#page-tv \.rank-tier-entries/);
+});
+
+test("NBA uses the faded Allen Iverson page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-nba::before/);
+  assert.match(css, /nba-allen-iverson\.avif/);
+  assert.match(css, /#page-nba \.nba-tier-body/);
+});
+
+test("Music uses the faded Cat Stevens page background", () => {
+  const css = read("css/features/writing-system.css");
+  assert.match(css, /#page-music::before/);
+  assert.match(css, /music-cat-stevens\.webp/);
+  assert.match(css, /#page-music \.music-card/);
 });
 
 test("football player cards use compact summaries and international caps and goals", () => {
@@ -577,15 +648,21 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(features, /Load verified data/);
   assert.match(features, /nothing publishes until you save/);
   assert.match(features, /appliedVerifiedDraft/);
-  assert.match(pilot, /async function prepare\(name\)/);
+  assert.match(pilot, /async function prepare\(name, context = \{\}\)/);
   assert.match(pilot, /availableFor\(\) \{ return true/);
   assert.match(pilot, /en\.wikipedia\.org\/w\/api\.php/);
   assert.match(pilot, /www\.wikidata\.org\/w\/api\.php/);
   assert.match(pilot, /reviewWarnings/);
   assert.match(pilot, /function confidentTitle/);
   assert.match(pilot, /lookupWikipediaPage/);
-  assert.match(pilot, /No unambiguous matching Wikipedia player page/);
+  assert.match(pilot, /No credible Wikipedia footballer match/);
   assert.match(pilot, /A surname alone is insufficient/);
+  assert.match(pilot, /function footballCandidateScore/);
+  assert.match(pilot, /best-football-context/);
+  assert.match(pilot, /Best football-context match selected/);
+  assert.match(pilot, /intitle:"\$\{searchName\}" footballer/);
+  assert.match(pilot, /verified-autofill-football-context-v10/);
+  assert.match(features, /currentClub: c\.currentClub/);
   assert.match(pilot, /function careerRowsFromWikitext/);
   assert.match(pilot, /function honoursFromWikitext/);
   assert.match(pilot, /clubs\$\{index\}/);
@@ -597,7 +674,7 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(features, /nothing is saved or published until you review/i);
   assert.match(features, /id="rpcCareerStints"/);
   assert.match(pilot, /hs_verified_player_drafts_private_v2/);
-  assert.match(pilot, /function queue\(name\)/);
+  assert.match(pilot, /function queue\(name, context = \{\}\)/);
   assert.match(pilot, /function internationalFromWikitext/);
   assert.match(pilot, /internationalCaps/);
   assert.match(pilot, /internationalGoals/);
@@ -638,9 +715,9 @@ test("player-card autofill separates international honours and preserves owner-e
   assert.match(features, /!titleParts\(c\.internationalTitles\)\.length/);
   assert.match(features, /HSVerifiedPlayerDrafts\s*\.queueHonours\(x\.name\)/);
   assert.match(features, /Loading verified career trophies/);
-  assert.match(pilot, /async function prepareHonours\(name\)/);
+  assert.match(pilot, /async function prepareHonours\(name, context = \{\}\)/);
   assert.match(pilot, /prop=wikitext\|revid/);
-  assert.match(pilot, /function queueHonours\(name\)/);
+  assert.match(pilot, /function queueHonours\(name, context = \{\}\)/);
   assert.match(pilot, /const boldLabel = line\.match/);
   assert.match(pilot, /const label = boldLabel \|\| definitionLabel/);
 });
@@ -1168,10 +1245,10 @@ test("Masthead Composer starts clean and keeps approved figures independently ed
   assert.match(template, /masthead-composer\.js/);
 });
 
-test("site and ranking navigation remain clickable while scrolling", () => {
+test("site navigation remains clickable while ranking tabs remain non-sticky", () => {
   const styles = read("css/features/halfspace-masthead.css");
   assert.match(styles, /body > nav\s*\{[\s\S]*position: fixed !important/);
-  assert.match(styles, /#page-rankings #rankings-primary-tabs,[\s\S]*#page-present-rankings #present-primary-tabs\s*\{[\s\S]*position: sticky !important/);
+  assert.match(styles, /#page-rankings #rankings-primary-tabs,[\s\S]*#page-present-rankings #present-primary-tabs\s*\{[\s\S]*position: static !important/);
   assert.match(styles, /--hs-persistent-nav-height: 110px/);
   assert.match(styles, /@media \(max-width: 768px\)[\s\S]*--hs-persistent-nav-height: 58px/);
   assert.match(styles, /#page-rankings #rankings-primary-tabs \.sub-tab,[\s\S]*#page-present-rankings #present-primary-tabs \.sub-tab[\s\S]*white-space: nowrap !important/);
@@ -1197,4 +1274,47 @@ test("search and primary tabs remain a permanent navigation fixture", () => {
   assert.match(css, /body\.hs-masthead-collapsed > nav \{[\s\S]*position: fixed !important/);
   assert.match(css, /body\.hs-masthead-collapsed \{[\s\S]*padding-top: 104px !important/);
   assert.match(css, /overflow-x: clip !important/);
+});
+
+test("first paint warms page artwork while using the delivered masthead", () => {
+  const css = read("css/features/halfspace-masthead.css");
+  const flow = read("js/features/masthead-nav-flow.js");
+  assert.match(css, /html::after/);
+  assert.match(css, /music-cat-stevens\.webp/);
+  assert.match(css, /--hs-page-art-position/);
+  assert.match(css, /var\(--hs-page-art\) var\(--hs-page-art-position\) \/ cover fixed/);
+  assert.doesNotMatch(css, /html:not\(\.hs-flow-ready\) body::before/);
+  assert.match(flow, /classList\.add\("hs-flow-ready"\)/);
+  assert.match(flow, /requestAnimationFrame\(syncState\)/);
+});
+
+test("ranking subtabs stay in normal flow before and after selection", () => {
+  const css = read("css/features/halfspace-masthead.css");
+  assert.match(
+    css,
+    /#page-rankings #rankings-primary-tabs,\s*#page-present-rankings #present-primary-tabs \{\s*position: static !important;\s*top: auto !important;/,
+  );
+  assert.match(
+    css,
+    /body \.page \.sub-tabs,\s*body \.page \.hs-rankings-era-tabs \{\s*position: static !important;\s*top: auto !important;/,
+  );
+});
+
+test("rankings use translucent integrated surfaces over the Cruyff artwork", () => {
+  const css = read("css/features/halfspace-masthead.css");
+  assert.match(css, /#page-rankings, #page-present-rankings/);
+  assert.match(css, /\.ranking-row \{[\s\S]*rgba\(255, 253, 247, 0\.68\) !important/);
+  assert.match(css, /\.tier-label \{[\s\S]*rgba\(247, 243, 233, 0\.58\) !important/);
+  assert.match(css, /backdrop-filter: blur\(8px\) saturate\(82%\)/);
+});
+
+test("the real masthead replaces its first-paint stand-in before it is moved", () => {
+  const css = read("css/features/halfspace-masthead.css");
+  const flow = read("js/features/masthead-nav-flow.js");
+  assert.doesNotMatch(css, /body:has\(#page-home > \.hero\)::before/);
+  assert.ok(read("index.html").indexOf("hs-floating-masthead") < read("index.html").indexOf("<nav>"));
+  assert.match(
+    flow,
+    /function init\(\) \{\s*\/\*[\s\S]*?classList\.add\("hs-flow-ready"\);\s*moveMasthead\(\);/,
+  );
 });

@@ -233,14 +233,111 @@
     // tokens; longer names may omit one middle token.
     return matches === wanted.length || (wanted.length >= 3 && matches >= wanted.length - 1);
   }
-  async function lookupWikipediaPage(name) {
-    const exact = await json(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(name)}&redirects=1&prop=pageprops|info&inprop=url&format=json&origin=*`);
-    const exactPage = Object.values(exact.query?.pages || {}).find((page) => !page.missing && confidentTitle(name, page.title));
-    if (exactPage) return exactPage;
-    const searched = await json(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(`intitle:"${name}" association football`)}&gsrlimit=10&prop=pageprops|info&inprop=url&format=json&origin=*`);
-    const candidates = Object.values(searched.query?.pages || {}).filter((page) => confidentTitle(name, page.title));
-    if (candidates.length !== 1) throw new Error("No unambiguous matching Wikipedia player page was found.");
-    return candidates[0];
+
+  const MATCH_STOP_WORDS = new Set([
+    "association", "football", "footballer", "player", "club", "current",
+    "the", "and", "for", "from", "with", "men", "women", "team",
+  ]);
+  const contextTokens = (context) =>
+    nameTokens(
+      [
+        context?.detail,
+        context?.currentClub,
+        context?.nationality,
+        context?.position,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    ).filter((token) => token.length > 2 && !MATCH_STOP_WORDS.has(token));
+  const candidateText = (page) =>
+    normalized(
+      [
+        page?.title,
+        page?.extract,
+        ...(page?.categories || []).map((category) => category.title),
+      ].join(" "),
+    );
+  function footballCandidateScore(name, page, context = {}) {
+    if (!page || page.missing || page.pageprops?.disambiguation !== undefined)
+      return -Infinity;
+    const title = normalized(page.title).replace(/\s*\([^)]*\)\s*/g, " ").trim();
+    const text = candidateText(page);
+    const wanted = nameTokens(name);
+    const found = new Set(nameTokens(title));
+    const matchedNameTokens = wanted.filter((token) => found.has(token)).length;
+    const initialMatches = wanted.filter(
+      (token) =>
+        token.length === 1 &&
+        [...found].some((candidate) => candidate.startsWith(token)),
+    ).length;
+    let score = matchedNameTokens * 18 + initialMatches * 8;
+    if (confidentTitle(name, page.title)) score += 24;
+    if (keyFor(title) === keyFor(name)) score += 18;
+    if (/\b(?:association football player|professional footballer|football midfielder|football forward|football defender|football goalkeeper)\b/.test(text))
+      score += 42;
+    else if (/\bfootballer\b|\bassociation football\b/.test(text)) score += 26;
+    if (/\b(?:male|women's) association football players\b/.test(text))
+      score += 12;
+    const hints = contextTokens(context);
+    score += Math.min(
+      42,
+      hints.filter((token) => text.includes(token)).length * 7,
+    );
+    if (!matchedNameTokens && !initialMatches) score -= 60;
+    if (/\b(?:disambiguation pages|surname|given name)\b/.test(text)) score -= 80;
+    return score;
+  }
+  async function wikipediaCandidates(query) {
+    const data = await json(
+      `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=15&prop=pageprops|info|extracts|categories&inprop=url&exintro=1&explaintext=1&exsentences=3&cllimit=20&format=json&origin=*`,
+    );
+    return Object.values(data.query?.pages || {});
+  }
+  async function lookupWikipediaPage(name, context = {}) {
+    const exact = await json(
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(name)}&redirects=1&prop=pageprops|info|extracts|categories&inprop=url&exintro=1&explaintext=1&exsentences=3&cllimit=20&format=json&origin=*`,
+    );
+    const exactPage = Object.values(exact.query?.pages || {}).find(
+      (page) =>
+        footballCandidateScore(name, page, context) >= 55 &&
+        confidentTitle(name, page.title),
+    );
+    if (exactPage)
+      return { ...exactPage, hsMatchKind: "exact", hsMatchScore: footballCandidateScore(name, exactPage, context) };
+
+    const hint = contextTokens(context).slice(0, 6).join(" ");
+    const searchName = nameTokens(name).join(" ") || name;
+    const searches = await Promise.all([
+      wikipediaCandidates(`"${name}" association football player`),
+      wikipediaCandidates(`${name} footballer ${hint}`.trim()),
+      ...(keyFor(searchName) !== keyFor(name)
+        ? [wikipediaCandidates(`intitle:"${searchName}" footballer ${hint}`.trim())]
+        : []),
+    ]);
+    const unique = new Map();
+    searches.flat().forEach((page) => {
+      if (page?.pageid) unique.set(page.pageid, page);
+    });
+    const ranked = [...unique.values()]
+      .map((page) => ({
+        page,
+        score: footballCandidateScore(name, page, context),
+      }))
+      .filter((candidate) => candidate.score >= 45)
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          String(a.page.title).localeCompare(String(b.page.title)),
+      );
+    if (!ranked.length)
+      throw new Error("No credible Wikipedia footballer match was found.");
+    const best = ranked[0];
+    return {
+      ...best.page,
+      hsMatchKind: "best-football-context",
+      hsMatchScore: best.score,
+      hsMatchMargin: best.score - (ranked[1]?.score || 0),
+    };
   }
   function claimId(claims, property) {
     return claims?.[property]?.[0]?.mainsnak?.datavalue?.value?.id || "";
@@ -466,8 +563,8 @@
     }
     return awards.slice(0, 30);
   }
-  async function prepare(name) {
-    const page = await lookupWikipediaPage(name);
+  async function prepare(name, context = {}) {
+    const page = await lookupWikipediaPage(name, context);
     if (!page?.pageprops?.wikibase_item) throw new Error("The matching page has no linked Wikidata player record.");
     const parsed = await json(`https://en.wikipedia.org/w/api.php?action=parse&pageid=${page.pageid}&prop=text|wikitext|revid&formatversion=2&format=json&origin=*`);
     const documentNode = new DOMParser().parseFromString(parsed.parse?.text || "", "text/html");
@@ -508,6 +605,11 @@
       sources: [{label:`${parsed.parse?.title || name} — Wikipedia`,url:page.fullurl || `https://en.wikipedia.org/?curid=${page.pageid}`}],
       statsNote: usedCareerTable ? "Senior-club appearances and goals are club-by-club all-competition totals from Wikipedia career-statistics season rows or club Total rows. Final career-total rows are ignored so current clubs never inherit full-career stats. Reserve, youth and B-team stops are omitted. Assists stay blank unless a consistent source is available." : "Senior-club stats fell back to Wikipedia infobox figures because a career-statistics table was unavailable. Reserve, youth and B-team stops are omitted. Assists stay blank unless a consistent source is available.",
       reviewWarnings: [
+        ...(page.hsMatchKind === "best-football-context"
+          ? [
+              `Best football-context match selected: ${parsed.parse?.title || page.title}. Confirm the player before saving.`,
+            ]
+          : []),
         ...(stints.length ? [] : ["Career-statistics rows could not be structured automatically; add or verify them manually."]),
       ],
     };
@@ -516,8 +618,8 @@
     return JSON.parse(JSON.stringify(sanitizedRecord));
   }
 
-  async function prepareHonours(name) {
-    const page = await lookupWikipediaPage(name);
+  async function prepareHonours(name, context = {}) {
+    const page = await lookupWikipediaPage(name, context);
     const parsed = await json(
       `https://en.wikipedia.org/w/api.php?action=parse&pageid=${page.pageid}&prop=wikitext|revid&formatversion=2&format=json&origin=*`,
     );
@@ -576,12 +678,12 @@
       : null;
   }
 
-  function queue(name) {
+  function queue(name, context = {}) {
     const key = keyFor(name);
     const existing = getDraft(name);
     if (existing) return Promise.resolve(existing);
     if (pendingDrafts.has(key)) return pendingDrafts.get(key);
-    const job = prepare(name).finally(() => pendingDrafts.delete(key));
+    const job = prepare(name, context).finally(() => pendingDrafts.delete(key));
     pendingDrafts.set(key, job);
     return job;
   }
@@ -591,12 +693,12 @@
     return record ? JSON.parse(JSON.stringify(record)) : null;
   }
 
-  function queueHonours(name) {
+  function queueHonours(name, context = {}) {
     const key = keyFor(name);
     const existing = getDraft(name) || getHonours(name);
     if (existing) return Promise.resolve(existing);
     if (pendingHonoursDrafts.has(key)) return pendingHonoursDrafts.get(key);
-    const job = prepareHonours(name).finally(() =>
+    const job = prepareHonours(name, context).finally(() =>
       pendingHonoursDrafts.delete(key),
     );
     pendingHonoursDrafts.set(key, job);
@@ -604,7 +706,7 @@
   }
 
   window.HSVerifiedPlayerDrafts = {
-    version: "step-40-verified-autofill-career-table-first-v9",
+    version: "step-40-verified-autofill-football-context-v10",
     get: getDraft,
     getHonours,
     prepare,
@@ -615,6 +717,7 @@
     isMajorIndividualAward,
     sanitizeCareerStints,
     sanitizeIndividualAwards,
+    footballCandidateScore,
     availableFor() { return true; },
   };
 })();

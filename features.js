@@ -1190,7 +1190,16 @@
             prepareButton.textContent = "Preparing…";
             rpcVerifiedStatus.textContent = "Checking Wikipedia and Wikidata. Nothing will be saved automatically.";
             try {
-              const prepared = await (window.HSVerifiedPlayerDrafts.queue?.(x.name) || window.HSVerifiedPlayerDrafts.prepare(x.name));
+              const matchContext = {
+                detail: x.detail || "",
+                currentClub: c.currentClub || "",
+                nationality: c.nationality || "",
+                position: c.position || "",
+              };
+              const prepared = await (
+                window.HSVerifiedPlayerDrafts.queue?.(x.name, matchContext) ||
+                window.HSVerifiedPlayerDrafts.prepare(x.name, matchContext)
+              );
               loadVerifiedDraft(prepared);
             } catch (error) {
               prepareButton.disabled = false;
