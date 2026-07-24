@@ -12,6 +12,7 @@
       .replace(/^-|-$/g, "");
   const nowDate = () => new Date().toISOString().slice(0, 10);
   const WORKING_DRAFT_KEY = "hs_writing_working_drafts_v2";
+  const SAVED_ARCHIVE_KEY = "hs_writing_saved_archive_v1";
   const clone = (value) => JSON.parse(JSON.stringify(value ?? null));
   function readWorkingDrafts() {
     try {
@@ -23,6 +24,22 @@
   }
   function storeWorkingDrafts(value) {
     localStorage.setItem(WORKING_DRAFT_KEY, JSON.stringify(value || {}));
+  }
+  function archiveSavedCopy(type, record) {
+    const current = (() => {
+      try {
+        const value = JSON.parse(localStorage.getItem(SAVED_ARCHIVE_KEY) || "[]");
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    })();
+    current.unshift({
+      savedAt: Date.now(),
+      type,
+      record: clone(record),
+    });
+    localStorage.setItem(SAVED_ARCHIVE_KEY, JSON.stringify(current.slice(0, 30)));
   }
   const admin = () => document.body.classList.contains("admin-active") || window.adminMode === true;
   const read = (key, fallback) => {
@@ -1101,7 +1118,7 @@
     }
   }
 
-  function saveEditor(publish) {
+  async function saveEditor(publish) {
     if (!editor) return;
     setEditorBusy(true);
     setEditorStatus(publish ? "Saving published item…" : "Saving draft…");
@@ -1127,10 +1144,15 @@
         state[`${editor.type}FeatureIndex`] = savedIndex;
       }
       saveRecords(editor.type, list);
+      archiveSavedCopy(editor.type, editor.record);
+      if (window.HSBackups?.create) {
+        try {
+          await window.HSBackups.create({ reason: "writing-save" });
+        } catch (error) {
+          console.error("Writing recovery snapshot failed:", error);
+        }
+      }
       clearWorkingCopy(editor.workingKey);
-      window.HSBackups?.create?.({ reason: "writing-save" }).catch((error) => {
-        console.error("Writing recovery snapshot failed:", error);
-      });
       closeEditor({ saveRecovery: false });
     } catch (error) {
       console.error("Writing save failed:", error);
