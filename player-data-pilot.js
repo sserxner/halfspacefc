@@ -569,7 +569,11 @@
         if (stint && !stint.trophies.includes(cleanHonor)) stint.trophies.push(cleanHonor);
         if (!stint) {
           if (isInternationalGroup(group)) {
-            mergeInternationalTitle(internationalTitles, honor);
+            // Wikipedia commonly lists a winning year and a third-place or
+            // runner-up year under the same competition. Only championships
+            // belong in the player's international-title list.
+            if (!TEAM_TITLE_REJECT.test(honor))
+              mergeInternationalTitle(internationalTitles, honor);
           } else {
             const labelledHonor = group ? `${group}: ${cleanHonor}` : cleanHonor;
             if (!teamTitles.includes(labelledHonor)) teamTitles.push(labelledHonor);
