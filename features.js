@@ -662,6 +662,23 @@
         const PLAYER_BATCH_VERSION = 15;
         const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v15";
         let playerBatchJob = null;
+        const titleOverridesReady = (() => {
+          if (window.HSPlayerTitleOverrides) return Promise.resolve();
+          const existing = document.querySelector(
+            'script[src^="player-title-overrides.js"]',
+          );
+          if (existing)
+            return new Promise((resolve) =>
+              existing.addEventListener("load", resolve, { once: true }),
+            );
+          return new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "player-title-overrides.js?v=1";
+            script.onload = resolve;
+            script.onerror = resolve;
+            document.head.appendChild(script);
+          });
+        })();
         function allRankedPlayers() {
           const players = new Map();
           FOOTBALL_SECTIONS.filter((section) => section !== "mgr").forEach((section) => {
@@ -725,7 +742,7 @@
           merged.verifiedSchemaVersion = PLAYER_BATCH_VERSION;
           return sanitizePlayerCard(merged, true);
         }
-        function mergeVerifiedHonours(existing, verified) {
+        function mergeVerifiedHonours(existing, verified, playerName = "") {
           const merged = { ...(existing || {}) };
           const verifiedByClub = new Map(
             (verified.careerStints || []).map((stint) => [playerKey(stint.club), stint]),
@@ -765,7 +782,24 @@
           merged.dataSources = verified.sources || merged.dataSources || [];
           merged.statsNote = verified.statsNote || merged.statsNote || "";
           merged.verifiedSchemaVersion = PLAYER_BATCH_VERSION;
-          return sanitizePlayerCard(merged, true);
+          const repaired = window.HSPlayerTitleOverrides?.applyToCard
+              ? window.HSPlayerTitleOverrides.applyToCard(
+                playerName || verified?.name || existing?.name || "",
+                merged,
+              )
+            : merged;
+          return sanitizePlayerCard(repaired, true);
+        }
+        async function repairVerifiedPlayerTitles() {
+          if (!document.getElementById("adminToolbar")) return null;
+          await titleOverridesReady;
+          const result = window.HSPlayerTitleOverrides?.applyToLibrary?.(
+            cardLibrary(),
+          );
+          if (!result) return null;
+          if (result.changed) setData(CARD_LIBRARY_KEY, result.library);
+          window.HSAutosave?.schedule?.();
+          return result;
         }
         async function autofillAllPlayerCards() {
           // The editor shell can briefly remove admin-active while rebuilding
@@ -774,6 +808,7 @@
           if (!document.getElementById("adminToolbar")) return null;
           if (playerBatchJob) return playerBatchJob;
           playerBatchJob = (async () => {
+            await titleOverridesReady;
             const players = allRankedPlayers();
             let state = {};
             try { state = JSON.parse(localStorage.getItem(PLAYER_BATCH_STATE_KEY) || "{}"); } catch (_) {}
@@ -788,7 +823,10 @@
                 try {
                   const verified = await window.HSVerifiedPlayerDrafts.queueHonours(player.name, player.context);
                   const current = cardLibrary()[id] || {};
-                  saveSharedCard(player.name, mergeVerifiedHonours(current, verified));
+                  saveSharedCard(
+                    player.name,
+                    mergeVerifiedHonours(current, verified, player.name),
+                  );
                   completed.add(id);
                   delete failed[id];
                 } catch (error) {
@@ -827,8 +865,8 @@
               button.textContent = "Filling player cards…";
               const result = await autofillAllPlayerCards();
               button.textContent = result ? `Player cards: ${result.completed}/${result.total}` : "Fill all player cards";
-              button.disabled = false;
-            };
+            button.disabled = false;
+          };
             toolbar.appendChild(button);
           }
           if (toolbar && !document.getElementById("hsResetPlayerBatch")) {
@@ -959,6 +997,25 @@
           if (changed) {
             setData(CARD_LIBRARY_KEY, library);
             window.HSAutosave?.schedule?.();
+          }
+          if (toolbar && !document.getElementById("hsRepairPlayerTitles")) {
+            const repairButton = document.createElement("button");
+            repairButton.id = "hsRepairPlayerTitles";
+            repairButton.className = "tb-btn";
+            repairButton.type = "button";
+            repairButton.textContent = "Repair competition titles";
+            repairButton.onclick = async () => {
+              repairButton.disabled = true;
+              const result = await repairVerifiedPlayerTitles();
+              repairButton.textContent = result
+                ? `Titles repaired: ${result.changed}`
+                : "Repair competition titles";
+              setTimeout(() => {
+                repairButton.textContent = "Repair competition titles";
+                repairButton.disabled = false;
+              }, 2200);
+            };
+            toolbar.appendChild(repairButton);
           }
         }
         const SECTION_LABELS = {
