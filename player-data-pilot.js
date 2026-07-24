@@ -1,5 +1,5 @@
 (function () {
-  const DATA_SCHEMA_VERSION = 11;
+  const DATA_SCHEMA_VERSION = 12;
   const records = {
     "lionel-messi": {
       currentClub: "Inter Miami",
@@ -461,6 +461,35 @@
     ].reduce((sum, title) => sum + countTitle(title), 0);
   }
 
+  function canonicalInternationalTitle(value) {
+    const text = clean(value).replace(/\s*[×x]\s*\d+\s*$/i, "");
+    const name = text.split(":")[0].trim();
+    const canonical =
+      /world cup/i.test(name) ? "FIFA World Cup" :
+      /(?:uefa )?(?:euro|european championship)/i.test(name) ? "UEFA European Championship" :
+      /nations league/i.test(name) ? "UEFA Nations League" :
+      /copa am[eé]rica/i.test(name) ? "Copa America" :
+      /africa[n]? cup of nations|afcon/i.test(name) ? "Africa Cup of Nations" :
+      name;
+    const years = [...new Set((text.match(/\b(?:19|20)\d{2}\b/g) || []))].sort();
+    return { name: canonical, years };
+  }
+
+  function mergeInternationalTitle(titles, value) {
+    const incoming = canonicalInternationalTitle(value);
+    if (!incoming.name) return;
+    const existingIndex = titles.findIndex(
+      (title) => keyFor(canonicalInternationalTitle(title).name) === keyFor(incoming.name),
+    );
+    if (existingIndex < 0) {
+      titles.push(`${incoming.name}${incoming.years.length ? `: ${incoming.years.join(", ")}` : ""}`);
+      return;
+    }
+    const existing = canonicalInternationalTitle(titles[existingIndex]);
+    const years = [...new Set([...existing.years, ...incoming.years])].sort();
+    titles[existingIndex] = `${existing.name}${years.length ? `: ${years.join(", ")}` : ""}`;
+  }
+
   function notableIndividualAwards(awards) {
     return sanitizeIndividualAwards(awards);
   }
@@ -531,9 +560,12 @@
         const stint = matchingStint(group);
         if (stint && !stint.trophies.includes(cleanHonor)) stint.trophies.push(cleanHonor);
         if (!stint) {
-          const labelledHonor = group ? `${group}: ${cleanHonor}` : cleanHonor;
-          const destination = isInternationalGroup(group) ? internationalTitles : teamTitles;
-          if (!destination.includes(labelledHonor)) destination.push(labelledHonor);
+          if (isInternationalGroup(group)) {
+            mergeInternationalTitle(internationalTitles, honor);
+          } else {
+            const labelledHonor = group ? `${group}: ${cleanHonor}` : cleanHonor;
+            if (!teamTitles.includes(labelledHonor)) teamTitles.push(labelledHonor);
+          }
         }
       }
     });
@@ -706,7 +738,7 @@
   }
 
   window.HSVerifiedPlayerDrafts = {
-    version: "step-40-verified-autofill-football-context-v10",
+    version: "step-40-verified-autofill-football-context-v11",
     get: getDraft,
     getHonours,
     prepare,

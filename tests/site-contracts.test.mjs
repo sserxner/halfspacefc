@@ -673,7 +673,7 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /best-football-context/);
   assert.match(pilot, /Best football-context match selected/);
   assert.match(pilot, /intitle:"\$\{searchName\}" footballer/);
-  assert.match(pilot, /verified-autofill-football-context-v10/);
+  assert.match(pilot, /verified-autofill-football-context-v11/);
   assert.match(features, /currentClub: c\.currentClub/);
   assert.match(pilot, /function careerRowsFromWikitext/);
   assert.match(pilot, /function honoursFromWikitext/);
@@ -695,6 +695,32 @@ test("verified player data remains an admin-reviewed draft before saving", () =>
   assert.match(pilot, /isInternationalGroup/);
   assert.match(pilot, /function careerTeamTitleTotal/);
   assert.match(pilot, /function notableIndividualAwards/);
+});
+
+test("ranked footballers share one resumable batch-populated card", () => {
+  const features = read("features.js");
+  assert.match(features, /const CARD_LIBRARY_KEY = "player_card_library_v1"/);
+  assert.match(features, /function allRankedPlayers\(\)/);
+  assert.match(features, /async function autofillAllPlayerCards\(\)/);
+  assert.match(features, /players\.has\(id\)/);
+  assert.match(features, /autofillAll: autofillAllPlayerCards/);
+  assert.match(features, /PLAYER_BATCH_STATE_KEY/);
+});
+
+test("international trophies stay grouped by competition with clean years", () => {
+  const pilot = read("player-data-pilot.js");
+  assert.match(pilot, /function canonicalInternationalTitle\(value\)/);
+  assert.match(pilot, /function mergeInternationalTitle\(titles, value\)/);
+  assert.match(pilot, /"UEFA Nations League"/);
+  assert.match(pilot, /mergeInternationalTitle\(internationalTitles, honor\)/);
+});
+
+test("writing and player-card editors accept direct desktop image drops", () => {
+  const writing = read("js/features/writing-system.js");
+  const features = read("features.js");
+  assert.match(writing, /data-write-cover-file-button/);
+  assert.match(writing, /function importWritingCover\(file\)/);
+  assert.match(features, /#rankCardEditor \.rank-card-image-drop/);
 });
 
 test("player-card autofill separates international honours and preserves owner-entered facts", () => {

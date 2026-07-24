@@ -659,6 +659,114 @@
           rankingsToSave.forEach(([key, ranking]) => rankSet(key, ranking));
           cleanExistingPlayerCards();
         }
+        const PLAYER_BATCH_VERSION = 12;
+        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v12";
+        let playerBatchJob = null;
+        function allRankedPlayers() {
+          const players = new Map();
+          FOOTBALL_SECTIONS.filter((section) => section !== "mgr").forEach((section) => {
+            ["century", "now", "current"].forEach((era) => {
+              const ranking = getData(`ranking_${section}_${era}`, null);
+              (ranking?.tiers || []).forEach((tier) => (tier.entries || []).forEach((entry) => {
+                const id = playerKey(entry.name);
+                if (!id || players.has(id)) return;
+                players.set(id, {
+                  name: entry.name,
+                  context: {
+                    detail: entry.detail || "",
+                    position: SECTION_LABELS?.[section] || section,
+                  },
+                });
+              }));
+            });
+          });
+          return [...players.values()];
+        }
+        function mergeVerifiedFacts(existing, verified) {
+          const merged = { ...(existing || {}) };
+          [
+            "currentClub", "dateOfBirth", "nationality", "nationalTeam",
+            "internationalCaps", "internationalGoals", "years",
+            "careerTrophyTotal", "careerStints", "teamTitles", "individualAwards",
+          ].forEach((field) => {
+            const current = merged[field];
+            if (current == null || current === "" || (Array.isArray(current) && !current.length))
+              merged[field] = verified[field];
+          });
+          if (verified.internationalTitles?.length)
+            merged.internationalTitles = verified.internationalTitles;
+          merged.dataAsOf = verified.dataAsOf || merged.dataAsOf || "";
+          merged.dataSources = verified.sources || merged.dataSources || [];
+          merged.statsNote = verified.statsNote || merged.statsNote || "";
+          merged.verifiedSchemaVersion = PLAYER_BATCH_VERSION;
+          return sanitizePlayerCard(merged, true);
+        }
+        async function autofillAllPlayerCards() {
+          if (!document.body.classList.contains("admin-active")) return null;
+          if (playerBatchJob) return playerBatchJob;
+          playerBatchJob = (async () => {
+            const players = allRankedPlayers();
+            let state = {};
+            try { state = JSON.parse(localStorage.getItem(PLAYER_BATCH_STATE_KEY) || "{}"); } catch (_) {}
+            const completed = new Set(state.version === PLAYER_BATCH_VERSION ? state.completed || [] : []);
+            const failed = { ...(state.version === PLAYER_BATCH_VERSION ? state.failed || {} : {}) };
+            const pending = players.filter((player) => !completed.has(playerKey(player.name)));
+            let cursor = 0;
+            const worker = async () => {
+              while (cursor < pending.length) {
+                const player = pending[cursor++];
+                const id = playerKey(player.name);
+                try {
+                  const verified = await window.HSVerifiedPlayerDrafts.queue(player.name, player.context);
+                  const current = cardLibrary()[id] || {};
+                  saveSharedCard(player.name, mergeVerifiedFacts(current, verified));
+                  completed.add(id);
+                  delete failed[id];
+                } catch (error) {
+                  failed[id] = error?.message || String(error);
+                }
+                localStorage.setItem(PLAYER_BATCH_STATE_KEY, JSON.stringify({
+                  version: PLAYER_BATCH_VERSION,
+                  completed: [...completed],
+                  failed,
+                  total: players.length,
+                  updatedAt: Date.now(),
+                }));
+                window.dispatchEvent(new CustomEvent("hs-player-batch-progress", {
+                  detail: { completed: completed.size, total: players.length, failed: Object.keys(failed).length },
+                }));
+                await new Promise((resolve) => setTimeout(resolve, 250));
+              }
+            };
+            await Promise.all([worker(), worker()]);
+            window.HSAutosave?.schedule?.();
+            return { completed: completed.size, total: players.length, failed };
+          })().finally(() => { playerBatchJob = null; });
+          return playerBatchJob;
+        }
+        function installPlayerBatchControl() {
+          if (!document.body.classList.contains("admin-active")) return;
+          const toolbar = document.getElementById("adminToolbar");
+          if (toolbar && !document.getElementById("hsAutofillAllPlayers")) {
+            const button = document.createElement("button");
+            button.id = "hsAutofillAllPlayers";
+            button.className = "tb-btn";
+            button.type = "button";
+            button.textContent = "Fill all player cards";
+            button.onclick = async () => {
+              button.disabled = true;
+              button.textContent = "Filling player cards…";
+              const result = await autofillAllPlayerCards();
+              button.textContent = result ? `Player cards: ${result.completed}/${result.total}` : "Fill all player cards";
+              button.disabled = false;
+            };
+            toolbar.appendChild(button);
+          }
+          let state = {};
+          try { state = JSON.parse(localStorage.getItem(PLAYER_BATCH_STATE_KEY) || "{}"); } catch (_) {}
+          if (state.version !== PLAYER_BATCH_VERSION || (state.completed || []).length < allRankedPlayers().length)
+            setTimeout(() => autofillAllPlayerCards(), 1800);
+        }
         const globalRank = (k, t, e) => {
           let n = 1,
             d = rankGet(k);
@@ -1109,7 +1217,7 @@
           const awardLines = formatAwardLines(individualAwards(c));
           m.innerHTML = `<div class="rank-card-editor-shell"><h3>Player Card — ${esc(x.name || "")}</h3><p>Add the photo, quickly review the prepared facts, and save. Reserve/B teams and non-major individual awards are removed automatically; your writing and scouting fields remain yours.</p><section class="rank-verified-draft"><div><strong>${verifiedDraft ? "Verified data ready" : "Preparing verified data"}</strong><span id="rpcVerifiedStatus">${verifiedDraft ? `Prepared through ${esc(verifiedDraft.dataAsOf || "")}. Blank factual fields load automatically; nothing publishes until you save and use Publish Changes.` : "Available for every ranked player. Wikipedia and Wikidata facts are prepared privately while this editor is open."}</span></div><button type="button" id="${verifiedDraft ? "rpcApplyVerified" : "rpcPrepareVerified"}" class="rk-btn">${verifiedDraft ? "Load verified data" : "Prepare data"}</button><small id="rpcVerifiedSources">${(verifiedDraft?.sources || []).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.label)}</a>`).join(" · ")}</small></section><div class="rank-card-editor-grid">
             <div class="full rank-editor-section-title">Core profile</div>
-            <div class="full"><label>Image URL or repository path — you control this</label><input id="rpcImage" value="${esc(c.image || "")}"></div>
+            <div class="full rank-card-image-drop"><label>Player image — drop from desktop or paste a path</label><input id="rpcImage" value="${esc(c.image || "")}" placeholder="Drop an image anywhere in this box"></div>
             <div><label>Specific position</label><input id="rpcSpecificPosition" value="${esc(c.specificPosition || c.position || "")}" placeholder="Left-sided No. 8"></div>
             <div><label>Position meaning link</label><input id="rpcPositionMeaningUrl" value="${esc(c.positionMeaningUrl || "")}" placeholder="/positions or https://…"></div>
             <div><label>Country / national team</label><input id="rpcNationality" value="${esc(c.nationalTeam || c.nationality || "")}"></div>
@@ -1278,12 +1386,17 @@
           get(entry) { return sharedCard(entry); },
           save(name, card) { saveSharedCard(name, card); },
           seed: seedCardLibrary,
+          autofillAll: autofillAllPlayerCards,
         };
         document.addEventListener("DOMContentLoaded", () => {
           setTimeout(seedCardLibrary, 350);
+          setTimeout(installPlayerBatchControl, 700);
         });
         new MutationObserver(() => {
-          if (document.body.classList.contains("admin-active")) seedCardLibrary();
+          if (document.body.classList.contains("admin-active")) {
+            seedCardLibrary();
+            installPlayerBatchControl();
+          }
         }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
         document.addEventListener("click", (ev) => {
           let r = ev.target.closest(".rank-card-trigger");
@@ -2016,7 +2129,7 @@
         // Step 15: drop an image file directly on a player row or the open
         // profile hero. The file is optimized, added to Media, and assigned.
         function mediaDropTarget(node) {
-          return node.closest?.(".rank-card-trigger, #rankProfileBackdrop .rank-profile-hero");
+          return node.closest?.(".rank-card-trigger, #rankProfileBackdrop .rank-profile-hero, #rankCardEditor .rank-card-image-drop");
         }
         function mediaDropIdentity(target) {
           const backdrop = target.closest?.("#rankProfileBackdrop");
@@ -2043,6 +2156,14 @@
           event.preventDefault(); target.classList.remove("is-media-dragover");
           const [asset] = await window.HSMediaManager.importFiles([files[0]]);
           if (!asset) return;
+          if (target.closest("#rankCardEditor")) {
+            const input = document.getElementById("rpcImage");
+            if (input) input.value = asset.src;
+            target.style.backgroundImage = `linear-gradient(rgba(255,255,255,.82),rgba(255,255,255,.82)),url("${asset.src}")`;
+            target.style.backgroundSize = "cover";
+            target.style.backgroundPosition = "center";
+            return;
+          }
           const info = mediaDropIdentity(target);
           if (info.mediaCardType === "nba" || info.cardType === "nba") {
             const position = info.nbaPosition;

@@ -169,7 +169,10 @@
     editorialFeatureIndex: null,
     diarySearch: "",
     editorialSearch: "",
-    transferSearch: "",
+    transferRecsSearch: "",
+    transferGradesSearch: "",
+    transferRecsClub: "all",
+    transferGradesClub: "all",
   };
 
   function records(type) {
@@ -417,8 +420,12 @@
 
   let librarySearchTimer = null;
   function librarySearch(type, value) {
-    if (!["diary", "editorial", "transfer"].includes(type)) return;
-    state[`${type}Search`] = value;
+    if (!["diary", "editorial", "transfer-recs", "transfer-grades"].includes(type)) return;
+    const stateKey =
+      type === "transfer-recs" ? "transferRecsSearch" :
+      type === "transfer-grades" ? "transferGradesSearch" :
+      `${type}Search`;
+    state[stateKey] = value;
     clearTimeout(librarySearchTimer);
     librarySearchTimer = setTimeout(() => {
       if (type === "diary") renderDiary();
@@ -562,33 +569,36 @@
       }
       return a.localeCompare(b);
     });
+    const searchKey = type === "grades" ? "transferGradesSearch" : "transferRecsSearch";
+    const clubKey = type === "grades" ? "transferGradesClub" : "transferRecsClub";
     const teamVisible =
-      state.transferClub === "all"
+      state[clubKey] === "all"
         ? all
-        : all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((club) => slug(club) === state.transferClub));
+        : all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((club) => slug(club) === state[clubKey]));
     const visible = teamVisible.filter(({ entry }) =>
-      matchesSearch(entry, state.transferSearch, ["title", "player", "club", "formerClub", "newClub", "fee", "body"]),
+      matchesSearch(entry, state[searchKey], ["title", "player", "club", "formerClub", "newClub", "fee", "grade", "formerClubGrade", "newClubGrade", "body"]),
     );
     root.className = type === "grades" ? "hs-writing-shell hs-transfer-grades-centered" : "hs-writing-shell";
     const clubCounts = new Map(clubs.map((club) => [
       club,
       all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((team) => slug(team) === slug(club))).length,
     ]));
-    const searchControl = `<label class="hs-library-search hs-transfer-library-search"><span>Search transfers</span><input data-library-search="transfer" type="search" value="${esc(state.transferSearch)}" placeholder="Player, club, title or fee" oninput="HSWritingSystem.librarySearch('transfer',this.value)"></label>`;
+    const searchType = `transfer-${type}`;
+    const searchControl = `<label class="hs-library-search hs-transfer-library-search"><span>Search transfers</span><input data-library-search="${searchType}" type="search" value="${esc(state[searchKey])}" placeholder="Player, club, title, fee or grade" oninput="HSWritingSystem.librarySearch('${searchType}',this.value)"></label>`;
     const gradeSelector = `<div class="hs-transfer-grade-filter">
         ${searchControl}
         <label for="hsTransferGradeTeam">Team</label>
-        <select id="hsTransferGradeTeam" onchange="HSWritingSystem.filterTransferClub(this.value)">
+        <select id="hsTransferGradeTeam" onchange="HSWritingSystem.filterTransferClub(this.value,'grades')">
           <option value="all">All teams (${all.length})</option>
-          ${clubs.map((club) => `<option value="${esc(slug(club))}" ${state.transferClub === slug(club) ? "selected" : ""}>${esc(club)} (${clubCounts.get(club)})</option>`).join("")}
+          ${clubs.map((club) => `<option value="${esc(slug(club))}" ${state[clubKey] === slug(club) ? "selected" : ""}>${esc(club)} (${clubCounts.get(club)})</option>`).join("")}
         </select>
       </div>`;
     root.innerHTML = `${type === "grades" ? gradeSelector : `<aside class="hs-writing-sidebar hs-transfer-team-index">
         <h3>${transferLabel(type)} by team</h3>
         ${searchControl}
         <div class="hs-writing-filter-list">
-          ${filterButton(`All teams (${all.length})`, "all", state.transferClub, "HSWritingSystem.filterTransferClub")}
-          ${clubs.map((club) => filterButton(`${club} (${clubCounts.get(club)})`, slug(club), state.transferClub, "HSWritingSystem.filterTransferClub")).join("")}
+          ${filterButton(`All teams (${all.length})`, "all", state[clubKey], `HSWritingSystem.filterTransferClubRecs`)}
+          ${clubs.map((club) => filterButton(`${club} (${clubCounts.get(club)})`, slug(club), state[clubKey], `HSWritingSystem.filterTransferClubRecs`)).join("")}
         </div>
         ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.addTransfer('${type}')">+ New ${transferLabel(type).toLowerCase()}</button>` : ""}
       </aside>`}
@@ -710,10 +720,12 @@
       <label class="hs-write-featured" data-write-section-feature-wrap><input type="checkbox" data-write-section-feature> Feature this on its Editorial or Diary page</label>
       <label class="hs-write-featured" data-write-section-headline-wrap><input type="checkbox" data-write-section-headline> Include this piece in that section’s headlines</label>
       <section class="hs-write-media-fields">
-        <div class="hs-write-cover-preview" data-write-cover-preview></div>
+        <div class="hs-write-cover-preview hs-write-cover-drop" data-write-cover-preview><span>Drop a cover image here</span></div>
         <label><span>Cover photo</span><input data-write-field="coverImage" data-write-cover placeholder="Choose an image or paste its URL"></label>
         <label><span>Cover photo description</span><input data-write-field="coverAlt" placeholder="Describe the image for readers using screen readers"></label>
-        <button type="button" data-write-cover-choose>Choose cover from Media</button>
+        <input type="file" accept="image/*" data-write-cover-file hidden>
+        <button type="button" data-write-cover-file-button>Add cover from desktop</button>
+        <button type="button" data-write-cover-choose>Browse Media library</button>
       </section>
       <div class="hs-write-tools">
         <button type="button" data-insert="paragraph">Paragraph</button>
@@ -735,6 +747,24 @@
     node.addEventListener("input", editorInput);
     node.addEventListener("change", editorInput);
     node.addEventListener("keydown", editorKeydown);
+    node.addEventListener("dragover", (event) => {
+      const drop = event.target.closest?.("[data-write-cover-preview]");
+      if (!drop || !Array.from(event.dataTransfer?.types || []).includes("Files")) return;
+      event.preventDefault();
+      drop.classList.add("drag-over");
+    });
+    node.addEventListener("dragleave", (event) => {
+      const drop = event.target.closest?.("[data-write-cover-preview]");
+      if (drop && !drop.contains(event.relatedTarget)) drop.classList.remove("drag-over");
+    });
+    node.addEventListener("drop", (event) => {
+      const drop = event.target.closest?.("[data-write-cover-preview]");
+      const file = Array.from(event.dataTransfer?.files || []).find((item) => item.type.startsWith("image/"));
+      if (!drop || !file) return;
+      event.preventDefault();
+      drop.classList.remove("drag-over");
+      importWritingCover(file);
+    });
   }
 
   function openEditor(type, index = -1) {
@@ -809,6 +839,10 @@
     const key = field?.dataset.writeField;
     if (key) editor.record[key] = field.isContentEditable ? sanitizeRichHTML(field.innerHTML) : field.value;
     if (key === "coverImage") updateCoverPreview();
+    if (event.target.matches("[data-write-cover-file]") && event.target.files?.[0]) {
+      importWritingCover(event.target.files[0]);
+      event.target.value = "";
+    }
   }
 
   function editorClick(event) {
@@ -833,6 +867,10 @@
         }
         updateCoverPreview();
       }});
+    }
+    if (button.matches("[data-write-cover-file-button]")) {
+      event.preventDefault();
+      return document.querySelector("#hsWritingEditor [data-write-cover-file]")?.click();
     }
     if (button.matches("[data-write-inline-media]")) {
       event.preventDefault();
@@ -881,6 +919,27 @@
     const preview = document.querySelector("#hsWritingEditor [data-write-cover-preview]");
     const src = document.querySelector("#hsWritingEditor [data-write-cover]")?.value || "";
     if (preview) preview.innerHTML = src ? `<img src="${esc(src)}" alt="">` : "<span>No cover selected</span>";
+  }
+
+  async function importWritingCover(file) {
+    if (!file || !window.HSMediaManager?.importFiles) return;
+    const preview = document.querySelector("#hsWritingEditor [data-write-cover-preview]");
+    if (preview) preview.innerHTML = "<span>Adding image…</span>";
+    try {
+      const [asset] = await window.HSMediaManager.importFiles([file]);
+      if (!asset) throw new Error("The image could not be added.");
+      editor.record.coverImage = asset.src;
+      const input = document.querySelector("#hsWritingEditor [data-write-cover]");
+      if (input) input.value = asset.src;
+      if (!editor.record.coverAlt && asset.alt) {
+        editor.record.coverAlt = asset.alt;
+        const alt = document.querySelector('#hsWritingEditor [data-write-field="coverAlt"]');
+        if (alt) alt.value = asset.alt;
+      }
+      updateCoverPreview();
+    } catch (error) {
+      if (preview) preview.innerHTML = `<span>${esc(error.message || "Could not add image.")}</span>`;
+    }
   }
 
   function editorKeydown(event) {
@@ -1145,9 +1204,12 @@
         );
       });
     },
-    filterTransferClub(value) {
-      state.transferClub = value;
+    filterTransferClub(value, type = "recs") {
+      state[type === "grades" ? "transferGradesClub" : "transferRecsClub"] = value;
       renderTransfers();
+    },
+    filterTransferClubRecs(value) {
+      this.filterTransferClub(value, "recs");
     },
     librarySearch,
     addTransfer(type) {
