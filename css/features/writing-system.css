@@ -1702,3 +1702,21 @@ body :is(
     position: static !important;
   }
 }
+
+
+/* Reliable shared editor: keep the writing surface simple and recovery visible. */
+.hs-writing-editor .hs-write-form label[hidden] { display: none !important; }
+.hs-writing-editor footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: rgba(255, 253, 247, 0.98);
+  backdrop-filter: blur(10px);
+}
+.hs-writing-editor [data-write-discard-recovery] {
+  color: #8b2e24;
+  border-color: rgba(139, 46, 36, 0.28);
+}
+.hs-writing-editor .hs-write-status {
+  min-width: 12rem;
+}

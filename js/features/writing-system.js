@@ -11,6 +11,19 @@
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
   const nowDate = () => new Date().toISOString().slice(0, 10);
+  const WORKING_DRAFT_KEY = "hs_writing_working_drafts_v2";
+  const clone = (value) => JSON.parse(JSON.stringify(value ?? null));
+  function readWorkingDrafts() {
+    try {
+      const value = JSON.parse(localStorage.getItem(WORKING_DRAFT_KEY) || "{}");
+      return value && typeof value === "object" ? value : {};
+    } catch {
+      return {};
+    }
+  }
+  function storeWorkingDrafts(value) {
+    localStorage.setItem(WORKING_DRAFT_KEY, JSON.stringify(value || {}));
+  }
   const admin = () => document.body.classList.contains("admin-active") || window.adminMode === true;
   const read = (key, fallback) => {
     try {
@@ -691,6 +704,85 @@
   }
 
   let editor = null;
+  let workingSaveTimer = null;
+
+  function workingDraftKey(type, index, record) {
+    return `${type}:${index >= 0 ? record?.id || index : record?.id || "new"}`;
+  }
+
+  function findWorkingDraft(type, index, record) {
+    const drafts = readWorkingDrafts();
+    if (index >= 0) {
+      const exact = Object.values(drafts).find((item) =>
+        item?.type === type && item?.index === index &&
+        (!record?.id || !item?.record?.id || item.record.id === record.id));
+      return exact || null;
+    }
+    return Object.values(drafts)
+      .filter((item) => item?.type === type && item?.index === -1)
+      .sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0))[0] || null;
+  }
+
+  function compactWorkingRecord(record) {
+    const safe = clone(record || {});
+    if (typeof safe.coverImage === "string" && safe.coverImage.startsWith("data:") && safe.coverImage.length > 100000) {
+      safe.coverImage = "";
+    }
+    return safe;
+  }
+
+  function persistWorkingCopy({ immediate = false } = {}) {
+    if (!editor) return;
+    const save = () => {
+      if (!editor) return;
+      const drafts = readWorkingDrafts();
+      const key = editor.workingKey || workingDraftKey(editor.type, editor.index, editor.record);
+      editor.workingKey = key;
+      drafts[key] = {
+        type: editor.type,
+        index: editor.index,
+        record: compactWorkingRecord(editor.record),
+        savedAt: Date.now(),
+      };
+      try {
+        storeWorkingDrafts(drafts);
+        editor.dirty = false;
+        setEditorStatus("Work saved automatically");
+      } catch (error) {
+        setEditorStatus("Could not save recovery copy — keep this window open", true);
+      }
+    };
+    clearTimeout(workingSaveTimer);
+    if (immediate) save();
+    else workingSaveTimer = setTimeout(save, 300);
+  }
+
+  function clearWorkingCopy(key) {
+    if (!key) return;
+    const drafts = readWorkingDrafts();
+    delete drafts[key];
+    try { storeWorkingDrafts(drafts); } catch {}
+  }
+
+  function bodyLabel(type, record) {
+    if (type === "transfer") return record?.type === "grades" ? "Review / notes" : "Recommendation";
+    if (type === "diary") return "Matchday diary";
+    if (type === "editorial") return "Article";
+    return "Betting analysis";
+  }
+
+  function syncTransferFields() {
+    if (!editor || editor.type !== "transfer") return;
+    const isGrade = editor.record.type === "grades";
+    document.querySelectorAll("#hsWritingEditor .hs-write-form label[data-write-row]").forEach((label) => {
+      const key = label.dataset.writeRow;
+      const gradeOnly = ["formerClub", "newClub", "formerClubGrade", "newClubGrade"].includes(key);
+      const recOnly = ["club"].includes(key);
+      label.hidden = (gradeOnly && !isGrade) || (recOnly && isGrade) || key === "grade";
+    });
+    const bodyTitle = document.querySelector("#hsWritingEditor [data-write-body-label]");
+    if (bodyTitle) bodyTitle.textContent = bodyLabel(editor.type, editor.record);
+  }
 
   function fieldHTML(record, [key, label, type]) {
     if (type.startsWith("select:")) {
@@ -702,9 +794,9 @@
           return `<option value="${esc(value)}" ${String(record[key] || "") === value ? "selected" : ""}>${esc(text || value)}</option>`;
         })
         .join("");
-      return `<label><span>${esc(label)}</span><select data-write-field="${esc(key)}">${options}</select></label>`;
+      return `<label data-write-row="${esc(key)}"><span>${esc(label)}</span><select data-write-field="${esc(key)}">${options}</select></label>`;
     }
-    return `<label><span>${esc(label)}</span><input type="${esc(type)}" data-write-field="${esc(key)}" value="${esc(record[key] || "")}"></label>`;
+    return `<label data-write-row="${esc(key)}"><span>${esc(label)}</span><input type="${esc(type)}" data-write-field="${esc(key)}" value="${esc(record[key] || "")}"></label>`;
   }
 
   function ensureEditor() {
@@ -737,8 +829,8 @@
         <button type="button" data-insert="outdent">Outdent</button>
         <button type="button" data-write-inline-media>＋ Image in article</button>
       </div>
-      <label class="hs-write-body"><span>Piece</span><div class="hs-write-rich-editor" data-write-field="body" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Start writing…"></div></label>
-      <footer><span class="hs-write-status" data-write-status></span><button type="button" data-write-close>Cancel</button><button type="button" data-write-save="draft">Save draft</button><button type="button" class="primary" data-write-save="publish">Save published</button></footer>
+      <label class="hs-write-body"><span data-write-body-label>Article</span><div class="hs-write-rich-editor" data-write-field="body" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Start writing…"></div></label>
+      <footer><span class="hs-write-status" data-write-status>Work saves automatically</span><button type="button" data-write-discard-recovery hidden>Discard recovered copy</button><button type="button" data-write-close>Close</button><button type="button" data-write-save="draft">Save draft</button><button type="button" class="primary" data-write-save="publish">Save & publish</button></footer>
     </section>`;
     document.body.appendChild(node);
     node.addEventListener("click", (event) => { if (event.target === node) closeEditor(); });
@@ -767,7 +859,7 @@
     });
   }
 
-  function openEditor(type, index = -1) {
+  function openEditor(type, index = -1, ignoreRecovery = false) {
     if (!admin()) return;
     ensureEditor();
     const cfg = configs[type];
@@ -785,29 +877,44 @@
             published: false,
             headlineVisible: true,
           };
-    editor = { type, index, record };
+    const recovered = ignoreRecovery ? null : findWorkingDraft(type, index, record);
+    const activeRecord = recovered?.record ? { ...record, ...clone(recovered.record) } : record;
+    editor = {
+      type,
+      index,
+      record: activeRecord,
+      workingKey: recovered ? workingDraftKey(recovered.type, recovered.index, recovered.record) : workingDraftKey(type, index, activeRecord),
+      recovered: Boolean(recovered),
+      dirty: false,
+    };
     const root = document.getElementById("hsWritingEditor");
     root.querySelector("h2").textContent = index >= 0 ? `Edit ${cfg.singular}` : `New ${cfg.singular}`;
     root.querySelector(".hs-write-form").innerHTML = cfg.fields
-      .map((field) => fieldHTML(record, field))
+      .map((field) => fieldHTML(editor.record, field))
       .join("");
-    root.querySelector('[data-write-field="body"]').innerHTML = bodyHTML(record.body || "");
-    root.querySelector('[data-write-field="coverImage"]').value = record.coverImage || "";
-    root.querySelector('[data-write-field="coverAlt"]').value = record.coverAlt || "";
+    root.querySelector('[data-write-field="body"]').innerHTML = bodyHTML(editor.record.body || "");
+    root.querySelector('[data-write-field="coverImage"]').value = editor.record.coverImage || "";
+    root.querySelector('[data-write-field="coverAlt"]').value = editor.record.coverAlt || "";
     updateCoverPreview();
-    root.querySelector("[data-write-featured]").checked = Boolean(record.featured);
-    root.querySelector("[data-write-headline]").checked = record.headlineVisible !== false;
+    root.querySelector("[data-write-featured]").checked = Boolean(editor.record.featured);
+    root.querySelector("[data-write-headline]").checked = editor.record.headlineVisible !== false;
     const supportsSectionFront = ["diary", "editorial"].includes(type);
     root.querySelector("[data-write-section-feature-wrap]").hidden = !supportsSectionFront;
     root.querySelector("[data-write-section-headline-wrap]").hidden = !supportsSectionFront;
-    root.querySelector("[data-write-section-feature]").checked = Boolean(record.sectionFeatured);
-    root.querySelector("[data-write-section-headline]").checked = record.sectionHeadlineVisible !== false;
-    setEditorStatus("");
+    root.querySelector("[data-write-section-feature]").checked = Boolean(editor.record.sectionFeatured);
+    root.querySelector("[data-write-section-headline]").checked = editor.record.sectionHeadlineVisible !== false;
+    const discard = root.querySelector("[data-write-discard-recovery]");
+    discard.hidden = !editor.recovered;
+    syncTransferFields();
+    const bodyTitle = root.querySelector("[data-write-body-label]");
+    if (bodyTitle) bodyTitle.textContent = bodyLabel(type, editor.record);
+    setEditorStatus(editor.recovered ? "Recovered your unsaved work" : "Work saves automatically");
     setEditorBusy(false);
     root.classList.add("open");
   }
 
-  function closeEditor() {
+  function closeEditor({ saveRecovery = true } = {}) {
+    if (saveRecovery) persistWorkingCopy({ immediate: true });
     const root = document.getElementById("hsWritingEditor");
     root?.classList.remove("open", "saving");
     root?.querySelectorAll("[data-write-save]").forEach((button) => {
@@ -819,26 +926,33 @@
 
   function editorInput(event) {
     if (!editor) return;
+    editor.dirty = true;
     if (event.target.matches("[data-write-featured]")) {
       editor.record.featured = event.target.checked;
+      persistWorkingCopy();
       return;
     }
     if (event.target.matches("[data-write-headline]")) {
       editor.record.headlineVisible = event.target.checked;
+      persistWorkingCopy();
       return;
     }
     if (event.target.matches("[data-write-section-feature]")) {
       editor.record.sectionFeatured = event.target.checked;
+      persistWorkingCopy();
       return;
     }
     if (event.target.matches("[data-write-section-headline]")) {
       editor.record.sectionHeadlineVisible = event.target.checked;
+      persistWorkingCopy();
       return;
     }
     const field = event.target.closest?.("[data-write-field]");
     const key = field?.dataset.writeField;
     if (key) editor.record[key] = field.isContentEditable ? sanitizeRichHTML(field.innerHTML) : field.value;
     if (key === "coverImage") updateCoverPreview();
+    if (key === "type") syncTransferFields();
+    if (key) persistWorkingCopy();
     if (event.target.matches("[data-write-cover-file]") && event.target.files?.[0]) {
       importWritingCover(event.target.files[0]);
       event.target.value = "";
@@ -848,6 +962,13 @@
   function editorClick(event) {
     const button = event.target.closest("button");
     if (!button) return;
+    if (button.matches("[data-write-discard-recovery]")) {
+      event.preventDefault();
+      const { type, index, workingKey } = editor || {};
+      clearWorkingCopy(workingKey);
+      editor = null;
+      return openEditor(type, index, true);
+    }
     if (button.matches("[data-write-close]")) {
       event.preventDefault();
       event.stopPropagation();
@@ -866,6 +987,7 @@
           if (alt) alt.value = asset.alt;
         }
         updateCoverPreview();
+        persistWorkingCopy();
       }});
     }
     if (button.matches("[data-write-cover-file-button]")) {
@@ -902,6 +1024,7 @@
     const [command, value] = commands[kind] || [];
     if (command) document.execCommand(command, false, value);
     editor.record.body = sanitizeRichHTML(rich.innerHTML);
+    persistWorkingCopy();
   }
 
   function chooseInlineMedia() {
@@ -912,6 +1035,7 @@
       const caption = asset.alt || asset.title || "";
       document.execCommand("insertHTML", false, `<figure><img src="${esc(asset.src)}" alt="${esc(asset.alt || asset.title || "")}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ""}</figure><p><br></p>`);
       editor.record.body = sanitizeRichHTML(rich.innerHTML);
+      persistWorkingCopy();
     }});
   }
 
@@ -937,6 +1061,7 @@
         if (alt) alt.value = asset.alt;
       }
       updateCoverPreview();
+      persistWorkingCopy();
     } catch (error) {
       if (preview) preview.innerHTML = `<span>${esc(error.message || "Could not add image.")}</span>`;
     }
@@ -985,10 +1110,11 @@
         state[`${editor.type}FeatureIndex`] = savedIndex;
       }
       saveRecords(editor.type, list);
+      clearWorkingCopy(editor.workingKey);
       window.HSBackups?.create?.({ reason: "writing-save" }).catch((error) => {
         console.error("Writing recovery snapshot failed:", error);
       });
-      closeEditor();
+      closeEditor({ saveRecovery: false });
     } catch (error) {
       console.error("Writing save failed:", error);
       window.HSErrorLog?.record?.("Writing", "Writing save failed", error?.stack || String(error));
@@ -1011,6 +1137,8 @@
     list[index].published = list[index].published === false;
     saveRecords(type, list);
   }
+
+  window.addEventListener("beforeunload", () => persistWorkingCopy({ immediate: true }));
 
   function ensurePages() {
     const diary = document.getElementById("page-diary");
