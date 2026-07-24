@@ -739,13 +739,24 @@
           };
           const applyToCard = (playerName, source) => {
             const card = { ...(source || {}) };
-            card.careerStints = cleanList(card.careerStints).map((stint) => ({
-              ...stint,
-              trophies: cleanTitles(stint.trophies),
-            }));
-            const teamTitles = cleanTitles(card.teamTitles || card.honors);
-            card.teamTitles = teamTitles.join("\n");
-            card.honors = card.teamTitles;
+            if (Array.isArray(card.careerStints)) {
+              card.careerStints = cleanList(card.careerStints).map((stint) => {
+                const cleanedTrophies = cleanTitles(stint.trophies);
+                if (
+                  !Object.prototype.hasOwnProperty.call(stint, "trophies") &&
+                  !cleanedTrophies.length
+                )
+                  return stint;
+                return { ...stint, trophies: cleanedTrophies };
+              });
+            }
+            const rawTeamTitles = titleParts(card.teamTitles || card.honors);
+            const teamTitles = cleanTitles(rawTeamTitles);
+            if (teamTitles.length !== rawTeamTitles.length) {
+              card.teamTitles = teamTitles.join("\n");
+              if (Object.prototype.hasOwnProperty.call(card, "honors"))
+                card.honors = card.teamTitles;
+            }
             const expected = expectedByPlayer.get(playerKey(playerName)) || [];
             const expectedCompetitions = new Set(
               expected.map(competitionKey).filter(Boolean),
@@ -755,12 +766,25 @@
                 !targetCompetition.test(title) ||
                 !expectedCompetitions.has(competitionKey(title)),
             );
-            card.internationalTitles = [...new Set([...retained, ...expected])];
-            card.careerTrophyTotal = [
-              ...card.careerStints.flatMap((stint) => stint.trophies || []),
+            const internationalTitles = [...new Set([...retained, ...expected])];
+            if (
+              internationalTitles.length ||
+              Object.prototype.hasOwnProperty.call(card, "internationalTitles")
+            )
+              card.internationalTitles = internationalTitles;
+            const countedTitles = [
+              ...(card.careerStints || []).flatMap((stint) => stint.trophies || []),
               ...teamTitles,
-              ...card.internationalTitles,
-            ].reduce((sum, title) => sum + countTitle(title), 0);
+              ...internationalTitles,
+            ];
+            if (
+              countedTitles.length ||
+              Object.prototype.hasOwnProperty.call(card, "careerTrophyTotal")
+            )
+              card.careerTrophyTotal = countedTitles.reduce(
+                (sum, title) => sum + countTitle(title),
+                0,
+              );
             return card;
           };
           window.HSPlayerTitleOverrides = {
