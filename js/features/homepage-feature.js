@@ -234,6 +234,7 @@
     const feature = chooseFeatured(items);
     if (!feature) {
       root.innerHTML = `<div class="empty-state"><p>Nothing published yet.</p></div>`;
+      document.documentElement.classList.remove("hs-content-booting");
       setTimeout(() => {
         isRendering = false;
       }, 0);
@@ -272,6 +273,7 @@
         </aside>
       </section>`;
     root.dataset.hsHomeFeatureAuthoritative = "1";
+    document.documentElement.classList.remove("hs-content-booting");
     document.getElementById("hsHomepageFeaturedApply")?.addEventListener("click", () => {
       setFeatured(document.getElementById("hsHomepageFeaturedSelect")?.value);
     });
