@@ -659,8 +659,8 @@
           rankingsToSave.forEach(([key, ranking]) => rankSet(key, ranking));
           cleanExistingPlayerCards();
         }
-        const PLAYER_BATCH_VERSION = 14;
-        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v14";
+        const PLAYER_BATCH_VERSION = 15;
+        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v15";
         let playerBatchJob = null;
         function allRankedPlayers() {
           const players = new Map();
@@ -730,11 +730,20 @@
           const verifiedByClub = new Map(
             (verified.careerStints || []).map((stint) => [playerKey(stint.club), stint]),
           );
-          merged.careerStints = (merged.careerStints || []).map((stint) => {
-            const fresh = verifiedByClub.get(playerKey(stint.club));
-            if (!fresh?.trophies?.length || stint.trophies?.length) return stint;
-            return { ...stint, trophies: fresh.trophies };
-          });
+          merged.careerStints = (merged.careerStints || []).length
+            ? merged.careerStints.map((stint) => {
+                const fresh = verifiedByClub.get(playerKey(stint.club));
+                if (!fresh?.trophies?.length || stint.trophies?.length) return stint;
+                return { ...stint, trophies: fresh.trophies };
+              })
+            : (verified.careerStints || []).map((stint) => ({
+                club: stint.club,
+                years: "",
+                appearances: "",
+                goals: "",
+                assists: "",
+                trophies: stint.trophies || [],
+              }));
           merged.teamTitles = [
             ...new Set([
               ...titleParts(merged.teamTitles || merged.honors),
@@ -833,6 +842,7 @@
               if (!baked[CARD_LIBRARY_KEY]) return;
               setData(CARD_LIBRARY_KEY, baked[CARD_LIBRARY_KEY]);
               localStorage.removeItem("hs_player_card_batch_v13");
+              localStorage.removeItem("hs_player_card_batch_v14");
               localStorage.removeItem(PLAYER_BATCH_STATE_KEY);
               window.HSAutosave?.schedule?.();
               reset.textContent = "Player refill reset";
