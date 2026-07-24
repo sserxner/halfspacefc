@@ -662,23 +662,20 @@
         const PLAYER_BATCH_VERSION = 15;
         const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v15";
         let playerBatchJob = null;
-        const titleOverridesReady = (() => {
+        let titleOverridesPromise = null;
+        function loadTitleOverrides() {
           if (window.HSPlayerTitleOverrides) return Promise.resolve();
-          const existing = document.querySelector(
-            'script[src^="player-title-overrides.js"]',
-          );
-          if (existing)
-            return new Promise((resolve) =>
-              existing.addEventListener("load", resolve, { once: true }),
-            );
-          return new Promise((resolve) => {
+          if (titleOverridesPromise) return titleOverridesPromise;
+          titleOverridesPromise = new Promise((resolve) => {
             const script = document.createElement("script");
-            script.src = "player-title-overrides.js?v=2";
+            script.src =
+              "https://cdn.jsdelivr.net/gh/sserxner/halfspacefc@f4ac286c865f3f225dbfc43b0d978c8be9fe2870/player-title-overrides.js";
             script.onload = resolve;
             script.onerror = resolve;
             document.head.appendChild(script);
           });
-        })();
+          return titleOverridesPromise;
+        }
         function allRankedPlayers() {
           const players = new Map();
           FOOTBALL_SECTIONS.filter((section) => section !== "mgr").forEach((section) => {
@@ -792,7 +789,7 @@
         }
         async function repairVerifiedPlayerTitles() {
           if (!document.getElementById("adminToolbar")) return null;
-          await titleOverridesReady;
+          await loadTitleOverrides();
           const result = window.HSPlayerTitleOverrides?.applyToLibrary?.(
             cardLibrary(),
           );
@@ -808,7 +805,7 @@
           if (!document.getElementById("adminToolbar")) return null;
           if (playerBatchJob) return playerBatchJob;
           playerBatchJob = (async () => {
-            await titleOverridesReady;
+            await loadTitleOverrides();
             const players = allRankedPlayers();
             let state = {};
             try { state = JSON.parse(localStorage.getItem(PLAYER_BATCH_STATE_KEY) || "{}"); } catch (_) {}
