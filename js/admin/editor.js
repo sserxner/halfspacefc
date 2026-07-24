@@ -413,7 +413,11 @@
           showRankingSection("overall");
         }
         if (id === "page-scouting") renderScouting();
-        if (id === "page-diary") renderDiary();
+        if (id === "page-diary") window.renderDiary?.();
+        if (id === "page-editorials") window.renderEditorials?.();
+        if (id === "page-transfer-recs" || id === "page-transfer-grades")
+          window.renderTransfers?.();
+        if (id === "page-betting") window.renderBetting?.();
         if (id === "page-positions") renderPositions();
         if (id === "page-country-xi") {
           const detail = document.getElementById("country-detail-content");
