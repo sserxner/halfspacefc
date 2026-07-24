@@ -393,6 +393,27 @@
         }
       }
 
+      async function waitForLiveRevision(expectedRevision) {
+        for (let attempt = 0; attempt < 24; attempt += 1) {
+          try {
+            const liveUrl = new URL("index.html", window.location.href);
+            liveUrl.searchParams.set("_published_revision", Date.now());
+            const response = await fetch(liveUrl, { cache: "no-store" });
+            if (response.ok) {
+              const source = await response.text();
+              const documentCopy = new DOMParser().parseFromString(source, "text/html");
+              const payload = documentCopy.querySelector("#baked_data")?.textContent || "";
+              const liveData = JSON.parse(payload);
+              if (liveData?.__content_revision_v1 === expectedRevision) return true;
+            }
+          } catch (error) {
+            console.warn("Live publication verification is still waiting:", error);
+          }
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+        return false;
+      }
+
       function requestGitHubToken() {
         return new Promise((resolve) => {
           const modal = document.createElement("div");
@@ -560,14 +581,21 @@
 	          if (putResp.ok) {
 	            const putResult = await putResp.clone().json();
 	            if (putResult?.content?.sha) hsPublishedBaselineSha = putResult.content.sha;
-	            siteData = publishData;
-	            window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(publishData));
-	            if (typeof saveData === "function") saveData({ markChanges: false });
-	            else localStorage.removeItem("halfspace_data");
-	            if (btn) {
-              btn.textContent = "✓ Saved! Live in ~30s";
-              btn.style.background = "#2ea043";
-            }
+              if (btn) btn.textContent = "⏳ Verifying live site…";
+              const isLive = await waitForLiveRevision(publishData.__content_revision_v1);
+              if (isLive) {
+                siteData = publishData;
+                window.__HALFSPACE_DATA__ = JSON.parse(JSON.stringify(publishData));
+                if (typeof saveData === "function") saveData({ markChanges: false });
+                else localStorage.removeItem("halfspace_data");
+                if (btn) {
+                  btn.textContent = "✓ Published live";
+                  btn.style.background = "#2ea043";
+                }
+              } else if (btn) {
+                btn.textContent = "Saved — live deployment pending";
+                btn.style.background = "#b7791f";
+              }
             setTimeout(function () {
               if (btn) {
                 btn.textContent = origText;
@@ -575,7 +603,7 @@
                 btn.style.background = "";
               }
             }, 4000);
-            return true;
+            return isLive;
           } else {
             const err = await putResp.json();
             throw new Error(err.message || "HTTP " + putResp.status);
