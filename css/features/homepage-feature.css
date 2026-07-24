@@ -88,7 +88,7 @@
   margin: 0;
   max-width: 18ch;
   color: #111;
-  font-family: "Averia Serif Libre", Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.45rem, 4.55vw, 4.85rem);
   line-height: 0.96;
   letter-spacing: -0.035em;
@@ -104,7 +104,7 @@
   max-width: 92ch;
   margin-top: clamp(1.4rem, 2vw, 2.2rem);
   color: #26372c;
-  font-family: var(--hs-home-story-font, "Averia Serif Libre", Georgia, serif);
+  font-family: var(--hs-home-story-font, Georgia, "Times New Roman", serif);
   font-size: clamp(1.08rem, 1.08vw, 1.2rem);
   font-weight: 520;
   line-height: 1.66;
@@ -118,7 +118,7 @@
 .hs-home-body h3 {
   margin: 1.8rem 0 0.6rem;
   color: #1c5735;
-  font-family: "Averia Serif Libre", Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 1.6rem;
 }
 
@@ -127,7 +127,7 @@
   border-left: 4px solid #d0a51f;
   padding: 0.8rem 1rem;
   background: rgba(245, 208, 0, 0.08);
-  font-family: "Averia Serif Libre", Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 1.2rem;
 }
 
@@ -135,7 +135,7 @@
   margin: 0;
   padding: 1rem;
   color: rgba(255, 248, 216, 0.72);
-  font-family: "Averia Serif Libre", Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-style: italic;
 }
 
@@ -162,7 +162,7 @@
 .hs-polished-trophies .rank-profile-award-group strong {
   display: block;
   color: #1d5c38;
-  font-family: "Averia Serif Libre", Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 1.05rem;
   line-height: 1.2;
 }
@@ -308,7 +308,7 @@
 
 #page-home .hs-home-latest-rail button strong {
   color: #fff8d8;
-  font-family: "Averia Serif Libre", Georgia, serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 1.05rem;
 }
 
@@ -519,7 +519,7 @@
 #page-home .hs-feature h2 {
   max-width: 14ch !important;
   margin: 0.35rem 0 0.6rem !important;
-  font-family: "Averia Serif Libre", Georgia, serif !important;
+  font-family: Georgia, "Times New Roman", serif !important;
   font-size: clamp(2.35rem, 4.4vw, 4.5rem) !important;
   line-height: 0.97 !important;
 }
@@ -547,7 +547,7 @@
   max-width: 78ch !important;
   margin-top: 1.25rem !important;
   color: #173421 !important;
-  font-family: "Averia Serif Libre", Georgia, serif !important;
+  font-family: Georgia, "Times New Roman", serif !important;
   font-size: clamp(1.05rem, 1.15vw, 1.2rem) !important;
   font-weight: 520 !important;
   line-height: 1.68 !important;
@@ -597,7 +597,7 @@
 
 #page-home .hs-headline-name {
   color: #fff7d4 !important;
-  font-family: "Averia Serif Libre", Georgia, serif !important;
+  font-family: Georgia, "Times New Roman", serif !important;
   font-size: 1.05rem !important;
   font-weight: 800 !important;
   line-height: 1.18 !important;
