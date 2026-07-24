@@ -131,7 +131,7 @@
     [/^(?:uefa\s+)?nations league$/i, 14, "UEFA Nations League"],
     [/^(?:fifa\s+)?club world cup$/i, 15, "FIFA Club World Cup"],
   ];
-  const TEAM_TITLE_REJECT = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist/i;
+  const TEAM_TITLE_REJECT = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist|silbernes lorbeerblatt|silver laurel leaf|order of merit|legion of hono(?:u)?r|national sports award|state award|citizen of hono(?:u)?r|freedom of the city/i;
   const titleItems = (value) => {
     if (Array.isArray(value)) return value.flatMap(titleItems);
     return clean(value).split(/\s*[;|]\s*/).map((item) => item.trim()).filter(Boolean);
