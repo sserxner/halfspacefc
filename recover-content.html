@@ -44,6 +44,7 @@
     const payload = {
       recoveredAt: new Date().toISOString(),
       halfspaceData: parse("halfspace_data"),
+      autosave: parse("halfspace_autosave"),
       writingDrafts: parse("hs_writing_working_drafts_v2"),
       preSyncBackup: parse("halfspace_pre_sync_backup_v1"),
       backups: await indexedBackups(),
