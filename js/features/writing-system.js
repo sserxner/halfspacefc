@@ -124,10 +124,13 @@
         ["club", "Club / Team", "text"],
         ["title", "Title", "text"],
         ["date", "Date", "date"],
-        ["player", "Player", "text"],
+        ["dealType", "Deal structure", "select:standard=Standard transfer,swap=Swap deal"],
+        ["player", "Player 1", "text"],
         ["formerClub", "Former club", "text"],
         ["newClub", "New club", "text"],
-        ["fee", "Fee / Value", "text"],
+        ["fee", "Player 1 fee / value", "text"],
+        ["swapPlayer", "Player 2", "text"],
+        ["swapFee", "Player 2 fee / value", "text"],
         ["formerClubGrade", "Former club grade", "text"],
         ["newClubGrade", "New club grade", "text"],
         ["grade", "Legacy / overall grade", "text"],
@@ -311,9 +314,11 @@
       .map((tag) => `<span>${esc(tag)}</span>`)
       .join("");
     const body = opts.preview ? excerptHTML(entry.body) : bodyHTML(entry.body);
+    const transactionLine = (player, from, to, fee, fromGrade = "", toGrade = "") =>
+      `<p class="hs-transfer-transaction">${player ? `<strong>${esc(player)}</strong>` : ""}<span>${esc(from || "")}${fromGrade ? `<i>${esc(fromGrade)}</i>` : ""}</span>${from && to ? `<b aria-label="to">→</b>` : ""}<span>${esc(to || "")}${toGrade ? `<i>${esc(toGrade)}</i>` : ""}</span>${fee ? `<em>${esc(/^[£€$]/.test(String(fee).trim()) ? String(fee).trim() : `£${String(fee).trim()}`)}</em>` : ""}</p>`;
     const transaction =
       type === "transfer" && (entry.formerClub || entry.newClub)
-        ? `<p class="hs-transfer-transaction"><span>${esc(entry.formerClub || "")}${entry.formerClubGrade ? `<i>${esc(entry.formerClubGrade)}</i>` : ""}</span>${entry.formerClub && (entry.newClub || entry.club) ? `<b aria-label="to">→</b>` : ""}<span>${esc(entry.newClub || entry.club || "")}${entry.newClubGrade || entry.grade ? `<i>${esc(entry.newClubGrade || entry.grade)}</i>` : ""}</span>${entry.fee ? `<em>${esc(/^[£€$]/.test(String(entry.fee).trim()) ? String(entry.fee).trim() : `£${String(entry.fee).trim()}`)}</em>` : ""}</p>`
+        ? `<div class="${entry.dealType === "swap" ? "hs-transfer-swap" : ""}">${transactionLine(entry.player, entry.formerClub, entry.newClub || entry.club, entry.fee, entry.formerClubGrade, entry.newClubGrade || entry.grade)}${entry.dealType === "swap" && entry.swapPlayer ? transactionLine(entry.swapPlayer, entry.newClub || entry.club, entry.formerClub, entry.swapFee, entry.newClubGrade || entry.grade, entry.formerClubGrade) : ""}</div>`
         : "";
     const statusBadge = admin() ? `<span class="hs-writing-status ${entry.published === false ? "draft" : "live"}">${entry.published === false ? "Draft — not public yet" : "Published"}</span>` : "";
     const adminControls = admin()
@@ -344,18 +349,24 @@
   }
 
   function transferIndexCard(type, entry, index) {
-    const name = entry.player || entry.title || transferLabel(type);
+    const isSwap = type === "grades" && entry.dealType === "swap" && entry.swapPlayer;
+    const name = isSwap
+      ? `${entry.player || "Player 1"} ⇄ ${entry.swapPlayer}`
+      : entry.player || entry.title || transferLabel(type);
     const fee = String(entry.fee || "").trim();
     const displayFee = fee && !/^[£€$]/.test(fee) ? `£${fee}` : fee;
+    const swapFee = String(entry.swapFee || "").trim();
+    const displaySwapFee = swapFee && !/^[£€$]/.test(swapFee) ? `£${swapFee}` : swapFee;
     const formerClub = entry.formerClub || "";
     const newClub = entry.newClub || entry.club || "";
     const formerGrade = entry.formerClubGrade || "";
     const newGrade = entry.newClubGrade || entry.grade || "";
     const route = formerClub || newClub
-      ? `${formerClub ? esc(formerClub) : ""}${formerClub && newClub ? `<span class="hs-transfer-route-arrow" aria-label="to">→</span>` : ""}${newClub ? esc(newClub) : ""}`
+      ? `${formerClub ? esc(formerClub) : ""}${formerClub && newClub ? `<span class="hs-transfer-route-arrow" aria-label="${isSwap ? "swap with" : "to"}">${isSwap ? "⇄" : "→"}</span>` : ""}${newClub ? esc(newClub) : ""}`
       : esc(entry.club || "Transfer");
     const facts = [
-      displayFee ? `<span><small>Fee</small><strong>${esc(displayFee)}</strong></span>` : "",
+      displayFee ? `<span><small>${isSwap ? esc(entry.player || "Player 1") : "Fee"}</small><strong>${esc(displayFee)}</strong></span>` : "",
+      isSwap && displaySwapFee ? `<span><small>${esc(entry.swapPlayer)}</small><strong>${esc(displaySwapFee)}</strong></span>` : "",
       type === "grades" && formerGrade ? `<span class="hs-transfer-grade"><small>${esc(formerClub || "Former club")}</small><strong>${esc(formerGrade)}</strong></span>` : "",
       type === "grades" && newGrade ? `<span class="hs-transfer-grade"><small>${esc(newClub || "New club")}</small><strong>${esc(newGrade)}</strong></span>` : "",
     ].filter(Boolean).join("");
@@ -589,7 +600,7 @@
         ? all
         : all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((club) => slug(club) === state[clubKey]));
     const visible = teamVisible.filter(({ entry }) =>
-      matchesSearch(entry, state[searchKey], ["title", "player", "club", "formerClub", "newClub", "fee", "grade", "formerClubGrade", "newClubGrade", "body"]),
+      matchesSearch(entry, state[searchKey], ["title", "player", "swapPlayer", "club", "formerClub", "newClub", "fee", "swapFee", "grade", "formerClubGrade", "newClubGrade", "body"]),
     );
     root.className = type === "grades" ? "hs-writing-shell hs-transfer-grades-centered" : "hs-writing-shell";
     const clubCounts = new Map(clubs.map((club) => [
@@ -774,11 +785,13 @@
   function syncTransferFields() {
     if (!editor || editor.type !== "transfer") return;
     const isGrade = editor.record.type === "grades";
+    const isSwap = isGrade && editor.record.dealType === "swap";
     document.querySelectorAll("#hsWritingEditor .hs-write-form label[data-write-row]").forEach((label) => {
       const key = label.dataset.writeRow;
-      const gradeOnly = ["formerClub", "newClub", "formerClubGrade", "newClubGrade"].includes(key);
+      const gradeOnly = ["dealType", "formerClub", "newClub", "formerClubGrade", "newClubGrade", "swapPlayer", "swapFee"].includes(key);
+      const swapOnly = ["swapPlayer", "swapFee"].includes(key);
       const recOnly = ["club"].includes(key);
-      label.hidden = (gradeOnly && !isGrade) || (recOnly && isGrade) || key === "grade";
+      label.hidden = (gradeOnly && !isGrade) || (swapOnly && !isSwap) || (recOnly && isGrade) || key === "grade";
     });
     const bodyTitle = document.querySelector("#hsWritingEditor [data-write-body-label]");
     if (bodyTitle) bodyTitle.textContent = bodyLabel(editor.type, editor.record);
@@ -874,6 +887,7 @@
             id: `${type}_${Date.now()}`,
             date: nowDate(),
             type: type === "transfer" ? state.transfer : undefined,
+            dealType: type === "transfer" ? "standard" : undefined,
             league: type === "betting" ? state.betting : undefined,
             betType: type === "betting" ? "weekly" : undefined,
             result: type === "betting" ? "pending" : undefined,
@@ -954,7 +968,7 @@
     const key = field?.dataset.writeField;
     if (key) editor.record[key] = field.isContentEditable ? sanitizeRichHTML(field.innerHTML) : field.value;
     if (key === "coverImage") updateCoverPreview();
-    if (key === "type") syncTransferFields();
+    if (key === "type" || key === "dealType") syncTransferFields();
     if (key) persistWorkingCopy();
     if (event.target.matches("[data-write-cover-file]") && event.target.files?.[0]) {
       importWritingCover(event.target.files[0]);

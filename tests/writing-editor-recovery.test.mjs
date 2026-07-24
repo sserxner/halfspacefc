@@ -58,6 +58,15 @@ test("a stale editor shell baked into the published page is replaced and rebound
   assert.match(source, /node\.dataset\.hsWritingBound = "1"/);
 });
 
+test("transfer grades support one linked two-player swap deal", () => {
+  assert.match(source, /\["dealType", "Deal structure", "select:standard=Standard transfer,swap=Swap deal"\]/);
+  assert.match(source, /\["swapPlayer", "Player 2", "text"\]/);
+  assert.match(source, /\["swapFee", "Player 2 fee \/ value", "text"\]/);
+  assert.match(source, /entry\.player \|\| "Player 1"\} ⇄ \$\{entry\.swapPlayer\}/);
+  assert.match(source, /transactionLine\(entry\.swapPlayer, entry\.newClub \|\| entry\.club, entry\.formerClub/);
+  assert.match(source, /key === "type" \|\| key === "dealType"/);
+});
+
 test("the published shell requests the upgraded editor assets", () => {
   assert.match(html, /writing-system\.js\?v=53/);
   assert.match(html, /writing-system\.css\?v=64/);

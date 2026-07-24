@@ -137,6 +137,25 @@
   font-style: normal;
 }
 
+.hs-transfer-swap {
+  display: grid;
+  width: fit-content;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  padding: 0.65rem 0.8rem;
+  border-left: 3px solid #b18418;
+  background: rgba(255, 249, 220, 0.58);
+}
+
+.hs-transfer-swap .hs-transfer-transaction {
+  margin: 0;
+}
+
+.hs-transfer-swap .hs-transfer-transaction > strong {
+  min-width: 9rem;
+  color: #102a1c;
+}
+
 .hs-transfer-grade-filter {
   display: flex;
   width: fit-content;
