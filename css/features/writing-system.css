@@ -895,6 +895,66 @@ details[open] > summary .hs-transfer-index-open {
   }
 }
 
+/* Page names belong to the photographic composition, like the Half Space
+   masthead title. Keep the reading cards below unchanged. */
+body :is(
+  #page-betting,
+  #page-editorials,
+  #page-diary,
+  #page-transfer-recs,
+  #page-transfer-grades,
+  #page-rankings,
+  #page-present-rankings,
+  #page-positions,
+  #page-tv,
+  #page-nba,
+  #page-music
+) > :is(.content, .content-wide, .content-wrap) > .section-header {
+  padding: clamp(1.2rem, 3vw, 2.4rem) 0 1rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body :is(
+  #page-betting,
+  #page-editorials,
+  #page-diary,
+  #page-transfer-recs,
+  #page-transfer-grades,
+  #page-rankings,
+  #page-present-rankings,
+  #page-positions,
+  #page-tv,
+  #page-nba,
+  #page-music
+) > :is(.content, .content-wide, .content-wrap) > .section-header .section-title {
+  font-size: clamp(2.8rem, 6vw, 5.8rem);
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  color: #173e28;
+  text-shadow: 0 1px 0 rgba(255, 253, 247, 0.9), 0 8px 28px rgba(255, 253, 247, 0.44);
+}
+
+body :is(
+  #page-betting,
+  #page-editorials,
+  #page-diary,
+  #page-transfer-recs,
+  #page-transfer-grades,
+  #page-rankings,
+  #page-present-rankings,
+  #page-positions,
+  #page-tv,
+  #page-nba,
+  #page-music
+) > :is(.content, .content-wide, .content-wrap) > .section-header .section-sub {
+  max-width: 34rem;
+  color: #244b33;
+  text-shadow: 0 1px 0 rgba(255, 253, 247, 0.95);
+}
+
 /* V6: force every writing section onto the same professional article rail. */
 #page-diary > .content {
   width: min(1320px, calc(100vw - 48px)) !important;
