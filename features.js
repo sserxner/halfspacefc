@@ -659,8 +659,8 @@
           rankingsToSave.forEach(([key, ranking]) => rankSet(key, ranking));
           cleanExistingPlayerCards();
         }
-        const PLAYER_BATCH_VERSION = 12;
-        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v12";
+        const PLAYER_BATCH_VERSION = 13;
+        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v13";
         let playerBatchJob = null;
         function allRankedPlayers() {
           const players = new Map();
@@ -693,8 +693,32 @@
             if (current == null || current === "" || (Array.isArray(current) && !current.length))
               merged[field] = verified[field];
           });
-          if (verified.internationalTitles?.length)
-            merged.internationalTitles = verified.internationalTitles;
+          if (verified.careerStints?.length) {
+            const verifiedByClub = new Map(
+              verified.careerStints.map((stint) => [playerKey(stint.club), stint]),
+            );
+            merged.careerStints = (merged.careerStints?.length
+              ? merged.careerStints
+              : verified.careerStints).map((stint) => {
+                const fresh = verifiedByClub.get(playerKey(stint.club));
+                if (!fresh) return stint;
+                return {
+                  ...fresh,
+                  ...stint,
+                  trophies: stint.trophies?.length
+                    ? stint.trophies
+                    : (fresh.trophies || []),
+                };
+              });
+          }
+          if (verified.internationalTitles?.length) {
+            merged.internationalTitles = [
+              ...new Set([
+                ...titleParts(merged.internationalTitles),
+                ...titleParts(verified.internationalTitles),
+              ]),
+            ];
+          }
           merged.dataAsOf = verified.dataAsOf || merged.dataAsOf || "";
           merged.dataSources = verified.sources || merged.dataSources || [];
           merged.statsNote = verified.statsNote || merged.statsNote || "";
