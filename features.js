@@ -887,6 +887,25 @@
             };
             toolbar.appendChild(reset);
           }
+          if (toolbar && !document.getElementById("hsRepairPlayerTitles")) {
+            const repairButton = document.createElement("button");
+            repairButton.id = "hsRepairPlayerTitles";
+            repairButton.className = "tb-btn";
+            repairButton.type = "button";
+            repairButton.textContent = "Repair competition titles";
+            repairButton.onclick = async () => {
+              repairButton.disabled = true;
+              const result = await repairVerifiedPlayerTitles();
+              repairButton.textContent = result
+                ? `Titles repaired: ${result.changed}`
+                : "Repair competition titles";
+              setTimeout(() => {
+                repairButton.textContent = "Repair competition titles";
+                repairButton.disabled = false;
+              }, 2200);
+            };
+            toolbar.appendChild(repairButton);
+          }
           let state = {};
           try { state = JSON.parse(localStorage.getItem(PLAYER_BATCH_STATE_KEY) || "{}"); } catch (_) {}
           // Large verification runs are explicit. Never start a network-heavy
@@ -997,25 +1016,6 @@
           if (changed) {
             setData(CARD_LIBRARY_KEY, library);
             window.HSAutosave?.schedule?.();
-          }
-          if (toolbar && !document.getElementById("hsRepairPlayerTitles")) {
-            const repairButton = document.createElement("button");
-            repairButton.id = "hsRepairPlayerTitles";
-            repairButton.className = "tb-btn";
-            repairButton.type = "button";
-            repairButton.textContent = "Repair competition titles";
-            repairButton.onclick = async () => {
-              repairButton.disabled = true;
-              const result = await repairVerifiedPlayerTitles();
-              repairButton.textContent = result
-                ? `Titles repaired: ${result.changed}`
-                : "Repair competition titles";
-              setTimeout(() => {
-                repairButton.textContent = "Repair competition titles";
-                repairButton.disabled = false;
-              }, 2200);
-            };
-            toolbar.appendChild(repairButton);
           }
         }
         const SECTION_LABELS = {
