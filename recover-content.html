@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Half Space Content Recovery</title>
+  <style>
+    body{margin:0;background:#f5f3ec;color:#0a2d1c;font:16px/1.5 system-ui,sans-serif}
+    main{max-width:760px;margin:8vh auto;padding:32px;background:#fff;border-top:6px solid #146b3a;box-shadow:0 18px 50px #062d1818}
+    h1{font:700 42px Georgia,serif;margin:0 0 12px}button{border:0;background:#f5d000;color:#0a2d1c;padding:15px 20px;font-weight:800;font-size:16px;cursor:pointer}
+    pre{white-space:pre-wrap;background:#edf4ef;padding:16px;min-height:80px}small{color:#54635a}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Half Space Content Recovery</h1>
+  <p>This reads Half Space drafts stored in this browser only. It does not change or publish the site.</p>
+  <button id="recover" type="button">Recover and download my content</button>
+  <pre id="status">Ready.</pre>
+  <small>The download contains only Half Space content-draft and writing-recovery records.</small>
+</main>
+<script>
+(() => {
+  const status = document.getElementById("status");
+  const parse = (key) => {
+    try { return JSON.parse(localStorage.getItem(key) || "null"); }
+    catch (error) { return { recoveryError: String(error) }; }
+  };
+  const indexedBackups = () => new Promise((resolve) => {
+    const request = indexedDB.open("halfspace_backups_v1");
+    request.onerror = () => resolve([]);
+    request.onupgradeneeded = () => { request.transaction.abort(); resolve([]); };
+    request.onsuccess = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains("snapshots")) { db.close(); resolve([]); return; }
+      const transaction = db.transaction("snapshots", "readonly");
+      const records = transaction.objectStore("snapshots").getAll();
+      records.onerror = () => { db.close(); resolve([]); };
+      records.onsuccess = () => { db.close(); resolve(records.result || []); };
+    };
+  });
+  document.getElementById("recover").onclick = async () => {
+    status.textContent = "Reading saved Half Space content…";
+    const payload = {
+      recoveredAt: new Date().toISOString(),
+      halfspaceData: parse("halfspace_data"),
+      writingDrafts: parse("hs_writing_working_drafts_v2"),
+      preSyncBackup: parse("halfspace_pre_sync_backup_v1"),
+      backups: await indexedBackups(),
+    };
+    const text = JSON.stringify(payload, null, 2);
+    const names = ["Morgan Rogers", "Johan Manzambi", "Marco Palestra"];
+    const found = names.filter((name) => text.toLowerCase().includes(name.toLowerCase()));
+    const blob = new Blob([text], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `halfspace-content-recovery-${Date.now()}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    status.textContent = found.length
+      ? `Recovered records mentioning: ${found.join(", ")}. Attach the downloaded JSON file to Codex.`
+      : "A recovery file was downloaded, but the three names were not found. Attach it anyway so every saved record can be checked.";
+  };
+})();
+</script>
+</body>
+</html>
