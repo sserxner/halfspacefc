@@ -16,6 +16,7 @@
   <h1>Half Space Content Recovery</h1>
   <p>This reads Half Space drafts stored in this browser only. It does not change or publish the site.</p>
   <button id="recover" type="button">Recover and download my content</button>
+  <button id="restore" type="button">Restore recovered transfers to admin</button>
   <pre id="status">Ready.</pre>
   <small>The download contains only Half Space content-draft and writing-recovery records.</small>
 </main>
@@ -46,6 +47,7 @@
       halfspaceData: parse("halfspace_data"),
       autosave: parse("halfspace_autosave"),
       writingDrafts: parse("hs_writing_working_drafts_v2"),
+      savedWritingArchive: parse("hs_writing_saved_archive_v1"),
       preSyncBackup: parse("halfspace_pre_sync_backup_v1"),
       backups: await indexedBackups(),
     };
@@ -61,6 +63,54 @@
     status.textContent = found.length
       ? `Recovered records mentioning: ${found.join(", ")}. Attach the downloaded JSON file to Codex.`
       : "A recovery file was downloaded, but the three names were not found. Attach it anyway so every saved record can be checked.";
+  };
+  document.getElementById("restore").onclick = async () => {
+    status.textContent = "Restoring the recovered transfer records…";
+    try {
+      const response = await fetch(`/index.html?recovery_restore=${Date.now()}`, { cache: "no-store" });
+      const source = await response.text();
+      const page = new DOMParser().parseFromString(source, "text/html");
+      const published = JSON.parse(page.querySelector("#baked_data")?.textContent || "{}");
+      const drafts = parse("hs_writing_working_drafts_v2") || {};
+      const manzambi = drafts["transfer:transfer_1784867087841"]?.record;
+      if (!manzambi?.body || manzambi.body.length < 1000) {
+        throw new Error("The complete Manzambi review is not available in this browser profile.");
+      }
+      const recovered = [
+        {
+          id: "transfer_recovered_palestra_20260724", date: "2026-07-24", type: "grades",
+          published: true, headlineVisible: false, title: "Marco Palestra", player: "Marco Palestra",
+          formerClub: "Atalanta", newClub: "Chelsea", fee: "£50m",
+          formerClubGrade: "A", newClubGrade: "A", body: "",
+        },
+        { ...manzambi, published: true, headlineVisible: true, headlineOrder: 3 },
+        {
+          id: "transfer_recovered_rogers_20260724", date: "2026-07-24", type: "grades",
+          published: true, headlineVisible: true, headlineOrder: 2, title: "Morgan Rogers", player: "Morgan Rogers",
+          formerClub: "Aston Villa", newClub: "Chelsea", fee: "£117m",
+          formerClubGrade: "A+", newClubGrade: "B+", body: "",
+        },
+      ];
+      const names = new Set(recovered.map((entry) => entry.player.toLowerCase()));
+      const retained = (published.transfer_recommendations_v1 || [])
+        .filter((entry) => !names.has(String(entry.player || entry.title || "").toLowerCase()))
+        .map((entry) => ({ ...entry, headlineOrder: entry.player === "Leandro Trossard" ? 4 : entry.headlineOrder }));
+      const local = parse("halfspace_data") || {};
+      const restored = {
+        ...local,
+        __content_revision_v1: published.__content_revision_v1 || "",
+        __content_edit_clock_v1: {
+          ...(local.__content_edit_clock_v1 || {}),
+          transfer_recommendations_v1: Date.now(),
+        },
+        transfer_recommendations_v1: [...recovered, ...retained],
+      };
+      localStorage.setItem("halfspace_data", JSON.stringify(restored));
+      status.textContent = "Recovered content restored. Opening admin…";
+      setTimeout(() => { window.location.href = `/?recovered=${Date.now()}#admin`; }, 700);
+    } catch (error) {
+      status.textContent = error.message || String(error);
+    }
   };
 })();
 </script>
