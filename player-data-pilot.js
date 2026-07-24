@@ -435,9 +435,17 @@
       if (!team) continue;
       const caps = String(fields[`nationalcaps${index}`] || "").match(/\d[\d,]*/)?.[0]?.replace(/,/g, "") || "";
       const goals = String(fields[`nationalgoals${index}`] || "").match(/-?\d[\d,]*/)?.[0]?.replace(/,/g, "") || "";
+      const capNumber = Number(caps);
+      const goalNumber = Number(goals);
+      if (
+        !caps ||
+        capNumber > 300 ||
+        (capNumber >= 1900 && capNumber <= 2035) ||
+        (goals && Math.abs(goalNumber) > 250)
+      ) continue;
       rows.push({ team, caps, goals, years: fields[`nationalyears${index}`] || "" });
     }
-    const senior = rows.filter((row) => !/(?:\bu[- ]?\d{2}\b|under[- ]?\d{2}|olympic|youth)/i.test(row.team));
+    const senior = rows.filter((row) => !/(?:\bu[- ]?\d{2}\b|under[- ]?\d{2}|olympic|youth|(?:^|\s)b$|\bindoor\b)/i.test(row.team));
     const candidates = senior.length ? senior : rows;
     return candidates.sort((a, b) => (Number(b.caps) || 0) - (Number(a.caps) || 0))[0] || {};
   }
