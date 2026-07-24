@@ -673,7 +673,7 @@
             );
           return new Promise((resolve) => {
             const script = document.createElement("script");
-            script.src = "player-title-overrides.js?v=1";
+            script.src = "player-title-overrides.js?v=2";
             script.onload = resolve;
             script.onerror = resolve;
             document.head.appendChild(script);
