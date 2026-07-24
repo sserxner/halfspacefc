@@ -1,5 +1,8 @@
-      @media (min-width: 769px) {
-        .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu {
-          display: none !important;
-        }
+      .nav-dropdown.hs-dropdown-dismissed .nav-dropdown-menu,
+      .nav-dropdown.hs-dropdown-dismissed:hover .nav-dropdown-menu,
+      .nav-dropdown.hs-dropdown-dismissed:focus-within .nav-dropdown-menu {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
       }

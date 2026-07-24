@@ -923,6 +923,24 @@
     ensurePages();
     ensureNav();
     patchShowPage();
+    document.addEventListener("click", (event) => {
+      const toggle = event.target.closest?.(".nav-dropdown-toggle");
+      if (toggle) {
+        toggle.closest(".nav-dropdown")?.classList.remove("hs-dropdown-dismissed");
+        return;
+      }
+      const selection = event.target.closest?.(".nav-dropdown-menu button");
+      const dropdown = selection?.closest(".nav-dropdown");
+      if (!dropdown) return;
+      dropdown.classList.remove("open");
+      dropdown.classList.add("hs-dropdown-dismissed");
+      const trigger = dropdown.querySelector(".nav-dropdown-toggle");
+      trigger?.setAttribute("aria-expanded", "false");
+      trigger?.blur();
+    });
+    document.querySelectorAll(".nav-dropdown").forEach((dropdown) => {
+      dropdown.addEventListener("pointerleave", () => dropdown.classList.remove("hs-dropdown-dismissed"));
+    });
     window.renderDiary = renderDiary;
     window.renderTransfers = renderTransfers;
     window.renderEditorials = renderEditorials;

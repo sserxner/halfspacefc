@@ -37,7 +37,7 @@
   };
   const FONT_KEY = "hs_home_article_font_v1";
   const FONT_OPTIONS = {
-    averia: 'Georgia, "Times New Roman", serif',
+    averia: '"Averia Serif Libre", Georgia, serif',
     georgia: 'Georgia, "Times New Roman", serif',
     charter: 'Charter, "Bitstream Charter", "Sitka Text", Georgia, serif',
     inter: 'Inter, system-ui, sans-serif',
@@ -210,7 +210,7 @@
           .join("")}
       </select>
       <select id="hsHomepageFontSelect" aria-label="Homepage story font">
-        <option value="averia" ${currentFont === "averia" ? "selected" : ""}>Editorial serif (instant)</option>
+        <option value="averia" ${currentFont === "averia" ? "selected" : ""}>Averia Serif Libre</option>
         <option value="georgia" ${currentFont === "georgia" ? "selected" : ""}>Georgia</option>
         <option value="charter" ${currentFont === "charter" ? "selected" : ""}>Charter-style serif</option>
         <option value="inter" ${currentFont === "inter" ? "selected" : ""}>Inter / clean sans</option>
