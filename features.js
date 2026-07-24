@@ -772,19 +772,6 @@
               Object.prototype.hasOwnProperty.call(card, "internationalTitles")
             )
               card.internationalTitles = internationalTitles;
-            const countedTitles = [
-              ...(card.careerStints || []).flatMap((stint) => stint.trophies || []),
-              ...teamTitles,
-              ...internationalTitles,
-            ];
-            if (
-              countedTitles.length ||
-              Object.prototype.hasOwnProperty.call(card, "careerTrophyTotal")
-            )
-              card.careerTrophyTotal = countedTitles.reduce(
-                (sum, title) => sum + countTitle(title),
-                0,
-              );
             return card;
           };
           window.HSPlayerTitleOverrides = {
