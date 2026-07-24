@@ -207,8 +207,31 @@
         }
       }
 
-      function buildExportHTML(contentData = siteData) {
-        const exportRoot = document.documentElement.cloneNode(true);
+      async function buildExportHTML(contentData = siteData) {
+        // Never serialize the live admin DOM. It contains temporary page state,
+        // editor shells, active filters, and rendered content that must not be
+        // baked into the public site. Always rebuild from the clean source
+        // published shell and replace only its content payload.
+        const templateUrl = new URL("index.html", window.location.href);
+        templateUrl.searchParams.set("_", Date.now());
+        const templateResponse = await fetch(templateUrl, { cache: "no-store" });
+        if (!templateResponse.ok) {
+          throw new Error("Could not load the clean published site shell (HTTP " + templateResponse.status + ").");
+        }
+        const templateSource = await templateResponse.text();
+        const exportDocument = new DOMParser().parseFromString(templateSource, "text/html");
+        const exportRoot = exportDocument.documentElement;
+        const bakedData = exportRoot.querySelector("#baked_data");
+        if (!bakedData) throw new Error("The clean published site shell is missing its content block.");
+        bakedData.setAttribute("type", "application/json");
+        bakedData.textContent = JSON.stringify(contentData);
+        exportRoot.classList.add("hs-content-booting");
+        exportRoot.classList.remove("admin-mode");
+        exportRoot.querySelectorAll(
+          "#hsWritingEditor, .hs-writing-editor, .hs-writing-preview, .hs-writing-reader, .hs-writing-library, .hs-transfer-grade-detail, .admin-add-btn",
+        ).forEach((node) => node.remove());
+        const homepageFeed = exportRoot.querySelector("#homePostFeed");
+        if (homepageFeed) homepageFeed.innerHTML = "";
         // The published index always represents the homepage to link-preview
         // crawlers. Never bake whichever SPA view happened to be open while
         // the owner clicked Publish (which previously leaked "Italy XI").
@@ -297,23 +320,6 @@
         exportRoot.querySelectorAll(".hs-add-existing-player, .hs-rank-duplicate, .hs-duplicate-name-warning").forEach((node) => node.remove());
         resetSaveControls(exportRoot);
         let html = "<!DOCTYPE html>\n" + exportRoot.outerHTML;
-        const openTag = "<scr" + 'ipt id="baked' + '_data">';
-        const closeTag = "</scr" + "ipt>";
-        // Replace ONLY the first baked_data script (it lives in <head>, before any code)
-        const start = html.indexOf(openTag);
-        if (start !== -1) {
-          const end = html.indexOf(closeTag, start);
-          if (end !== -1) {
-            const fresh =
-              openTag +
-              "window.__HALFSPACE_DATA__=" +
-              JSON.stringify(contentData) +
-              ";" +
-              closeTag;
-            html =
-              html.slice(0, start) + fresh + html.slice(end + closeTag.length);
-          }
-        }
         // Reset page state to home. Every marker below is built by
         // concatenation so this function's own source can never match
         // (and thus never rewrite itself on export — the bug that
@@ -481,7 +487,7 @@
           }
           publishData.__content_revision_v1 = new Date().toISOString();
           publishData.__content_edit_clock_v1 = {};
-          const html = buildExportHTML(publishData);
+          const html = await buildExportHTML(publishData);
           const encoded = await encodeBlobBase64(
             new Blob([html], { type: "text/html;charset=utf-8" }),
           );
@@ -597,8 +603,8 @@
         }
       }
 
-      function exportSite() {
-        const html = buildExportHTML();
+      async function exportSite() {
+        const html = await buildExportHTML();
         const blob = new Blob([html], { type: "text/html;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
