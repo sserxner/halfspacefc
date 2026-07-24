@@ -726,7 +726,10 @@
           return sanitizePlayerCard(merged, true);
         }
         async function autofillAllPlayerCards() {
-          if (!document.body.classList.contains("admin-active")) return null;
+          // The editor shell can briefly remove admin-active while rebuilding
+          // the public page. The authenticated toolbar is the durable signal
+          // that this private, write-capable action is available.
+          if (!document.getElementById("adminToolbar")) return null;
           if (playerBatchJob) return playerBatchJob;
           playerBatchJob = (async () => {
             const players = allRankedPlayers();
