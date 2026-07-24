@@ -1155,6 +1155,21 @@ test("Editorials and diaries use a featured article rail with in-place continuat
   assert.match(writing, /articleCard\(type, feature\.entry, feature\.index, \{ featured: true, preview: true \}\)/);
 });
 
+test("section fronts have independent curation and searchable archives", () => {
+  const writing = read("js/features/writing-system.js");
+  assert.match(writing, /data-write-section-feature/);
+  assert.match(writing, /data-write-section-headline/);
+  assert.match(writing, /entry\.sectionFeatured === true/);
+  assert.match(writing, /entry\.sectionHeadlineVisible !== false/);
+  assert.match(writing, /function librarySearch\(type, value\)/);
+  assert.match(writing, /Search transfers/);
+  assert.match(writing, /<h4>Competitions<\/h4>/);
+  assert.match(writing, /<h4>Teams<\/h4>/);
+  assert.match(writing, /<h4>Players<\/h4>/);
+  assert.match(writing, /function moveSectionHeadline\(type, index, direction\)/);
+  assert.match(writing, /sectionHeadlineOrder = position \+ 1/);
+});
+
 test("admin has direct homepage and headline access", () => {
   const template = read("src/index.template.html");
   const studio = read("studio.js");

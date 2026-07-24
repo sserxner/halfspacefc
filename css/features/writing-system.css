@@ -961,7 +961,43 @@ body :is(
   margin-bottom: 1.25rem;
 }
 
-.hs-section-article-list button {
+.hs-library-search {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+}
+
+.hs-library-search span {
+  color: rgba(23, 62, 40, 0.66);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hs-library-search input {
+  width: 100%;
+  border: 1px solid rgba(23, 62, 40, 0.2);
+  border-radius: 999px;
+  padding: 0.65rem 0.8rem;
+  background: rgba(255, 253, 247, 0.82);
+  color: #173e28;
+  font: 600 0.82rem/1.2 Inter, system-ui, sans-serif;
+}
+
+.hs-transfer-grade-filter .hs-transfer-library-search {
+  min-width: min(320px, 100%);
+  margin: 0;
+}
+
+.hs-section-headline-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.hs-section-headline-row > button {
   display: grid;
   gap: 0.22rem;
   width: 100%;
@@ -974,9 +1010,30 @@ body :is(
   cursor: pointer;
 }
 
-.hs-section-article-list button:hover,
-.hs-section-article-list button:focus-visible {
+.hs-section-headline-row > button:hover,
+.hs-section-headline-row > button:focus-visible {
   color: #a67912;
+}
+
+.hs-section-headline-order {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.hs-section-headline-order button {
+  width: 1.75rem;
+  height: 1.55rem;
+  border: 1px solid rgba(23, 62, 40, 0.16);
+  border-radius: 6px;
+  padding: 0;
+  background: rgba(255, 253, 247, 0.82);
+  color: #173e28;
+  cursor: pointer;
+}
+
+.hs-section-headline-order button:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 .hs-section-article-list strong {

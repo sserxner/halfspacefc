@@ -131,6 +131,7 @@
         ["title", "Title", "text"],
         ["date", "Date", "date"],
         ["topic", "Topic", "text"],
+        ["player", "Player", "text"],
         ["teams", "Teams", "text"],
         ["competitions", "Competitions", "text"],
         ["tags", "Tags", "text"],
@@ -166,6 +167,9 @@
     editorialSection: "opinion",
     diaryFeatureIndex: null,
     editorialFeatureIndex: null,
+    diarySearch: "",
+    editorialSearch: "",
+    transferSearch: "",
   };
 
   function records(type) {
@@ -282,7 +286,7 @@
       type === "diary"
         ? ["competition", "teams"]
         : type === "editorial"
-          ? ["topic", "teams", "competitions", "tags"]
+          ? ["topic", "player", "teams", "competitions", "tags"]
           : type === "transfer"
             ? ["club", "player"]
             : ["league", "round", "result"];
@@ -405,29 +409,101 @@
     );
   }
 
+  function matchesSearch(entry, query, keys) {
+    const needle = String(query || "").trim().toLowerCase();
+    if (!needle) return true;
+    return keys.some((key) => String(entry?.[key] || "").toLowerCase().includes(needle));
+  }
+
+  let librarySearchTimer = null;
+  function librarySearch(type, value) {
+    if (!["diary", "editorial", "transfer"].includes(type)) return;
+    state[`${type}Search`] = value;
+    clearTimeout(librarySearchTimer);
+    librarySearchTimer = setTimeout(() => {
+      if (type === "diary") renderDiary();
+      else if (type === "editorial") renderEditorials();
+      else renderTransfers();
+      const inputs = [...document.querySelectorAll(`[data-library-search="${type}"]`)];
+      const input = inputs.find((node) => node.closest(".page")?.classList.contains("active")) || inputs[0];
+      input?.focus({ preventScroll: true });
+      input?.setSelectionRange?.(input.value.length, input.value.length);
+    }, 180);
+  }
+
   function sectionFront(type, visible, filtersHTML, addHTML) {
-    if (!visible.length) return `<div class="empty-state"><p>${configs[type].empty}</p></div>`;
+    const label = type === "diary" ? "Diary library" : "Opinion library";
+    const search = `<label class="hs-library-search"><span>Search articles</span><input data-library-search="${type}" type="search" value="${esc(state[`${type}Search`] || "")}" placeholder="${type === "diary" ? "Match, team or competition" : "Title, team or player"}" oninput="HSWritingSystem.librarySearch('${type}',this.value)"></label>`;
+    if (!visible.length) return `<aside class="hs-writing-sidebar hs-section-article-sidebar">
+        <h3>${label}</h3>${search}
+        <div class="hs-writing-filter-list">${filtersHTML}</div>${addHTML}
+      </aside><main class="hs-writing-feed"><div class="empty-state"><p>No matching articles.</p></div></main>`;
     const stateKey = `${type}FeatureIndex`;
     const selected = visible.find((item) => item.index === Number(state[stateKey]));
-    const feature = selected || visible.find((item) => item.entry.featured === true) || visible[0];
+    const feature = selected || visible.find((item) => item.entry.sectionFeatured === true) || visible.find((item) => item.entry.featured === true) || visible[0];
     state[stateKey] = feature.index;
-    const others = visible.filter((item) => item.index !== feature.index);
-    const label = type === "diary" ? "More diaries" : "More editorials";
+    const libraryActive =
+      Boolean(String(state[`${type}Search`] || "").trim()) ||
+      state[`${type}Filter`] !== "all";
+    const others = visible.filter(
+      (item) =>
+        item.index !== feature.index &&
+        (libraryActive || item.entry.sectionHeadlineVisible !== false),
+    ).sort((a, b) => {
+      const aOrder = Number(a.entry.sectionHeadlineOrder);
+      const bOrder = Number(b.entry.sectionHeadlineOrder);
+      const aOrdered = Number.isFinite(aOrder) && aOrder > 0;
+      const bOrdered = Number.isFinite(bOrder) && bOrder > 0;
+      if (aOrdered && bOrdered && aOrder !== bOrder) return aOrder - bOrder;
+      if (aOrdered !== bOrdered) return aOrdered ? -1 : 1;
+      return (Date.parse(b.entry.date) || b.entry.updatedAt || 0) - (Date.parse(a.entry.date) || a.entry.updatedAt || 0);
+    });
     return `<aside class="hs-writing-sidebar hs-section-article-sidebar">
         <h3>${label}</h3>
+        ${search}
         <div class="hs-section-article-list">
-          ${others.length ? others.map(({ entry, index }) => `<button type="button" onclick="HSWritingSystem.featureSection('${type}',${index})">
-            <strong>${esc(entry.title || configs[type].singular)}</strong>
-            <small>${esc(formatDate(entry.date))}</small>
-          </button>`).join("") : `<p>No other articles yet.</p>`}
+          ${others.length ? others.map(({ entry, index }, position) => `<div class="hs-section-headline-row">
+            <button type="button" onclick="HSWritingSystem.featureSection('${type}',${index})">
+              <strong>${esc(entry.title || configs[type].singular)}</strong>
+              <small>${esc(formatDate(entry.date))}</small>
+            </button>
+            ${admin() && !libraryActive ? `<span class="hs-section-headline-order">
+              <button type="button" aria-label="Move headline up" onclick="HSWritingSystem.moveSectionHeadline('${type}',${index},-1)" ${position === 0 ? "disabled" : ""}>↑</button>
+              <button type="button" aria-label="Move headline down" onclick="HSWritingSystem.moveSectionHeadline('${type}',${index},1)" ${position === others.length - 1 ? "disabled" : ""}>↓</button>
+            </span>` : ""}
+          </div>`).join("") : `<p>No other articles yet.</p>`}
         </div>
-        <h4>Browse topics</h4>
         <div class="hs-writing-filter-list">${filtersHTML}</div>
         ${addHTML}
       </aside>
       <main class="hs-writing-feed hs-section-feature-feed">
         ${articleCard(type, feature.entry, feature.index, { featured: true, preview: true })}
       </main>`;
+  }
+
+  function moveSectionHeadline(type, index, direction) {
+    if (!admin() || !["diary", "editorial"].includes(type)) return;
+    const list = records(type);
+    const ordered = list
+      .map((entry, itemIndex) => ({ entry, index: itemIndex }))
+      .filter(({ entry }) => live(entry) && entry.sectionHeadlineVisible !== false && entry.sectionFeatured !== true)
+      .sort((a, b) => {
+        const aOrder = Number(a.entry.sectionHeadlineOrder);
+        const bOrder = Number(b.entry.sectionHeadlineOrder);
+        const aOrdered = Number.isFinite(aOrder) && aOrder > 0;
+        const bOrdered = Number.isFinite(bOrder) && bOrder > 0;
+        if (aOrdered && bOrdered && aOrder !== bOrder) return aOrder - bOrder;
+        if (aOrdered !== bOrdered) return aOrdered ? -1 : 1;
+        return (Date.parse(b.entry.date) || b.entry.updatedAt || 0) - (Date.parse(a.entry.date) || a.entry.updatedAt || 0);
+      });
+    const from = ordered.findIndex((item) => item.index === Number(index));
+    const to = from + Number(direction);
+    if (from < 0 || to < 0 || to >= ordered.length) return;
+    [ordered[from], ordered[to]] = [ordered[to], ordered[from]];
+    ordered.forEach((item, position) => {
+      list[item.index].sectionHeadlineOrder = position + 1;
+    });
+    saveRecords(type, list);
   }
 
   function renderDiary() {
@@ -446,11 +522,16 @@
               (tag) => slug(tag) === state.diaryFilter,
             ),
           );
+    const searched = visible.filter(({ entry }) =>
+      matchesSearch(entry, state.diarySearch, ["title", "fixture", "competition", "matchweek", "teams", "body"]),
+    );
+    const competitionFilters = uniqueOptions(all.map((item) => item.entry), ["competition"]);
+    const teamFilters = uniqueOptions(all.map((item) => item.entry), ["teams"]);
     root.className = "hs-writing-shell";
     root.innerHTML = sectionFront(
       "diary",
-      visible,
-      `${filterButton("All", "all", state.diaryFilter, "HSWritingSystem.filterDiary")}${filters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}`,
+      searched,
+      `<h4>Competitions</h4>${filterButton("All", "all", state.diaryFilter, "HSWritingSystem.filterDiary")}${competitionFilters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}<h4>Teams</h4>${teamFilters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}`,
       admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('diary')">+ New diary</button>` : "",
     );
   }
@@ -481,16 +562,21 @@
       }
       return a.localeCompare(b);
     });
-    const visible =
+    const teamVisible =
       state.transferClub === "all"
         ? all
         : all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((club) => slug(club) === state.transferClub));
+    const visible = teamVisible.filter(({ entry }) =>
+      matchesSearch(entry, state.transferSearch, ["title", "player", "club", "formerClub", "newClub", "fee", "body"]),
+    );
     root.className = type === "grades" ? "hs-writing-shell hs-transfer-grades-centered" : "hs-writing-shell";
     const clubCounts = new Map(clubs.map((club) => [
       club,
       all.filter(({ entry }) => [entry.formerClub, entry.newClub || entry.club].some((team) => slug(team) === slug(club))).length,
     ]));
+    const searchControl = `<label class="hs-library-search hs-transfer-library-search"><span>Search transfers</span><input data-library-search="transfer" type="search" value="${esc(state.transferSearch)}" placeholder="Player, club, title or fee" oninput="HSWritingSystem.librarySearch('transfer',this.value)"></label>`;
     const gradeSelector = `<div class="hs-transfer-grade-filter">
+        ${searchControl}
         <label for="hsTransferGradeTeam">Team</label>
         <select id="hsTransferGradeTeam" onchange="HSWritingSystem.filterTransferClub(this.value)">
           <option value="all">All teams (${all.length})</option>
@@ -499,6 +585,7 @@
       </div>`;
     root.innerHTML = `${type === "grades" ? gradeSelector : `<aside class="hs-writing-sidebar hs-transfer-team-index">
         <h3>${transferLabel(type)} by team</h3>
+        ${searchControl}
         <div class="hs-writing-filter-list">
           ${filterButton(`All teams (${all.length})`, "all", state.transferClub, "HSWritingSystem.filterTransferClub")}
           ${clubs.map((club) => filterButton(`${club} (${clubCounts.get(club)})`, slug(club), state.transferClub, "HSWritingSystem.filterTransferClub")).join("")}
@@ -522,21 +609,26 @@
     const all = records("editorial").map((entry, index) => ({ entry, index })).filter(({ entry }) => live(entry));
     const filters = uniqueOptions(
       all.map((item) => item.entry),
-      ["topic", "teams", "competitions", "tags"],
+      ["topic", "player", "teams", "competitions", "tags"],
     );
     const visible =
       state.editorialFilter === "all"
         ? all
         : all.filter(({ entry }) =>
-            tagsFor(entry, ["topic", "teams", "competitions", "tags"]).some(
+            tagsFor(entry, ["topic", "player", "teams", "competitions", "tags"]).some(
               (tag) => slug(tag) === state.editorialFilter,
             ),
           );
+    const searched = visible.filter(({ entry }) =>
+      matchesSearch(entry, state.editorialSearch, ["title", "topic", "player", "teams", "competitions", "tags", "body"]),
+    );
+    const teamFilters = uniqueOptions(all.map((item) => item.entry), ["teams"]);
+    const playerFilters = uniqueOptions(all.map((item) => item.entry), ["player"]);
     root.className = "hs-writing-shell";
     root.innerHTML = sectionFront(
       "editorial",
-      visible,
-      `${filterButton("All", "all", state.editorialFilter, "HSWritingSystem.filterEditorial")}${filters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}`,
+      searched,
+      `<h4>Teams</h4>${filterButton("All", "all", state.editorialFilter, "HSWritingSystem.filterEditorial")}${teamFilters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}<h4>Players</h4>${playerFilters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}<h4>Topics</h4>${filters.filter((item) => !teamFilters.includes(item) && !playerFilters.includes(item)).map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}`,
       admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('editorial')">+ New editorial</button>` : "",
     );
   }
@@ -615,6 +707,8 @@
       <div class="hs-write-form"></div>
       <label class="hs-write-featured"><input type="checkbox" data-write-featured> Feature this on the homepage</label>
       <label class="hs-write-featured"><input type="checkbox" data-write-headline> Include this piece in Headlines</label>
+      <label class="hs-write-featured" data-write-section-feature-wrap><input type="checkbox" data-write-section-feature> Feature this on its Editorial or Diary page</label>
+      <label class="hs-write-featured" data-write-section-headline-wrap><input type="checkbox" data-write-section-headline> Include this piece in that section’s headlines</label>
       <section class="hs-write-media-fields">
         <div class="hs-write-cover-preview" data-write-cover-preview></div>
         <label><span>Cover photo</span><input data-write-field="coverImage" data-write-cover placeholder="Choose an image or paste its URL"></label>
@@ -673,6 +767,11 @@
     updateCoverPreview();
     root.querySelector("[data-write-featured]").checked = Boolean(record.featured);
     root.querySelector("[data-write-headline]").checked = record.headlineVisible !== false;
+    const supportsSectionFront = ["diary", "editorial"].includes(type);
+    root.querySelector("[data-write-section-feature-wrap]").hidden = !supportsSectionFront;
+    root.querySelector("[data-write-section-headline-wrap]").hidden = !supportsSectionFront;
+    root.querySelector("[data-write-section-feature]").checked = Boolean(record.sectionFeatured);
+    root.querySelector("[data-write-section-headline]").checked = record.sectionHeadlineVisible !== false;
     setEditorStatus("");
     setEditorBusy(false);
     root.classList.add("open");
@@ -696,6 +795,14 @@
     }
     if (event.target.matches("[data-write-headline]")) {
       editor.record.headlineVisible = event.target.checked;
+      return;
+    }
+    if (event.target.matches("[data-write-section-feature]")) {
+      editor.record.sectionFeatured = event.target.checked;
+      return;
+    }
+    if (event.target.matches("[data-write-section-headline]")) {
+      editor.record.sectionHeadlineVisible = event.target.checked;
       return;
     }
     const field = event.target.closest?.("[data-write-field]");
@@ -809,8 +916,15 @@
         });
         list.forEach((entry) => (entry.featured = false));
       }
+      if (editor.record.sectionFeatured && ["diary", "editorial"].includes(editor.type)) {
+        list.forEach((entry) => (entry.sectionFeatured = false));
+      }
+      const savedIndex = editor.index >= 0 ? editor.index : 0;
       if (editor.index >= 0) list[editor.index] = editor.record;
       else list.unshift(editor.record);
+      if (editor.record.sectionFeatured && ["diary", "editorial"].includes(editor.type)) {
+        state[`${editor.type}FeatureIndex`] = savedIndex;
+      }
       saveRecords(editor.type, list);
       window.HSBackups?.create?.({ reason: "writing-save" }).catch((error) => {
         console.error("Writing recovery snapshot failed:", error);
@@ -1012,6 +1126,7 @@
       if (type === "diary") renderDiary();
       else renderEditorials();
     },
+    moveSectionHeadline,
     continueReading(button, type, index) {
       const entry = records(type)[Number(index)];
       const article = button?.closest(".hs-writing-card");
@@ -1034,6 +1149,7 @@
       state.transferClub = value;
       renderTransfers();
     },
+    librarySearch,
     addTransfer(type) {
       state.transfer = type === "grades" ? "grades" : "recs";
       openEditor("transfer", -1);
