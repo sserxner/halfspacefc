@@ -659,8 +659,8 @@
           rankingsToSave.forEach(([key, ranking]) => rankSet(key, ranking));
           cleanExistingPlayerCards();
         }
-        const PLAYER_BATCH_VERSION = 13;
-        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v13";
+        const PLAYER_BATCH_VERSION = 14;
+        const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v14";
         let playerBatchJob = null;
         function allRankedPlayers() {
           const players = new Map();
@@ -725,6 +725,39 @@
           merged.verifiedSchemaVersion = PLAYER_BATCH_VERSION;
           return sanitizePlayerCard(merged, true);
         }
+        function mergeVerifiedHonours(existing, verified) {
+          const merged = { ...(existing || {}) };
+          const verifiedByClub = new Map(
+            (verified.careerStints || []).map((stint) => [playerKey(stint.club), stint]),
+          );
+          merged.careerStints = (merged.careerStints || []).map((stint) => {
+            const fresh = verifiedByClub.get(playerKey(stint.club));
+            if (!fresh?.trophies?.length || stint.trophies?.length) return stint;
+            return { ...stint, trophies: fresh.trophies };
+          });
+          merged.teamTitles = [
+            ...new Set([
+              ...titleParts(merged.teamTitles || merged.honors),
+              ...titleParts(verified.teamTitles),
+            ]),
+          ].join("\n");
+          merged.honors = merged.teamTitles;
+          merged.internationalTitles = [
+            ...new Set([
+              ...titleParts(merged.internationalTitles),
+              ...titleParts(verified.internationalTitles),
+            ]),
+          ];
+          if (!(merged.individualAwards || []).length && verified.individualAwards?.length)
+            merged.individualAwards = verified.individualAwards;
+          if (verified.careerTrophyTotal)
+            merged.careerTrophyTotal = verified.careerTrophyTotal;
+          merged.dataAsOf = verified.dataAsOf || merged.dataAsOf || "";
+          merged.dataSources = verified.sources || merged.dataSources || [];
+          merged.statsNote = verified.statsNote || merged.statsNote || "";
+          merged.verifiedSchemaVersion = PLAYER_BATCH_VERSION;
+          return sanitizePlayerCard(merged, true);
+        }
         async function autofillAllPlayerCards() {
           // The editor shell can briefly remove admin-active while rebuilding
           // the public page. The authenticated toolbar is the durable signal
@@ -744,9 +777,9 @@
                 const player = pending[cursor++];
                 const id = playerKey(player.name);
                 try {
-                  const verified = await window.HSVerifiedPlayerDrafts.queue(player.name, player.context);
+                  const verified = await window.HSVerifiedPlayerDrafts.queueHonours(player.name, player.context);
                   const current = cardLibrary()[id] || {};
-                  saveSharedCard(player.name, mergeVerifiedFacts(current, verified));
+                  saveSharedCard(player.name, mergeVerifiedHonours(current, verified));
                   completed.add(id);
                   delete failed[id];
                 } catch (error) {
@@ -789,10 +822,27 @@
             };
             toolbar.appendChild(button);
           }
+          if (toolbar && !document.getElementById("hsResetPlayerBatch")) {
+            const reset = document.createElement("button");
+            reset.id = "hsResetPlayerBatch";
+            reset.className = "tb-btn";
+            reset.type = "button";
+            reset.textContent = "Reset player refill";
+            reset.onclick = () => {
+              const baked = JSON.parse(document.getElementById("baked_data")?.textContent || "{}");
+              if (!baked[CARD_LIBRARY_KEY]) return;
+              setData(CARD_LIBRARY_KEY, baked[CARD_LIBRARY_KEY]);
+              localStorage.removeItem("hs_player_card_batch_v13");
+              localStorage.removeItem(PLAYER_BATCH_STATE_KEY);
+              window.HSAutosave?.schedule?.();
+              reset.textContent = "Player refill reset";
+            };
+            toolbar.appendChild(reset);
+          }
           let state = {};
           try { state = JSON.parse(localStorage.getItem(PLAYER_BATCH_STATE_KEY) || "{}"); } catch (_) {}
-          if (state.version !== PLAYER_BATCH_VERSION || (state.completed || []).length < allRankedPlayers().length)
-            setTimeout(() => autofillAllPlayerCards(), 1800);
+          // Large verification runs are explicit. Never start a network-heavy
+          // player rewrite merely because an editor opened the site.
         }
         const globalRank = (k, t, e) => {
           let n = 1,
