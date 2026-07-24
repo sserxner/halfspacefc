@@ -82,6 +82,7 @@
     let saved = false;
     if (window.HSData?.setDraftValue) {
       window.HSData.setDraftValue(key, value);
+      window.HSData.flushDraft?.();
       saved = true;
     } else if (typeof setData === "function") {
       setData(key, value);
@@ -1118,11 +1119,31 @@
     }
   }
 
+  function syncEditorRecordFromDOM() {
+    if (!editor) return;
+    const root = document.getElementById("hsWritingEditor");
+    if (!root) return;
+    root.querySelectorAll("[data-write-field]").forEach((field) => {
+      const key = field.dataset.writeField;
+      if (!key || field.matches('[type="file"]')) return;
+      editor.record[key] = field.isContentEditable
+        ? sanitizeRichHTML(field.innerHTML)
+        : field.value;
+    });
+    editor.record.featured = Boolean(root.querySelector("[data-write-featured]")?.checked);
+    editor.record.headlineVisible = Boolean(root.querySelector("[data-write-headline]")?.checked);
+    if (["diary", "editorial"].includes(editor.type)) {
+      editor.record.sectionFeatured = Boolean(root.querySelector("[data-write-section-feature]")?.checked);
+      editor.record.sectionHeadlineVisible = Boolean(root.querySelector("[data-write-section-headline]")?.checked);
+    }
+  }
+
   async function saveEditor(publish) {
     if (!editor) return;
     setEditorBusy(true);
     setEditorStatus(publish ? "Saving published item…" : "Saving draft…");
     try {
+      syncEditorRecordFromDOM();
       const list = records(editor.type);
       editor.record.published = publish ? true : editor.record.published === false ? false : true;
       editor.record.updatedAt = Date.now();
@@ -1401,9 +1422,8 @@
     closeInlineReview,
     showTransferPage(type) {
       state.transfer = type === "grades" ? "grades" : "recs";
-      state.transferClub = "all";
+      state[state.transfer === "grades" ? "transferGradesClub" : "transferRecsClub"] = "all";
       showPage(state.transfer === "grades" ? "transfer-grades" : "transfer-recs");
-      renderTransfers();
     },
     showTransferTab(type) {
       this.showTransferPage(type);
