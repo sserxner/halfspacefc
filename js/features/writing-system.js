@@ -552,7 +552,7 @@
       "diary",
       searched,
       `<h4>Competitions</h4>${filterButton("All", "all", state.diaryFilter, "HSWritingSystem.filterDiary")}${competitionFilters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}<h4>Teams</h4>${teamFilters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}`,
-      admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('diary')">+ New diary</button>` : "",
+      admin() ? `<button type="button" class="admin-add-btn" data-write-new="diary">+ New diary</button>` : "",
     );
   }
 
@@ -613,9 +613,9 @@
           ${filterButton(`All teams (${all.length})`, "all", state[clubKey], `HSWritingSystem.filterTransferClubRecs`)}
           ${clubs.map((club) => filterButton(`${club} (${clubCounts.get(club)})`, slug(club), state[clubKey], `HSWritingSystem.filterTransferClubRecs`)).join("")}
         </div>
-        ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.addTransfer('${type}')">+ New ${transferLabel(type).toLowerCase()}</button>` : ""}
+        ${admin() ? `<button type="button" class="admin-add-btn" data-write-new-transfer="${esc(type)}">+ New ${transferLabel(type).toLowerCase()}</button>` : ""}
       </aside>`}
-      ${type === "grades" && admin() ? `<button class="admin-add-btn hs-transfer-grade-add" onclick="HSWritingSystem.addTransfer('grades')">+ New transfer grade</button>` : ""}
+      ${type === "grades" && admin() ? `<button type="button" class="admin-add-btn hs-transfer-grade-add" data-write-new-transfer="grades">+ New transfer grade</button>` : ""}
       <main class="hs-writing-feed hs-transfer-index">
         ${visible.length ? visible.map(({ entry, index }) => transferIndexCard(type, entry, index)).join("") : `<div class="empty-state"><p>No ${transferLabel(type).toLowerCase()}s yet.</p></div>`}
       </main>`;
@@ -652,7 +652,7 @@
       "editorial",
       searched,
       `<h4>Teams</h4>${filterButton("All", "all", state.editorialFilter, "HSWritingSystem.filterEditorial")}${teamFilters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}<h4>Players</h4>${playerFilters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}<h4>Topics</h4>${filters.filter((item) => !teamFilters.includes(item) && !playerFilters.includes(item)).map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}`,
-      admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('editorial')">+ New editorial</button>` : "",
+      admin() ? `<button type="button" class="admin-add-btn" data-write-new="editorial">+ New editorial</button>` : "",
     );
   }
 
@@ -681,7 +681,7 @@
       .filter(({ entry }) => live(entry) && entry.league === state.betting);
     root.className = "hs-writing-feed betting";
     root.innerHTML = `${tracker(all)}
-      ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('betting')">+ New betting piece</button>` : ""}
+      ${admin() ? `<button type="button" class="admin-add-btn" data-write-new="betting">+ New betting piece</button>` : ""}
       ${all.length ? all.map(({ entry, index }) => bettingIndexCard(entry, index)).join("") : `<div class="empty-state"><p>${configs.betting.empty}</p></div>`}`;
   }
 
@@ -800,10 +800,13 @@
   }
 
   function ensureEditor() {
-    if (document.getElementById("hsWritingEditor")) return;
+    const existing = document.getElementById("hsWritingEditor");
+    if (existing?.dataset.hsWritingBound === "1") return;
+    existing?.remove();
     const node = document.createElement("div");
     node.id = "hsWritingEditor";
     node.className = "hs-writing-editor";
+    node.dataset.hsWritingBound = "1";
     node.innerHTML = `<section role="dialog" aria-modal="true" aria-label="Writing editor">
       <header><div><span>Half Space Studio</span><h2>Writing</h2></div><button class="hs-write-big-close" type="button" data-write-close aria-label="Close editor">× Close</button></header>
       <div class="hs-write-form"></div>
@@ -1260,6 +1263,19 @@
     ensureNav();
     patchShowPage();
     document.addEventListener("click", (event) => {
+      const newEntry = event.target.closest?.("[data-write-new]");
+      if (newEntry) {
+        event.preventDefault();
+        openEditor(newEntry.dataset.writeNew);
+        return;
+      }
+      const newTransfer = event.target.closest?.("[data-write-new-transfer]");
+      if (newTransfer) {
+        event.preventDefault();
+        state.transfer = newTransfer.dataset.writeNewTransfer === "grades" ? "grades" : "recs";
+        openEditor("transfer", -1);
+        return;
+      }
       const toggle = event.target.closest?.(".nav-dropdown-toggle");
       if (toggle) {
         toggle.closest(".nav-dropdown")?.classList.remove("hs-dropdown-dismissed");

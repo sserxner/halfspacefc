@@ -42,12 +42,20 @@ test("admin mode rebuilds every shared writing page after removing stale control
 });
 
 test("new-entry controls open the shared editor for every writing type", () => {
-  assert.match(source, /HSWritingSystem\.add\('diary'\)/);
-  assert.match(source, /HSWritingSystem\.add\('editorial'\)/);
-  assert.match(source, /HSWritingSystem\.add\('betting'\)/);
-  assert.match(source, /HSWritingSystem\.addTransfer\('\$\{type\}'\)/);
-  assert.match(source, /HSWritingSystem\.addTransfer\('grades'\)/);
+  assert.match(source, /data-write-new="diary"/);
+  assert.match(source, /data-write-new="editorial"/);
+  assert.match(source, /data-write-new="betting"/);
+  assert.match(source, /data-write-new-transfer="\$\{esc\(type\)\}"/);
+  assert.match(source, /data-write-new-transfer="grades"/);
+  assert.match(source, /event\.target\.closest\?\.\("\[data-write-new\]"\)/);
+  assert.match(source, /event\.target\.closest\?\.\("\[data-write-new-transfer\]"\)/);
   assert.match(source, /add: openEditor/);
+});
+
+test("a stale editor shell baked into the published page is replaced and rebound", () => {
+  assert.match(source, /existing\?\.dataset\.hsWritingBound === "1"/);
+  assert.match(source, /existing\?\.remove\(\)/);
+  assert.match(source, /node\.dataset\.hsWritingBound = "1"/);
 });
 
 test("the published shell requests the upgraded editor assets", () => {
