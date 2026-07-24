@@ -1223,8 +1223,8 @@
             shouldHydrateHonours =
               !/_mgr(?:_|$)/.test(k) &&
               !verifiedHonoursAvailable &&
-              (!hasTeamHonours(c, stints) ||
-                !titleParts(c.internationalTitles).length) &&
+              !hasTeamHonours(c, stints) &&
+              !titleParts(c.internationalTitles).length &&
               window.HSVerifiedPlayerDrafts?.availableFor?.(x.name);
           let b = document.createElement("div");
           b.id = "rankProfileBackdrop";
