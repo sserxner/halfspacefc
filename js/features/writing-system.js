@@ -164,6 +164,8 @@
     editorialFilter: "all",
     transferClub: "all",
     editorialSection: "opinion",
+    diaryFeatureIndex: null,
+    editorialFeatureIndex: null,
   };
 
   function records(type) {
@@ -237,6 +239,23 @@
     return template.innerHTML;
   }
 
+  function excerptHTML(value) {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = bodyHTML(value);
+    wrapper.querySelectorAll("figure").forEach((node) => node.remove());
+    const excerpt = document.createElement("div");
+    let characters = 0;
+    [...wrapper.children]
+      .filter((node) => /^(P|H2|H3|H4|BLOCKQUOTE|DIV)$/.test(node.tagName))
+      .some((block) => {
+        if (excerpt.children.length >= 3 || characters >= 720) return true;
+        excerpt.append(block.cloneNode(true));
+        characters += (block.textContent || "").length;
+        return false;
+      });
+    return excerpt.innerHTML || `<p>${esc((wrapper.textContent || "").slice(0, 720))}</p>`;
+  }
+
   function formatDate(value) {
     const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!match) return value || "";
@@ -271,7 +290,7 @@
       .slice(0, 8)
       .map((tag) => `<span>${esc(tag)}</span>`)
       .join("");
-    const body = bodyHTML(entry.body);
+    const body = opts.preview ? excerptHTML(entry.body) : bodyHTML(entry.body);
     const transaction =
       type === "transfer" && (entry.formerClub || entry.newClub)
         ? `<p class="hs-transfer-transaction"><span>${esc(entry.formerClub || "")}${entry.formerClubGrade ? `<i>${esc(entry.formerClubGrade)}</i>` : ""}</span>${entry.formerClub && (entry.newClub || entry.club) ? `<b aria-label="to">→</b>` : ""}<span>${esc(entry.newClub || entry.club || "")}${entry.newClubGrade || entry.grade ? `<i>${esc(entry.newClubGrade || entry.grade)}</i>` : ""}</span>${entry.fee ? `<em>${esc(/^[£€$]/.test(String(entry.fee).trim()) ? String(entry.fee).trim() : `£${String(entry.fee).trim()}`)}</em>` : ""}</p>`
@@ -295,6 +314,7 @@
         ${transaction}
       </header>
       <div class="hs-writing-body">${body || `<p>${esc(entry.excerpt || "")}</p>`}</div>
+      ${opts.preview ? `<button class="hs-writing-continue" type="button" onclick="HSWritingSystem.continueReading(this,'${type}',${index})">Continue reading</button>` : ""}
       ${adminControls}
     </article>`;
   }
@@ -385,6 +405,31 @@
     );
   }
 
+  function sectionFront(type, visible, filtersHTML, addHTML) {
+    if (!visible.length) return `<div class="empty-state"><p>${configs[type].empty}</p></div>`;
+    const stateKey = `${type}FeatureIndex`;
+    const selected = visible.find((item) => item.index === Number(state[stateKey]));
+    const feature = selected || visible.find((item) => item.entry.featured === true) || visible[0];
+    state[stateKey] = feature.index;
+    const others = visible.filter((item) => item.index !== feature.index);
+    const label = type === "diary" ? "More diaries" : "More editorials";
+    return `<aside class="hs-writing-sidebar hs-section-article-sidebar">
+        <h3>${label}</h3>
+        <div class="hs-section-article-list">
+          ${others.length ? others.map(({ entry, index }) => `<button type="button" onclick="HSWritingSystem.featureSection('${type}',${index})">
+            <strong>${esc(entry.title || configs[type].singular)}</strong>
+            <small>${esc(formatDate(entry.date))}</small>
+          </button>`).join("") : `<p>No other articles yet.</p>`}
+        </div>
+        <h4>Browse topics</h4>
+        <div class="hs-writing-filter-list">${filtersHTML}</div>
+        ${addHTML}
+      </aside>
+      <main class="hs-writing-feed hs-section-feature-feed">
+        ${articleCard(type, feature.entry, feature.index, { featured: true, preview: true })}
+      </main>`;
+  }
+
   function renderDiary() {
     const root = document.getElementById("diaryGrid");
     if (!root) return;
@@ -402,17 +447,12 @@
             ),
           );
     root.className = "hs-writing-shell";
-    root.innerHTML = `<aside class="hs-writing-sidebar">
-        <h3>Browse diaries</h3>
-        <div class="hs-writing-filter-list">
-          ${filterButton("All", "all", state.diaryFilter, "HSWritingSystem.filterDiary")}
-          ${filters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}
-        </div>
-        ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('diary')">+ New diary</button>` : ""}
-      </aside>
-      <main class="hs-writing-feed">
-        ${visible.length ? visible.map(({ entry, index }) => articleCard("diary", entry, index)).join("") : `<div class="empty-state"><p>${configs.diary.empty}</p></div>`}
-      </main>`;
+    root.innerHTML = sectionFront(
+      "diary",
+      visible,
+      `${filterButton("All", "all", state.diaryFilter, "HSWritingSystem.filterDiary")}${filters.map((item) => filterButton(item, slug(item), state.diaryFilter, "HSWritingSystem.filterDiary")).join("")}`,
+      admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('diary')">+ New diary</button>` : "",
+    );
   }
 
   function transferLabel(type) {
@@ -493,17 +533,12 @@
             ),
           );
     root.className = "hs-writing-shell";
-    root.innerHTML = `<aside class="hs-writing-sidebar">
-        <h3>Browse editorials</h3>
-        <div class="hs-writing-filter-list">
-          ${filterButton("All", "all", state.editorialFilter, "HSWritingSystem.filterEditorial")}
-          ${filters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}
-        </div>
-        ${admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('editorial')">+ New editorial</button>` : ""}
-      </aside>
-      <main class="hs-writing-feed">
-        ${visible.length ? visible.map(({ entry, index }) => articleCard("editorial", entry, index)).join("") : `<div class="empty-state"><p>${configs.editorial.empty}</p></div>`}
-      </main>`;
+    root.innerHTML = sectionFront(
+      "editorial",
+      visible,
+      `${filterButton("All", "all", state.editorialFilter, "HSWritingSystem.filterEditorial")}${filters.map((item) => filterButton(item, slug(item), state.editorialFilter, "HSWritingSystem.filterEditorial")).join("")}`,
+      admin() ? `<button class="admin-add-btn" onclick="HSWritingSystem.add('editorial')">+ New editorial</button>` : "",
+    );
   }
 
   function leagueLabel(value) {
@@ -963,11 +998,28 @@
     togglePublish,
     filterDiary(value) {
       state.diaryFilter = value;
+      state.diaryFeatureIndex = null;
       renderDiary();
     },
     filterEditorial(value) {
       state.editorialFilter = value;
+      state.editorialFeatureIndex = null;
       renderEditorials();
+    },
+    featureSection(type, index) {
+      if (!["diary", "editorial"].includes(type)) return;
+      state[`${type}FeatureIndex`] = Number(index);
+      if (type === "diary") renderDiary();
+      else renderEditorials();
+    },
+    continueReading(button, type, index) {
+      const entry = records(type)[Number(index)];
+      const article = button?.closest(".hs-writing-card");
+      const body = article?.querySelector(".hs-writing-body");
+      if (!entry || !body) return;
+      body.innerHTML = bodyHTML(entry.body) || `<p>${esc(entry.excerpt || "")}</p>`;
+      article.classList.add("hs-writing-expanded");
+      button.remove();
     },
     showEditorialSection(section) {
       state.editorialSection = section === "diary" ? "diary" : "opinion";

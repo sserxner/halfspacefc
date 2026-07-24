@@ -955,6 +955,71 @@ body :is(
   text-shadow: 0 1px 0 rgba(255, 253, 247, 0.95);
 }
 
+.hs-section-article-list {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.hs-section-article-list button {
+  display: grid;
+  gap: 0.22rem;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(20, 65, 38, 0.13);
+  padding: 0.72rem 0;
+  background: transparent;
+  color: #173e28;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hs-section-article-list button:hover,
+.hs-section-article-list button:focus-visible {
+  color: #a67912;
+}
+
+.hs-section-article-list strong {
+  font-family: "Averia Serif Libre", Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.hs-section-article-list small {
+  color: rgba(23, 62, 40, 0.62);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.hs-section-article-sidebar h4 {
+  margin: 0.5rem 0;
+  color: rgba(23, 62, 40, 0.66);
+  font-size: 0.67rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hs-section-feature-feed .hs-writing-card {
+  margin-top: 0;
+}
+
+.hs-writing-continue {
+  display: inline-flex;
+  margin-top: 1rem;
+  border: 1px solid #1d5c38;
+  border-radius: 999px;
+  padding: 0.72rem 1.15rem;
+  background: #1d5c38;
+  color: #fffdf7;
+  font: 800 0.78rem/1 Inter, system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.hs-writing-expanded .hs-writing-body {
+  max-height: none;
+}
+
 /* V6: force every writing section onto the same professional article rail. */
 #page-diary > .content {
   width: min(1320px, calc(100vw - 48px)) !important;

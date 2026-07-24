@@ -359,6 +359,23 @@ body :is(#page-rankings, #page-present-rankings) :is(
   backdrop-filter: blur(8px) saturate(82%);
 }
 
+body :is(#page-rankings, #page-present-rankings) .hs-rankings-page-heading {
+  margin: 0 !important;
+  padding: clamp(1.2rem, 3vw, 2.4rem) 0 1rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body :is(#page-rankings, #page-present-rankings) .hs-rankings-page-heading .section-title {
+  color: #173e28;
+  font-size: clamp(2.7rem, 5.4vw, 5.4rem);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  text-shadow: 0 1px 0 rgba(255, 253, 247, 0.9), 0 8px 28px rgba(255, 253, 247, 0.4);
+}
+
 body :is(#page-rankings, #page-present-rankings) .tier-label {
   background: rgba(247, 243, 233, 0.58) !important;
   border-bottom: 1px solid rgba(38, 68, 49, 0.1);

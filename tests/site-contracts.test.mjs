@@ -75,6 +75,18 @@ test("positional ranking tabs use Ws and Fs labels and Present Day includes mana
   assert.match(features, /"f", "mgr"/);
 });
 
+test("ranking eras share an integrated heading and omit the empty tier guide", () => {
+  const century = read("src/components/rankings.html");
+  const present = read("src/components/present-rankings.html");
+  assert.match(century, /hs-rankings-page-heading[\s\S]*21st Century Rankings/);
+  assert.match(present, /hs-rankings-page-heading[\s\S]*Present Day Rankings/);
+  assert.doesNotMatch(century, /How to read the tiers|id="tier-legend"/);
+  assert.match(
+    read("css/features/halfspace-masthead.css"),
+    /\.hs-rankings-page-heading\s*\{[\s\S]*background:\s*transparent !important;/,
+  );
+});
+
 test("adding an existing Present Day player refreshes the visible ranking", () => {
   const editor = read("ranking-editor.js");
   assert.match(editor, /endsWith\("_now"\)/);
@@ -1133,6 +1145,14 @@ test("Diaries, Editorials, Transfers, and Betting share one writing system", () 
   assert.match(styles, /\.hs-writing-card/);
   assert.match(template, /js\/features\/writing-system\.js/);
   assert.doesNotMatch(template, /<script[^>]+src=["']editorial-composer\.js/);
+});
+
+test("Editorials and diaries use a featured article rail with in-place continuation", () => {
+  const writing = read("js/features/writing-system.js");
+  assert.match(writing, /function sectionFront\(type, visible, filtersHTML, addHTML\)/);
+  assert.match(writing, /hs-section-article-sidebar/);
+  assert.match(writing, /continueReading\(button, type, index\)/);
+  assert.match(writing, /articleCard\(type, feature\.entry, feature\.index, \{ featured: true, preview: true \}\)/);
 });
 
 test("admin has direct homepage and headline access", () => {
