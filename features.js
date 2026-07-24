@@ -662,19 +662,126 @@
         const PLAYER_BATCH_VERSION = 15;
         const PLAYER_BATCH_STATE_KEY = "hs_player_card_batch_v15";
         let playerBatchJob = null;
-        let titleOverridesPromise = null;
         function loadTitleOverrides() {
           if (window.HSPlayerTitleOverrides) return Promise.resolve();
-          if (titleOverridesPromise) return titleOverridesPromise;
-          titleOverridesPromise = new Promise((resolve) => {
-            const script = document.createElement("script");
-            script.src =
-              "https://cdn.jsdelivr.net/gh/sserxner/halfspacefc@f4ac286c865f3f225dbfc43b0d978c8be9fe2870/player-title-overrides.js";
-            script.onload = resolve;
-            script.onerror = resolve;
-            document.head.appendChild(script);
-          });
-          return titleOverridesPromise;
+          const squadRows = [
+            ["FIFA World Cup: 2002", "dida cafu roberto-carlos lucio gilberto-silva edmilson ronaldo ronaldinho rivaldo denilson"],
+            ["FIFA World Cup: 2006", "gianluigi-buffon gianluca-zambrotta fabio-cannavaro andrea-barzagli fabio-grosso alessandro-nesta marco-materazzi mauro-camoranesi daniele-de-rossi gennaro-gattuso andrea-pirlo alessandro-del-piero alberto-gilardino filippo-inzaghi luca-toni francesco-totti"],
+            ["UEFA European Championship: 2008", "iker-casillas pepe-reina alvaro-arbeloa carlos-marchena carles-puyol andres-iniesta fernando-torres cesc-fabregas joan-capdevila xabi-alonso sergio-ramos xavi david-villa"],
+            ["FIFA World Cup: 2010", "iker-casillas victor-valdes pepe-reina alvaro-arbeloa gerard-pique carles-puyol carlos-marchena sergio-ramos joan-capdevila sergio-busquets xabi-alonso xavi andres-iniesta cesc-fabregas pedro fernando-torres david-villa jesus-navas"],
+            ["UEFA European Championship: 2012", "iker-casillas victor-valdes pepe-reina alvaro-arbeloa gerard-pique sergio-ramos jordi-alba andres-iniesta xavi cesc-fabregas xabi-alonso sergio-busquets pedro fernando-torres david-villa jesus-navas"],
+            ["FIFA World Cup: 2014", "manuel-neuer roman-weidenfeller jerome-boateng mats-hummels per-mertesacker benedikt-howedes philipp-lahm toni-kroos bastian-schweinsteiger sami-khedira mesut-ozil thomas-muller mario-gotze andre-schurrle lukas-podolski miroslav-klose"],
+            ["UEFA European Championship: 2016", "cristiano-ronaldo nani ricardo-quaresma pepe raphael-guerreiro ricardo-carvalho joao-moutinho"],
+            ["FIFA World Cup: 2018", "hugo-lloris raphael-varane samuel-umtiti ben-pavard lucas-hernandez n-golo-kante blaise-matuidi corentin-tolisso paul-pogba olivier-giroud antoine-griezmann kylian-mbappe ousmane-dembele thomas-lemar nabil-fekir"],
+            ["UEFA European Championship: 2020", "gianluigi-donnarumma leonardo-bonucci giorgio-chiellini alessandro-bastoni nicolo-barella jorginho manuel-locatelli marco-verratti lorenzo-insigne ciro-immobile federico-chiesa leonardo-spinazzola andrea-belotti domenico-berardi giacomo-raspadori"],
+            ["FIFA World Cup: 2022", "lionel-messi julian-alvarez lautaro-martinez enzo-fernandez alexis-mac-allister cristian-romero emi-martinez emiliano-martinez nicolas-otamendi lisandro-martinez angel-di-maria papu-gomez nahuel-molina"],
+            ["UEFA European Championship: 2024", "david-raya dani-carvajal mikel-merino alvaro-morata fabian-ruiz dani-olmo ferran-torres alejandro-grimaldo aymeric-laporte rodri rodri-hernandez nico-williams martin-zubimendi lamine-yamal pedri mikel-oyarzabal jesus-navas unai-simon marc-cucurella fermin-lopez"],
+            ["FIFA World Cup: 2026", "rodri rodri-hernandez lamine-yamal nico-williams dani-olmo pedri martin-zubimendi mikel-merino pau-cubarsi joan-garcia david-raya"],
+            ["Copa America: 2001", "ivan-cordoba"],
+            ["Copa America: 2004", "julio-cesar maicon alex luis-fabiano adriano"],
+            ["Copa America: 2007", "maicon dani-alves alex gilberto-silva robinho"],
+            ["Copa America: 2011", "fernando-muslera diego-godin luis-suarez diego-forlan edinson-cavani"],
+            ["Copa America: 2015", "claudio-bravo arturo-vidal alexis-sanchez"],
+            ["Copa America: 2016", "claudio-bravo arturo-vidal alexis-sanchez"],
+            ["Copa America: 2019", "alisson ederson dani-alves marquinhos thiago-silva eder-militao alex-sandro filipe-luis casemiro fernandinho roberto-firmino gabriel-jesus willian"],
+            ["Copa America: 2021", "lionel-messi emi-martinez emiliano-martinez nahuel-molina cristian-romero nicolas-otamendi lisandro-martinez angel-di-maria lautaro-martinez sergio-aguero papu-gomez julian-alvarez"],
+            ["Copa America: 2024", "lionel-messi emi-martinez emiliano-martinez nahuel-molina cristian-romero nicolas-otamendi lisandro-martinez alexis-mac-allister enzo-fernandez angel-di-maria alejandro-garnacho julian-alvarez lautaro-martinez"],
+            ["Africa Cup of Nations: 2002", "lauren"],
+            ["Africa Cup of Nations: 2013", "john-obi-mikel"],
+            ["Africa Cup of Nations: 2019", "riyad-mahrez"],
+            ["Africa Cup of Nations: 2021", "kalidou-koulibaly pape-gueye sadio-mane ismaila-sarr"],
+            ["Africa Cup of Nations: 2023", "ousmane-diomande wilfried-singo evan-ndicka franck-kessie ibrahim-sangare"],
+            ["Africa Cup of Nations: 2025", "achraf-hakimi yassine-bounou abde-ezzalzouli"],
+          ];
+          const expectedByPlayer = new Map();
+          squadRows.forEach(([title, ids]) =>
+            ids.split(/\s+/).forEach((id) => {
+              const list = expectedByPlayer.get(id) || [];
+              list.push(title);
+              expectedByPlayer.set(id, list);
+            }),
+          );
+          const nonTeamHonour =
+            /silbernes lorbeerblatt|silver laurel leaf|order of merit|legion of hono(?:u)?r|national sports award|state award|citizen of hono(?:u)?r|freedom of the city/i;
+          const targetCompetition =
+            /\bfifa world cup\b|\b(?:uefa )?european championship\b|\bcopa am[eé]rica\b|\bafrica(?:n)? cup of nations\b|\bafcon\b/i;
+          const rejectedResult =
+            /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist/i;
+          const competitionKey = (title) => {
+            const value = String(title || "");
+            if (/\bfifa world cup\b/i.test(value)) return "fifa-world-cup";
+            if (/\b(?:uefa )?european championship\b|\buefa euro\b/i.test(value))
+              return "uefa-european-championship";
+            if (/\bcopa am[eé]rica\b/i.test(value)) return "copa-america";
+            if (/\bafrica(?:n)? cup of nations\b|\bafcon\b/i.test(value))
+              return "africa-cup-of-nations";
+            return "";
+          };
+          const cleanTitles = (value) =>
+            titleParts(value).filter(
+              (title) =>
+                !nonTeamHonour.test(title) &&
+                !rejectedResult.test(title),
+            );
+          const countTitle = (title) => {
+            if (
+              !title ||
+              nonTeamHonour.test(title) ||
+              rejectedResult.test(title)
+            )
+              return 0;
+            const count = String(title).match(/[×x]\s*(\d+)/i);
+            if (count) return Number(count[1]) || 0;
+            const years = String(title).match(
+              /\b(?:19|20)\d{2}(?:[–—/-]\d{2,4})?\b/g,
+            );
+            return years?.length || 1;
+          };
+          const applyToCard = (playerName, source) => {
+            const card = { ...(source || {}) };
+            card.careerStints = cleanList(card.careerStints).map((stint) => ({
+              ...stint,
+              trophies: cleanTitles(stint.trophies),
+            }));
+            const teamTitles = cleanTitles(card.teamTitles || card.honors);
+            card.teamTitles = teamTitles.join("\n");
+            card.honors = card.teamTitles;
+            const expected = expectedByPlayer.get(playerKey(playerName)) || [];
+            const expectedCompetitions = new Set(
+              expected.map(competitionKey).filter(Boolean),
+            );
+            const retained = cleanTitles(card.internationalTitles).filter(
+              (title) =>
+                !targetCompetition.test(title) ||
+                !expectedCompetitions.has(competitionKey(title)),
+            );
+            card.internationalTitles = [...new Set([...retained, ...expected])];
+            card.careerTrophyTotal = [
+              ...card.careerStints.flatMap((stint) => stint.trophies || []),
+              ...teamTitles,
+              ...card.internationalTitles,
+            ].reduce((sum, title) => sum + countTitle(title), 0);
+            return card;
+          };
+          window.HSPlayerTitleOverrides = {
+            applyToCard,
+            applyToLibrary(library) {
+              const next = { ...(library || {}) };
+              let changed = 0;
+              Object.entries(next).forEach(([id, card]) => {
+                const repaired = applyToCard(id, card);
+                if (JSON.stringify(repaired) !== JSON.stringify(card)) {
+                  next[id] = repaired;
+                  changed += 1;
+                }
+              });
+              return { library: next, changed };
+            },
+            expectedFor: (playerName) => [
+              ...(expectedByPlayer.get(playerKey(playerName)) || []),
+            ],
+          };
+          return Promise.resolve();
         }
         function allRankedPlayers() {
           const players = new Map();
