@@ -994,6 +994,10 @@
               const baked = JSON.parse(document.getElementById("baked_data")?.textContent || "{}");
               if (!baked[CARD_LIBRARY_KEY]) return;
               setData(CARD_LIBRARY_KEY, baked[CARD_LIBRARY_KEY]);
+              // The published baseline may predate the current one-time card
+              // cleanup. Normalize it immediately so Reset never reintroduces
+              // the old caps/goals field inversion into the next draft.
+              cleanExistingPlayerCards();
               localStorage.removeItem("hs_player_card_batch_v13");
               localStorage.removeItem("hs_player_card_batch_v14");
               localStorage.removeItem(PLAYER_BATCH_STATE_KEY);
