@@ -44,6 +44,7 @@
   };
   let isRendering = false;
   let observer = null;
+  let renderScheduled = false;
 
   function bodyHTML(value) {
     const text = String(value || "").replace(/\r\n/g, "\n").trim();
@@ -317,25 +318,33 @@
   function scheduleRender() {
     removeOffHomeHeadlines();
     if (!pageIsHomeActive()) return;
-    if (typeof queueMicrotask === "function") queueMicrotask(render);
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(render);
-    setTimeout(render, 40);
-    setTimeout(render, 180);
+    if (renderScheduled) return;
+    renderScheduled = true;
+    const run = () => {
+      renderScheduled = false;
+      render();
+    };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+    else setTimeout(run, 0);
   }
 
   function openItem(type, index) {
     const item = allEntries().find((candidate) => candidate.type === type && candidate.index === Number(index));
     if (!item) return;
+    const isTransferGrade = type === "transfer" && item.entry?.type === "grades";
     if (type === "transfer") {
-      window.HSWritingSystem?.showTransferPage?.(item.entry?.type === "grades" ? "grades" : "recs");
-      window.HSWritingSystem?.filterTransferClub?.("all");
+      window.HSWritingSystem?.showTransferPage?.(isTransferGrade ? "grades" : "recs");
     } else {
       window.showPage?.(item.cfg.page);
     }
     setTimeout(() => {
+      if (isTransferGrade) {
+        window.HSWritingSystem?.openTransferGrade?.(Number(index));
+        return;
+      }
       document.querySelector(`[data-writing-type="${type}"][data-writing-index="${Number(index)}"]`)
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
+    }, 0);
   }
 
   function continueReading(button, type, index) {
@@ -387,11 +396,8 @@
       window.renderHomePostFeed = scheduleRender;
       patchShowPage();
       watchHomeRoot();
-      scheduleRender();
+      if (!document.querySelector("#homePostFeed .hs-home-reading-layout")) scheduleRender();
     });
-    setTimeout(patchShowPage, 120);
-    setTimeout(patchShowPage, 400);
-    setTimeout(watchHomeRoot, 400);
     document.addEventListener("halfspace:data-updated", scheduleRender);
   }
 
