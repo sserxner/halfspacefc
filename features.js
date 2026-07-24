@@ -783,7 +783,7 @@
           .filter(Boolean);
         const cleanList = (value) =>
           Array.isArray(value) ? value.filter((item) => item && typeof item === "object") : [];
-        const PLAYER_CARD_CLEANUP_VERSION = 1;
+        const PLAYER_CARD_CLEANUP_VERSION = 2;
         const normalizedFact = (value) => String(value || "")
           .normalize("NFKD")
           .replace(/[\u0300-\u036f]/g, "")
@@ -824,8 +824,31 @@
           .map((title) => title.trim())
           .filter(Boolean)
           .filter(isMajorIndividualAward);
+        function normalizedInternationalStats(card) {
+          let caps = String(card?.internationalCaps ?? "").trim();
+          let goals = String(card?.internationalGoals ?? "").trim();
+          const numericCaps = /^\d{1,4}$/.test(caps) ? Number(caps) : NaN;
+          const numericGoals = /^\d{1,4}$/.test(goals) ? Number(goals) : NaN;
+          const impossibleCaps =
+            Number.isFinite(numericCaps) &&
+            (numericCaps > 300 || (numericCaps >= 1900 && numericCaps <= 2035));
+          if (impossibleCaps) {
+            caps = "";
+            goals = "";
+          } else if (!caps && Number.isFinite(numericGoals)) {
+            // A previous bulk importer placed the national-team appearance
+            // total in internationalGoals for cards whose caps field was
+            // blank. Preserve the known total as caps; do not invent goals.
+            caps = String(numericGoals);
+            goals = "";
+          }
+          return { caps, goals };
+        }
         function sanitizePlayerCard(card, markClean = false) {
           const clean = JSON.parse(JSON.stringify(card || {}));
+          const international = normalizedInternationalStats(clean);
+          clean.internationalCaps = international.caps;
+          clean.internationalGoals = international.goals;
           clean.careerStints = careerStints(clean);
           clean.individualAwards = individualAwards(clean);
           if (Object.prototype.hasOwnProperty.call(clean, "individualTitles"))
@@ -933,7 +956,7 @@
           const transferValue = String(card.transferValue || "").trim();
           const groups = [
             [["Current club", isCurrentPlayer ? card.currentClub : ""], ["Transfer value", isCurrentPlayer && !/^(?:n\/?a|unknown|—)$/i.test(transferValue) ? transferValue : ""]],
-            [["National team", card.nationalTeam || card.nationality], ["Caps (Goals)", card.internationalCaps || card.internationalGoals ? `${card.internationalCaps || "—"} (${card.internationalGoals || "—"})` : ""]],
+            [["National team", card.nationalTeam || card.nationality], ["Caps (Goals)", card.internationalCaps ? `${card.internationalCaps}${card.internationalGoals ? ` (${card.internationalGoals})` : ""}` : ""]],
             [["Age", isCurrentPlayer ? calculatedAge(card.dateOfBirth) || card.age : ""]],
           ].map((group) => group.filter(([, item]) => String(item || "").trim())).filter((group) => group.length);
           return groups.length
@@ -947,8 +970,8 @@
           if (!team && !caps && !goals) return "";
           const facts = [];
           if (team) facts.push(["National team", team]);
-          if (caps || goals)
-            facts.push(["Caps (Goals)", `${caps || "—"} (${goals || "—"})`]);
+          if (caps)
+            facts.push(["Caps (Goals)", `${caps}${goals ? ` (${goals})` : ""}`]);
           return `<section class="rank-profile-section"><div class="rank-profile-label">International</div>${facts.length ? `<div class="rank-profile-facts rank-profile-facts-compact">${facts.map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>` : ""}</section>`;
         };
         const hasTeamHonours = (card, stints) =>
@@ -983,7 +1006,7 @@
           const reject = /third place|runner[-\s]?up|second place|silver medal|bronze medal|finalist/i;
           const allowedTitle = (value) => {
             const base = String(value || "")
-              .replace(/^[^:]{2,70}:\s*/, "")
+              .replace(/^(?:[^:]{2,70}:\s*)+/, "")
               .replace(/\s*[×x]\s*\d+\s*$/i, "")
               .replace(/\s*\(\s*\d+\s*\)\s*$/i, "")
               .replace(/\s*[—:-]\s*(?:19|20)\d{2}.*$/i, "")
@@ -1009,7 +1032,11 @@
 	            if (!name) return;
 	            const group = grouped.get(name.toLowerCase()) || { name, count: 0, years: [], details: [] };
 	            group.count += countMatch ? Number(countMatch[1]) : years.length || 1;
-            years.forEach((year) => {
+	            const reliableYears =
+	              countMatch && years.length !== Number(countMatch[1])
+	                ? []
+	                : years;
+	            reliableYears.forEach((year) => {
               if (!group.years.includes(year)) group.years.push(year);
             });
             if (detail && !group.details.includes(detail)) group.details.push(detail);
